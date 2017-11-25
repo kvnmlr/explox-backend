@@ -187,22 +187,25 @@ TODO ALL\\
 Which equipment do you plan to utilize?
 
 \section{Related Work}
-TODO KEV\\
-Overview about scientific work and existing commercial systems. How does your system compare to related work and what makes it different / better?
+In the following section, we will examine previous work done on the topics of route planning, (urban) exploration and motivation in sports and sightseeing. While the former two will give us an overview over different approaches to navigation and goals in exploration, the latter will help us design our prototype in order to motivate users to explore the area as well as complete their training routine and become better athletes.
 \subsection{Route Planning}
-Investigating and Supporting Undirected Navigation for Runners \cite{undirectedrunnernav}\\
-Follow the Pioneers \cite{followthepioneers} \\
-Computing New Optimized Routes for GPS Navigators \cite{evolutionaryalgonav} \\
-Development of a Navigation System with a Route Planning Algorithm Using Body-Worn Sensors \cite{routeplanningbodywornsensors} 
-\subsection{Exploration}
-Investigating and Supporting Undirected Navigation for Runners \cite{undirectedrunnernav} \\
-''I Did It My Way'': Moving Away from the Tyranny of Turn-by-Turn Pedestrian Navigation \cite{ididitmyway} \\
-Understanding Geocaching Practices and Motivation \cite{o2008understanding} \\
-\subsection{Motivation and Design}
-Sightseeing Tourists Motivation and Satisfaction \cite{DUNNROSS1991226} \\
-Analysis of Intrinsic and Extrinsic Motivation in Sport \cite{vallerand1999integrative} \\
-Understanding Geocaching Practices and Motivation \cite{o2008understanding} \\
+Route planning has become a very hot research topic in mobile HCI because of the rise of smartphones, smartwatches and other wearables. Pedestrian navigation is particularly interesting because it is much more diverse than the regular turn-by-turn navigation used in car navigation systems.\\
+McGookin and Brewster have done an analysis on how runners navigate the environment and presented a novel navigation system for runners \cite{undirectedrunnernav}. Their main finding was that there are two types of running practices. Familiar location running is characterized by loops (i.e. circuit tracks) and runners usually plan the route beforehand but only use their mental model of the environment while running. On the other hand, unfamiliar location running is not in a loop but in back runs (i.e. runners go from A to B and then the same way back to A). This is a problem, because unfamiliar location running is mainly used ''as a way to explore the environment and identify places to later visit''. Our approach will address this problem by giving the runners the opportunity to explore new areas and at the same time see as much as possible by not running the same way back again.\\
+In order to provide a good running experience, the route has to be selected carefully. There are many approaches that not only work on distance or time to calculate a route but also take into account other factors. Stolfi and Alba noticed that most navigators used the same route leading to traffic jams \cite{evolutionaryalgonav}. They proposed a system that uses traffic data to re-direct cars in order to spread traffic more evenly leading to a better traffic situation. For instance, they improved travel times by 18\% and greenhouse gas emission by 14\%.\\
+Katayama et al. took a similar approach and navigated visitors of events using body-worn sensors in order to avoid congestions and other problems that are difficult for event managers \cite{routeplanningbodywornsensors}.\\
+There are web mapping services such as Strava (\hyperlink{http://strava.com}{www.strava.com}) and Komoot (\hyperlink{http://komoot.com}{www.komoot.com}) that also provide information about the surface of the track in order to better plan the route. For instance, cyclists can easily identify off-road streets and plan their route accordingly.\\
+As an extension to those online services, Daiber et al. have proposed a concept of pioneers to support mountaineers in their route planning. The idea is that you can select a number of friends of experienced mountaineers called Pioneers. The user will see the routes they have recently taken and can incorporate them into their own route planning \cite{followthepioneers}. \\
 
+\subsection{Exploration}
+As already identified by McGookin and Brewster, exploring the environment is an important motivational factor for runners \cite{undirectedrunnernav}. In familiar location running, the main objectives are to meet a distance, time or place target rather than enjoying the environment. However, when the user is in an unfamiliar location, these objectives are reversed. They find that this is mostly the case on holidays, however, we want to find out whether we can get athletes to take unfamiliar routes and explore areas of cities where they have been living for a longer period of time as well.\\
+Robinson et al. have implemented an approach where they encourage people to explore the area by giving different haptic feedback when they can take alternative routes \cite{ididitmyway}. They could show that people reach their target with only low-resolution haptic feedback and providing users with alternative path awareness is also beneficial.\\
+In the same way, O'Hara could identify discovering and exploring new places as one of the main motivations in geocaching \cite{o2008understanding}. The targets geocachers are looking for are often hidden in special places that are particularly beautiful but also abandoned places such as factories or hospitals.\\
+There has also been a movement called urban exploration movement where people go to and explore abandoned places \cite{urbanexploration}. The growing interest in geocaching and urban exploration shows that people care about the environment they are living in and want to find out more about it. To support this, Quercia et al. have build a system to determine aesthetic qualities of a city \cite{aestheticslondon}. They used this data in a navigation system where users are guided through particularly beautiful, happy or quiet areas.
+
+\subsection{Motivation and Design}
+When designing our system, we must not forget about what motives people to do sports in the first place. It is important to provide a way to explore the city as motivation but this alone will not encourage athletes to use our system in their regular training routine. We will try to incorporate several motivational factors into the design of our system.\\
+Vallerand et al. have identified three psychological needs which are the reason why people take part in sports \cite{vallerand2007intrinsic}. Those needs are the need for autonomy, competence and relatedness \cite{vallerand1999integrative}. The need for competence is satisfied by giving the athletes regular success and not make them fail all the time. Some competition is good but overall the training climate should be mastery-oriented and not highly competitive. The need for relatedness is satisfied by providing means for athletes to cooperate, share and do activities together. Giving the users some freedom of what they want to do satisfies their need for autonomy \cite{vallerand2007intrinsic}.\\
+In a similar fashion, Ross and Iso-Ahola have identified knowledge seeking and social interaction as the dominating motivation force in sightseeing. The take-home-message from their research is that it is important to teach users something while they are exploring and at the same time give them the opportunity for social interaction \cite{DUNNROSS1991226}.
 
 \section{Evaluation \& Testing}
 Testing and Evaluation will be a key part of our project. We will split this into three parts. 
