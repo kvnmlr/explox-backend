@@ -76,7 +76,7 @@
 % Paper metadata (use plain text, for PDF inclusion and later
 % re-using, if desired).  Use \emtpyauthor when submitting for review
 % so you remain anonymous.
-\def\plaintitle{UbiSports Project Proposal}
+\def\plaintitle{ExploX - Seminar Project Proposal}
 \def\plainauthor{Kevin M\"uller, Marc Rupp, Lukas Strobel, Xueting Li}
 \def\emptyauthor{}
 \def\plainkeywords{}
@@ -150,8 +150,7 @@
 \maketitle
 
 \begin{abstract}
-  In this proposal, we present SaarX
-, an android app that allows for route creation and exploration of less frequented areas.With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. \textbf{}
+  In this proposal, we present ExploX, an app that allows for route creation and exploration of less frequented areas.With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. \textbf{}
 \end{abstract}
 
 \category{H.5.m.}{Information Interfaces and Presentation
@@ -187,44 +186,74 @@ A reference \cite{dorr2009gaze}
   \includegraphics[width=0.2\columnwidth]{figures/cats}
   \caption{This is a sample figure}~\label{fig:figure2}
 \end{figure}
-\begin{itemize}
-\item A
-\item simple
-\item list
-\end{itemize}
+
 \end{comment}
 
 
 \section{Introduction}
-In the last 10 years, the services such as Google Map  that enable point to point navigation and  Geocaching that enable people to explore unfamiliar areas have made great progress and bring more fun. Nowadays also a variety of services such as Strava and komoot emerge not only navigation but also route planning for running and biking. Based on these service, we want to develop an app which could  plan route and help do personal exploration of the unseen area with the history data using the API of Strava, motivating  athletes to cover more less visited parts of their environment.
+In the last 10 years, the services such as Google Maps that enable point to point navigation and  Geocaching that enable people to explore unfamiliar areas have made great progress and bring more fun. Nowadays also a variety of services such as Strava and Komoot emerge not only navigation but also route planning for running and biking. Based on these services, we want to develop an app which could plan routes and help do personal exploration of the unseen area with the history data using the API of Strava, motivating athletes to cover more less visited parts of their environment.
 
-Our aim here is to motivate athletes to explore more of less visited parts of cities. To accomplish this ,firstly we aim to create routes along paths around areas that
-the user is most unlikely to know about. The maps would be divided into two parts, the familiar area and unfamiliar area using the history data. The app would recommend person A the routes in seldom visited area but frequent visited by person B, in terms of safety. Secondly our work will allow the user to explore neglected areas knowing the current location and specific destination.So the generated route could be download and preview before exploring. Thirdly, the explored areas would fade out from dark black to transparent according the the frequency of visiting.
+Our aim here is to motivate athletes to explore more of less visited parts of cities. To accomplish this ,firstly we aim to create routes along paths around areas that the user is most unlikely to know about. The maps would be divided into two parts, the familiar area and unfamiliar area using the history data. The app would recommend person A the routes in seldom visited area but frequent visited by person B, in terms of safety. Secondly our work will allow the user to explore neglected areas knowing the current location and specific destination. So the generated route could be downloaded and preview before exploring. Thirdly, the explored areas would fade out from dark black to transparent according the the frequency of visiting.
 
-Psychogeography is the practice of exploring the urban
-environment with the intention to investigate the effects on feelings and behavior. To generate a complete image of the city this is necessary, as the Psychogeographers argue. This is one of the  reason we want to create the fading map.
+Psychogeography is the practice of exploring the urban environment with the intention to investigate the effects on feelings and behavior. To generate a complete image of the city this is necessary, as the Psychogeographers argue. This is one of the  reason we want to create the fading map.
 
-Taking routes of another could avoid  the case of illegal exploration. One has to explore parts of the environment that are normally not frequented.As our aim with this project is not to support illegal activities we do not consider the actual exploration of such areas  which is regarded as danger.
+Taking routes of another athlete could avoid the case of illegal exploration or simply routes that are not suited for running or cycling. One has to explore parts of the environment that are normally not frequented.As our aim with this project is not to support illegal activities we do not consider the actual exploration of such areas  which is regarded as danger.
 
- Using the social media sources and personal
-location history we determine areas that are less frequented and might be unknown even to citizens living in the city for a long time. The design of the saarX application, tries to combine the ideas of the psychogeography movement from the 60s with more recent developments of the exploration and Strava communities. With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. Additionally  we hope to complete the users spatial memory about their city.
+Using the social media sources and personal location history we determine areas that are less frequented and might be unknown even to citizens living in the city for a long time. The design of the ExploX application, tries to combine the ideas of the psychogeography movement from the 60s with more recent developments of the exploration and Strava communities. With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. Additionally we hope to complete the users spatial memory about their city.
 
-The paper is structured as follows. First we present the introduction and related work that led to the development of saarX. Afterwards we lay out the designing milestones, followed by its equipment. Thereafter
-we will present the our testing and evaluation
-of saarX including a discussion. Finally we will conclude and depict future work.
+The paper is structured as follows. First we present the introduction and related work that led to the development of this idea. Afterwards we lay out the designing milestones, a list of equipment and resources we need and the formal requirements for this prototype. Thereafter we will present how we want to conduct the user study in order to evaluate our approach. 
 
 \section{Milestones}
-TODO MARC\\
-Milestones you want to reach.
+In order to plan and organize our project workflow we set ourselves some milestones describing when and in which order we will work on the different parts of our project.
 
-\section{Equipment}
-Android smartphone;
-API of Strava;
-API of komoot;
-Postgis for data analysis;
-Mapdata of OSRM;
-Heap map tool of HeatmapTool;
+Until early December we will in the first step become acquainted with the Strava API, which we will develop our application for, as well as openstreetmaps.org. This includes finding out which functions and data we have access to and which functions and data are relevant and needed later on for our application. Then we will have to build internal data structures and convert the data into our own representation of it.
 
+The core algorithm which generates the route for the runner/biker will be implemented until early January. For this algorithm we will need the data from the user's Strava profile as well as the data of other Strava users and information about the streets in the user's area, which we will get from openstreetmaps. 
+
+The implementation of the fading map is planned to be done by end of January. For this we will need a scalable map, maybe from openstreetmaps, and then add another layer on top of the map which is black in the areas that the user hasn't visited yet based on his Strava data, and more and more fades away the more often you go running or biking in the corresponding area.
+
+The user interface will be designed and implemented until mid February. This includes displaying the fading map and the routes on the map in the interface
+
+Until end of February we will do the testing of our application.
+
+The evaluation will be the last part of our project and is set to be done until 28. of February or later depending on the date of the final presentation. In the evaluation we'll use the evaluation data we gathered from the test users during January and February.
+
+
+\section{Software and Hardware}
+After getting a first overview of the technical possibilities, we consider the following tools as useful candidates to use in this project.
+\begin{itemize}
+\item Smartphone for the frontend
+\item Server backend
+\item Strava API 
+\item Komoot API
+\item Postgis for data analysis
+\item Mapdata of OSRM
+\item HeatmapTool
+\end{itemize}
+
+\section{Requirements}
+The following requirements are ordered by importance, however, our goal is to achieve all of them because all of them are necessary to appropriately evaluate our prototype.
+\begin{itemize}
+\item The system will run as a web application on every smartphone using a web browser.
+\item The interface language will be available in German and English and primarily German locations/cities will be supported.
+\item The user will be able to register using Strava and upload their running/cycling history.
+\item The user will be able to see the locations they visited on a map, similar to Google Maps, that is black everywhere the user has not yet been.
+\item The user will be able to select an area they want to explore (i.e. that is still black) and enter the activity (running or cycling) and preferred distance, time and difficulty of the route.
+\item The system will return a recommended route which is displayed on the map and that matches the user's preferences.
+\item Recommended routes will always
+	\begin{itemize}
+	\item start at the current location of the user.
+	\item lead through the selected unexplored area.
+	\item use existing routes from friends (if available) or other users in the unexplored area.
+	\item not recommend routes that are not suitable for running or cycling.
+	\end{itemize}
+\item The user can select the recommended map whereupon it can be exported into a common GPS navigation format to be used on smartwatches.
+\item The system will update the black map after each run. This is done by requesting new activities from Strava. Consequently, Strava needs to be running and record whenever the user is doing the activity.
+\item The user will be given some alternative routes so they can select their preferred one.
+\item The users' data (i.e. preferences, explored locations) will be stored on a server.
+\item The system will use the user's current location as start and destination points, but the user can also specify their preferred start and destination for routes.
+\item The system will implement established security measures to secure the users' data.
+\end{itemize}
 
 \section{Related Work}
 In the following section, we will examine previous work done on the topics of route planning, (urban) exploration and motivation in sports and sightseeing. While the former two topics will give us an overview over different approaches to navigation and goals in exploration, the latter will help us design our prototype in order to motivate users to explore unfamiliar areas as well as complete their training routine and become better athletes.
