@@ -1,0 +1,6 @@
+node_modules/
+.monitor
+config/env/env.json
+Makefile
+.DS_Store
+.env
