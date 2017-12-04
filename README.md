@@ -19,9 +19,9 @@ Sports Technologies Seminar
 * Make sure the server has been started (see above)
 * Run mongo ([mongoroot]\Server\3.4\bin\mongo.exe)
 * Execute the following commands within mongo:
-** "show dbs" -> should show exploxdb
-** "use exploxdb
-** "show collections" -> should display sessions and users
-** "db.users.find()" -> should display a user called "System"
+  * "show dbs" -> should show exploxdb
+  * "use exploxdb
+  * "show collections" -> should display sessions and users
+  * "db.users.find()" -> should display a user called "System"
 * This means, the user System has been registered by default
 * Try to log in using e-mail "system@explox.de" and password "manager"
