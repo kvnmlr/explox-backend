@@ -28,9 +28,9 @@ Sports Technologies Seminar
 
 ## Check Strava Connection
 * Set up the API: open .env file in project root and add/edit the following two lines:
-** STRAVA_CLIENTID=<21869>
-** STRAVA_SECRET=<a9129fe0b77c79b393aff6e21572186a1daf86d4>
-** Note that the secret must never become public, i.e. users must not be able to access it!
+  * STRAVA_CLIENTID=<21869>
+  * STRAVA_SECRET=<a9129fe0b77c79b393aff6e21572186a1daf86d4>
+  * Note that the secret must never become public, i.e. users must not be able to access it!
 * Start the server
 * Create an account on Strava.com and log in
 * Visit https://www.strava.com/oauth/authorize?client_id=21869&response_type=code&redirect_uri=http://localhost:3000&scope=write&state=mystate&approval_prompt=force
