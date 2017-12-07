@@ -20,7 +20,8 @@ const articleAuth = [auth.requiresLogin, auth.article.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
 
 const fail = {
-    failureRedirect: '/login'
+    failureRedirect: '/login',
+    failWithError: true
 };
 
 /**
@@ -31,7 +32,8 @@ module.exports = function (app, passport) {
     const pauth = passport.authenticate.bind(passport);
 
     // strava routes
-    app.get('/auth/strava/callback', strava.authCallback, articles.index);
+    app.get('/auth/strava/callback', pauth('strava', fail), strava.getAthlete, users.authCallback);
+    app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // user routes
     app.get('/login', users.login);

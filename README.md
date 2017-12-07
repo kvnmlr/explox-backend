@@ -29,8 +29,8 @@ Sports Technologies Seminar
 ## Check Strava Connection
 * Start the server
 * Create an account on Strava.com and log in
-* Visit https://www.strava.com/oauth/authorize?client_id=21869&response_type=code&redirect_uri=http://localhost:3000/auth/strava/callback&scope=write&state=mystate&approval_prompt=force
+* Go to the ExploX login page and click on the leftmost button (next to facebook, does not have an icon yet)
 * Grant the ExploX app permission to access your data
 * The browser should redirect to the ExploX Website (i.e. localhost:3000)
+* You should be logged in and able to access your profile from the menu at the top
 * Check the npm console log, the last log entry should contain the user data
-

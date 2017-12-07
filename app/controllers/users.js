@@ -61,7 +61,9 @@ exports.show = function (req, res) {
   });
 };
 
-exports.signin = function () {};
+exports.signin = function () {
+  console.log('signin')
+};
 
 /**
  * Auth callback

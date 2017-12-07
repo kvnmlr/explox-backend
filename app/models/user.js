@@ -13,7 +13,8 @@ const oAuthTypes = [
   'twitter',
   'facebook',
   'google',
-  'linkedin'
+  'linkedin',
+    'strava'
 ];
 
 /**
@@ -32,7 +33,8 @@ const UserSchema = new Schema({
   twitter: {},
   github: {},
   google: {},
-  linkedin: {}
+  linkedin: {},
+    strava: {}
 });
 
 const validatePresenceOf = value => value && value.length;

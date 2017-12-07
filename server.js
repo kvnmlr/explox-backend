@@ -46,14 +46,27 @@ function listen () {
   app.listen(port);
 
   console.log('Express app started on port ' + port);
-  const User = mongoose.model('User');
-  const user = new User({
-      name: 'system',
-      email: 'system@explox.de',
-      username: 'sys',
-      password: 'manager' });
-  user.provider = 'local';
-  user.save();
+
+  // create default user
+    const User = mongoose.model('User');
+    const options = {
+        criteria: { 'email': 'system@explox.de' }
+    };
+    User.load(options, function (err, user) {
+        if (err) return done(err);
+        if (!user) {
+            user = new User({
+                name: 'system',
+                email: 'system@explox.de',
+                username: 'sys',
+                provider: 'local',
+                password: 'manager'
+            });
+            user.save(function (err) {
+                if (err) console.log(err);
+            });
+        }
+    });
 }
 
 function connect () {

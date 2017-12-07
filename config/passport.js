@@ -1,6 +1,6 @@
 'use strict';
 
-/*!
+/*
  * Module dependencies.
  */
 
@@ -13,6 +13,7 @@ const facebook = require('./passport/facebook');
 const twitter = require('./passport/twitter');
 const linkedin = require('./passport/linkedin');
 const github = require('./passport/github');
+const strava = require('./passport/strava');
 
 /**
  * Expose
@@ -31,4 +32,5 @@ module.exports = function (passport) {
   passport.use(twitter);
   passport.use(linkedin);
   passport.use(github);
+  passport.use(strava);
 };
