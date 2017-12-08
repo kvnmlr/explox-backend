@@ -44,7 +44,7 @@ exports.index = async(function* (req, res) {
     const count = yield Article.count();
 
     respond(res, 'articles/index', {
-        title: 'Articles',
+        title: 'Routes',
         articles: articles,
         page: page + 1,
         pages: Math.ceil(count / limit)

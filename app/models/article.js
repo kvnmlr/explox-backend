@@ -156,6 +156,21 @@ ArticleSchema.statics = {
     },
 
     /**
+     * Load
+     *
+     * @param {Object} options
+     * @param {Function} cb
+     * @api private
+     */
+
+    load_options: function (options, cb) {
+        options.select = options.select || 'title';
+        return this.findOne(options.criteria)
+            .select(options.select)
+            .exec(cb);
+    },
+
+    /**
      * List articles
      *
      * @param {Object} options

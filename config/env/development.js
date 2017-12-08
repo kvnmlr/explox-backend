@@ -5,7 +5,7 @@
  */
 
 module.exports = {
-    db: 'mongodb://localhost/exploxdb',
+    db: 'mongodb://localhost/exploxdb_dev',
     strava: {
         clientID: process.env.STRAVA_CLIENTID,
         clientSecret: process.env.STRAVA_SECRET,
