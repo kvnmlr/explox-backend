@@ -17,9 +17,9 @@ const co = require('co');
  */
 
 exports.cleanup = function (t) {
-  co(function* () {
-    yield User.remove();
-    yield Article.remove();
-    t.end();
-  });
+    co(function* () {
+        yield User.remove();
+        yield Article.remove();
+        t.end();
+    });
 };

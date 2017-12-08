@@ -12,7 +12,7 @@ exports.getAthlete = function (token, id, next) {
     console.log('getAthlete');
     token = 'bbce2bb24e29d612f1bdc546a2a8962f9e0a8e9d';
     id = 25958351;
-    strava.athletes.get({ id: id, access_token: token },function (err,payload,limits) {
+    strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
         if (err) {
             console.log('Error ' + err);
             return;
@@ -25,13 +25,17 @@ exports.getAthlete = function (token, id, next) {
 };
 
 exports.authCallback = function (req, res, next) {
-    var myJSONObject = { 'client_id' : config.strava.clientID, 'client_secret' : config.strava.clientSecret, 'code' : req.query.code };
+    var myJSONObject = {
+        'client_id': config.strava.clientID,
+        'client_secret': config.strava.clientSecret,
+        'code': req.query.code
+    };
     request({
         url: 'https://www.strava.com/oauth/token',
         method: 'POST',
         json: true,
         body: myJSONObject
-    }, function (error, response){
+    }, function (error, response) {
         // console.log(response);
 
         var id = 25958351;                                      // todo read id from response

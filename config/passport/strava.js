@@ -23,7 +23,7 @@ module.exports = new StravaStrategy({
         console.log("refresh token: " + refreshToken);
 
         const options = {
-            criteria: { 'strava.id': parseInt(profile.id) }
+            criteria: {'strava.id': parseInt(profile.id)}
         };
         User.load(options, function (err, user) {
             if (err) return done(err);

@@ -22,17 +22,17 @@ const github = require('./passport/github');*/
 
 module.exports = function (passport) {
 
-  // serialize sessions
-  passport.serializeUser((user, cb) => cb(null, user.id));
-  passport.deserializeUser((id, cb) => User.load({ criteria: { _id: id } }, cb));
+    // serialize sessions
+    passport.serializeUser((user, cb) => cb(null, user.id));
+    passport.deserializeUser((id, cb) => User.load({criteria: {_id: id}}, cb));
 
-  // use these strategies
-  passport.use(local);
+    // use these strategies
+    passport.use(local);
     passport.use(strava);
 
-  /*  passport.use(google);
-  passport.use(facebook);
-  passport.use(twitter);
-  passport.use(linkedin);
-  passport.use(github); */
+    /*  passport.use(google);
+    passport.use(facebook);
+    passport.use(twitter);
+    passport.use(linkedin);
+    passport.use(github); */
 };
