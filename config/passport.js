@@ -8,12 +8,13 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
 const local = require('./passport/local');
-const google = require('./passport/google');
+const strava = require('./passport/strava');
+
+/*const google = require('./passport/google');
 const facebook = require('./passport/facebook');
 const twitter = require('./passport/twitter');
 const linkedin = require('./passport/linkedin');
-const github = require('./passport/github');
-const strava = require('./passport/strava');
+const github = require('./passport/github');*/
 
 /**
  * Expose
@@ -27,10 +28,11 @@ module.exports = function (passport) {
 
   // use these strategies
   passport.use(local);
-  passport.use(google);
+    passport.use(strava);
+
+  /*  passport.use(google);
   passport.use(facebook);
   passport.use(twitter);
   passport.use(linkedin);
-  passport.use(github);
-  passport.use(strava);
+  passport.use(github); */
 };

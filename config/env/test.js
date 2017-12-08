@@ -6,6 +6,12 @@
 
 module.exports = {
     db: 'mongodb://localhost/exploxdb',
+    strava: {
+        clientID: process.env.STRAVA_CLIENTID,
+        clientSecret: process.env.STRAVA_SECRET,
+        callbackURL: 'http://localhost:3000/auth/strava/callback'
+    },
+    /*
     facebook: {
         clientID: process.env.FACEBOOK_CLIENTID,
         clientSecret: process.env.FACEBOOK_SECRET,
@@ -31,9 +37,5 @@ module.exports = {
         clientSecret: process.env.GOOGLE_SECRET,
         callbackURL: 'http://localhost:3000/auth/google/callback'
     },
-    strava: {
-        clientID: process.env.STRAVA_CLIENTID,
-        clientSecret: process.env.STRAVA_SECRET,
-        callbackURL: 'http://localhost:3000/auth/strava/callback'
-    }
+    */
 };

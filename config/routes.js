@@ -46,7 +46,8 @@ module.exports = function (app, passport) {
             failureFlash: 'Invalid email or password.'
         }), users.session);
     app.get('/users/:userId', users.show);
-    app.get('/auth/facebook',
+
+    /*app.get('/auth/facebook',
         pauth('facebook', {
             scope: ['email', 'user_about_me'],
             failureRedirect: '/login'
@@ -72,7 +73,7 @@ module.exports = function (app, passport) {
                 'r_emailaddress'
             ]
         }), users.signin);
-    app.get('/auth/linkedin/callback', pauth('linkedin', fail), users.authCallback);
+    app.get('/auth/linkedin/callback', pauth('linkedin', fail), users.authCallback); */
 
     app.param('userId', users.load);
 

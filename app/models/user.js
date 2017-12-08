@@ -9,12 +9,12 @@ const crypto = require('crypto');
 
 const Schema = mongoose.Schema;
 const oAuthTypes = [
-  'github',
+    'strava',
+    /* 'github',
   'twitter',
   'facebook',
   'google',
-  'linkedin',
-    'strava'
+  'linkedin', */
 ];
 
 /**
@@ -29,12 +29,13 @@ const UserSchema = new Schema({
   hashed_password: { type: String, default: '' },
   salt: { type: String, default: '' },
   authToken: { type: String, default: '' },
-  facebook: {},
+    strava: {}
+
+    /* facebook: {},
   twitter: {},
   github: {},
   google: {},
-  linkedin: {},
-    strava: {}
+  linkedin: {}, */
 });
 
 const validatePresenceOf = value => value && value.length;
