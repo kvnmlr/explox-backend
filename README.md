@@ -19,8 +19,8 @@ Sports Technologies Seminar
 * Make sure the server has been started (see above)
 * Run mongo ([mongoroot]\Server\3.4\bin\mongo.exe)
 * Execute the following commands within mongo:
-  * "show dbs" -> should show exploxdb
-  * "use exploxdb"
+  * "show dbs" -> should show exploxdb_test (used by unit tests) and exploxdb_dev (used in development)
+  * "use exploxdb_dev"
   * "show collections" -> should display sessions and users
   * "db.users.find()" -> should display a user called "System"
   * "db.articles.find()" -> should display a article called "Test Route"
