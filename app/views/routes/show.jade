@@ -26,9 +26,9 @@ block content
       - if (!article.isNew && article.image && article.image.files && article.image.files.length)
         img(src=article.image.cdnUri + '/mini_' + article.image.files[0])
 
-  form(action="/articles/"+article.id, method="post", onsubmit="return confirm('Are you sure?')")
+  form(action="/routes/"+article.id, method="post", onsubmit="return confirm('Are you sure?')")
     input(type='hidden', name='_csrf', value="#{csrf_token}")
-    a.btn.btn-default(href='/articles/'+article._id+'/edit', title="edit") Edit
+    a.btn.btn-default(href='/routes/'+article._id+'/edit', title="edit") Edit
     | &nbsp;
     input(type="hidden", name="_method", value="DELETE")
     button.btn.btn-danger(type="submit") Delete

@@ -25,14 +25,14 @@ exports.user = {
 };
 
 /*
- *  Article authorization routing middleware
+ *  Route authorization routing middleware
  */
 
 exports.article = {
     hasAuthorization: function (req, res, next) {
         if (req.article.user.id != req.user.id) {
             req.flash('info', 'You are not authorized');
-            return res.redirect('/articles/' + req.article.id);
+            return res.redirect('/routes/' + req.article.id);
         }
         next();
     }
@@ -50,7 +50,7 @@ exports.comment = {
             next();
         } else {
             req.flash('info', 'You are not authorized');
-            res.redirect('/articles/' + req.article.id);
+            res.redirect('/routes/' + req.article.id);
         }
     }
 };

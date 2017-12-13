@@ -26,9 +26,9 @@ block content
 
   p
     br
-    form.center.form-inline.confirm(action="/articles/"+article.id, method="post")
+    form.center.form-inline.confirm(action="/routes/"+article.id, method="post")
       input(type='hidden', name='_csrf', value="#{csrf_token}")
-      a.btn(href='/articles/'+article._id+'/edit', title="edit") Edit
+      a.btn(href='/routes/'+article._id+'/edit', title="edit") Edit
       | &nbsp;&nbsp;
       input(type="hidden", name="_method", value="DELETE")
       button.btn.btn-danger(type="submit") delete

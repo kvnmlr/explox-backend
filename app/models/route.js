@@ -17,10 +17,10 @@ const getTags = tags => tags.join(',');
 const setTags = tags => tags.split(',');
 
 /**
- * Article Schema
+ * Route Schema
  */
 
-const ArticleSchema = new Schema({
+const RouteSchema = new Schema({
     title: {type: String, default: '', trim: true},
     body: {type: String, default: '', trim: true},
     user: {type: Schema.ObjectId, ref: 'User'},
@@ -41,21 +41,21 @@ const ArticleSchema = new Schema({
  * Validations
  */
 
-ArticleSchema.path('title').required(true, 'Article title cannot be blank');
-ArticleSchema.path('body').required(true, 'Article body cannot be blank');
+RouteSchema.path('title').required(true, 'Route title cannot be blank');
+RouteSchema.path('body').required(true, 'Route body cannot be blank');
 
 /**
  * Pre-remove hook
  */
 
-ArticleSchema.pre('remove', function (next) {
+RouteSchema.pre('remove', function (next) {
     // const imager = new Imager(imagerConfig, 'S3');
     // const files = this.image.files;
 
     // if there are files associated with the item, remove from the cloud too
     // imager.remove(files, function (err) {
     //   if (err) return next(err);
-    // }, 'article');
+    // }, 'Route');
 
     next();
 });
@@ -64,7 +64,7 @@ ArticleSchema.pre('remove', function (next) {
  * Methods
  */
 
-ArticleSchema.methods = {
+RouteSchema.methods = {
 
     /**
      * Save article and upload image
@@ -88,7 +88,7 @@ ArticleSchema.methods = {
             self.image = { cdnUri : cdnUri, files : files };
           }
           self.save(cb);
-        }, 'article');
+        }, 'Route');
         */
     },
 
@@ -139,10 +139,10 @@ ArticleSchema.methods = {
  * Statics
  */
 
-ArticleSchema.statics = {
+RouteSchema.statics = {
 
     /**
-     * Find article by id
+     * Find route by id
      *
      * @param {ObjectId} id
      * @api private
@@ -171,7 +171,7 @@ ArticleSchema.statics = {
     },
 
     /**
-     * List articles
+     * List routes
      *
      * @param {Object} options
      * @api private
@@ -190,4 +190,4 @@ ArticleSchema.statics = {
     }
 };
 
-mongoose.model('Article', ArticleSchema);
+mongoose.model('Route', RouteSchema);

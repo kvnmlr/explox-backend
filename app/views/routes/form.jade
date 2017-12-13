@@ -4,7 +4,7 @@ block main
   h1= title
 
 block content
-  - var action = '/articles'
+  - var action = '/routes'
   - action += article.isNew? '' : '/' + article.id
 
   .row
@@ -40,7 +40,7 @@ block content
           .col-sm-offset-2.col-sm-10
             button.btn.btn-primary(type='submit') Save
             | &nbsp;
-            a.btn(href='/articles', title="cancel") Cancel
+            a.btn(href='/routes', title="cancel") Cancel
 
     .col-md-4
       - if (!article.isNew && article.image && article.image.files && article.image.files.length)

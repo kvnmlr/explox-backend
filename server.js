@@ -83,7 +83,7 @@ function createDefaultUsers() {
 
 function createSampleRoute() {
     console.log("Creating sample route ...");
-    const Route = mongoose.model('Article');
+    const Route = mongoose.model('Route');
 
     Route.find({}).exec(function (err, routes) {
         const options = {

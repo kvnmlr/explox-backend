@@ -5,7 +5,7 @@
  */
 
 const users = require('../app/controllers/users');
-const articles = require('../app/controllers/articles');
+const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
 const strava = require('../app/controllers/strava')
 const tags = require('../app/controllers/tags');
@@ -16,7 +16,7 @@ const auth = require('./middlewares/authorization');
  * Route middlewares
  */
 
-const articleAuth = [auth.requiresLogin, auth.article.hasAuthorization];
+const routeAuth = [auth.requiresLogin, auth.article.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
 
 const fail = {
@@ -78,23 +78,23 @@ module.exports = function (app, passport) {
     app.param('userId', users.load);
 
     // article routes
-    app.param('id', articles.load);
-    app.get('/articles', articles.index);
-    app.get('/articles/new', auth.requiresLogin, articles.new);
-    app.post('/articles', auth.requiresLogin, articles.create);
-    app.get('/articles/:id', articles.show);
-    app.get('/articles/:id/edit', articleAuth, articles.edit);
-    app.put('/articles/:id', articleAuth, articles.update);
-    app.delete('/articles/:id', articleAuth, articles.destroy);
+    app.param('id', routes.load);
+    app.get('/routes', routes.index);
+    app.get('/routes/new', auth.requiresLogin, routes.new);
+    app.post('/routes', auth.requiresLogin, routes.create);
+    app.get('/routes/:id', routes.show);
+    app.get('/routes/:id/edit', routeAuth, routes.edit);
+    app.put('/routes/:id', routeAuth, routes.update);
+    app.delete('/routes/:id', routeAuth, routes.destroy);
 
     // home route
-    app.get('/', articles.index);
+    app.get('/', routes.index);
 
     // comment routes
     app.param('commentId', comments.load);
-    app.post('/articles/:id/comments', auth.requiresLogin, comments.create);
-    app.get('/articles/:id/comments', auth.requiresLogin, comments.create);
-    app.delete('/articles/:id/comments/:commentId', commentAuth, comments.destroy);
+    app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
+    app.get('/routes/:id/comments', auth.requiresLogin, comments.create);
+    app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);
 
     // tag routes
     app.get('/tags/:tag', tags.index);

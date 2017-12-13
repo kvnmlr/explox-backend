@@ -107,7 +107,7 @@
 % - book, inbook, and manual use "location: publisher" (or organization)
 %   for address and publisher. All other types list publishers separately.
 % - "pp." are used to identify page numbers for all entry types except
-%   articles.
+%   routes.
 % - organization is used as a citation label if neither author nor editor
 %   is present (for manuals).
 % - "et al." is used for long author and editor lists, or when "others"
@@ -2922,7 +2922,7 @@ MACRO {dec}             {"Dec."}
 %%% journal = "J. ACM" and publisher = "IEEE", is preferred in
 %%% bibliographic databases, because it makes it easier for journal
 %%% production staff to replace those definitions by publisher-preferred
-%%% abbreviations when articles are typeset for publication.
+%%% abbreviations when routes are typeset for publication.
 %%%
 %%% For historical reasons, and because some of these abbreviations are
 %%% used in other (non-ACM) bibliography style files, they are preserved

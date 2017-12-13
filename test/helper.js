@@ -5,7 +5,7 @@
  */
 
 const mongoose = require('mongoose');
-const Article = mongoose.model('Article');
+const Route = mongoose.model('Route');
 const User = mongoose.model('User');
 const co = require('co');
 
@@ -19,7 +19,7 @@ const co = require('co');
 exports.cleanup = function (t) {
     co(function* () {
         yield User.remove();
-        yield Article.remove();
+        yield Route.remove();
         t.end();
     });
 };

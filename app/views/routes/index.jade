@@ -4,13 +4,13 @@ block main
   h1= title
 
 block content
-  - if (articles.length)
-    - each article in articles
-      include article
+  - if (routes.length)
+    - each article in routes
+      include route
 
     - if (pages > 1)
       ul.pagination
         != createPagination(pages, page)
   - else
     h4.muted No Routes.&nbsp;
-      a(href="/articles/new") create one
+      a(href="/routes/new") create one

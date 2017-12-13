@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const only = require('only');
 const {respond, respondOrRedirect} = require('../utils');
-const Article = mongoose.model('Article');
+const Route = mongoose.model('Route');
 const assign = Object.assign;
 
 /**
@@ -17,8 +17,8 @@ const assign = Object.assign;
 
 exports.load = async(function* (req, res, next, id) {
     try {
-        req.article = yield Article.load(id);
-        if (!req.article) return next(new Error('Article not found'));
+        req.article = yield Route.load(id);
+        if (!req.article) return next(new Error('Route not found'));
     } catch (err) {
         return next(err);
     }
@@ -40,12 +40,12 @@ exports.index = async(function* (req, res) {
 
     if (_id) options.criteria = {_id};
 
-    const articles = yield Article.list(options);
-    const count = yield Article.count();
+    const routes = yield Route.list(options);
+    const count = yield Route.count();
 
-    respond(res, 'articles/index', {
+    respond(res, 'routes/index', {
         title: 'Routes',
-        articles: articles,
+        routes: routes,
         page: page + 1,
         pages: Math.ceil(count / limit)
     });
@@ -56,9 +56,9 @@ exports.index = async(function* (req, res) {
  */
 
 exports.new = function (req, res) {
-    res.render('articles/new', {
-        title: 'New Article',
-        article: new Article()
+    res.render('routes/new', {
+        title: 'New Route',
+        article: new Route()
     });
 };
 
@@ -68,17 +68,17 @@ exports.new = function (req, res) {
  */
 
 exports.create = async(function* (req, res) {
-    const article = new Article(only(req.body, 'title body tags'));
+    const article = new Route(only(req.body, 'title body tags'));
     article.user = req.user;
     try {
         yield article.uploadAndSave(req.file);
-        respondOrRedirect({req, res}, `/articles/${article._id}`, article, {
+        respondOrRedirect({req, res}, `/routes/${article._id}`, article, {
             type: 'success',
             text: 'Successfully created article!'
         });
     } catch (err) {
-        respond(res, 'articles/new', {
-            title: article.title || 'New Article',
+        respond(res, 'routes/new', {
+            title: article.title || 'New Route',
             errors: [err.toString()],
             article
         }, 422);
@@ -90,7 +90,7 @@ exports.create = async(function* (req, res) {
  */
 
 exports.edit = function (req, res) {
-    res.render('articles/edit', {
+    res.render('routes/edit', {
         title: 'Edit ' + req.article.title,
         article: req.article
     });
@@ -105,9 +105,9 @@ exports.update = async(function* (req, res) {
     assign(article, only(req.body, 'title body tags'));
     try {
         yield article.uploadAndSave(req.file);
-        respondOrRedirect({res}, `/articles/${article._id}`, article);
+        respondOrRedirect({res}, `/routes/${article._id}`, article);
     } catch (err) {
-        respond(res, 'articles/edit', {
+        respond(res, 'routes/edit', {
             title: 'Edit ' + article.title,
             errors: [err.toString()],
             article
@@ -120,7 +120,7 @@ exports.update = async(function* (req, res) {
  */
 
 exports.show = function (req, res) {
-    respond(res, 'articles/show', {
+    respond(res, 'routes/show', {
         title: req.article.title,
         article: req.article
     });
@@ -132,7 +132,7 @@ exports.show = function (req, res) {
 
 exports.destroy = async(function* (req, res) {
     yield req.article.remove();
-    respondOrRedirect({req, res}, '/articles', {}, {
+    respondOrRedirect({req, res}, '/routes', {}, {
         type: 'info',
         text: 'Deleted successfully'
     });

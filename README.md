@@ -23,7 +23,7 @@ Sports Technologies Seminar
   * "use exploxdb_dev"
   * "show collections" -> should display sessions and users
   * "db.users.find()" -> should display a user called "System"
-  * "db.articles.find()" -> should display a article called "Test Route"
+  * "db.routes.find()" -> should display a article called "Test Route"
 * This means, the user System has been registered by default and a sample Route has been created in the DB
 * Try to log in using e-mail "system@explox.de" and password "manager"
 

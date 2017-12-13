@@ -4,10 +4,10 @@ block main
   h1= title
 
 block content
-  - each article in articles
+  - each article in routes
     .article
       h3
-        a(href='/articles/'+article._id, title=article.title) #{article.title}
+        a(href='/routes/'+article._id, title=article.title) #{article.title}
       p= article.body
 
       .meta.muted
