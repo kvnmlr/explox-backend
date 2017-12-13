@@ -47,8 +47,7 @@ function listen() {
 
     console.log('Express app started on port ' + port);
 
-    createDefaultUsers();
-    createSampleRoute();
+    createDefaultUsers(createSampleRoute);
 }
 
 function connect() {
@@ -57,7 +56,7 @@ function connect() {
 
 }
 
-function createDefaultUsers() {
+function createDefaultUsers(next) {
     console.log("Creating default users ...");
 
     const User = mongoose.model('User');
@@ -76,34 +75,44 @@ function createDefaultUsers() {
             });
             user.save(function (err) {
                 if (err) console.log(err);
+                if (next) {
+                    next();
+                }
             });
         }
     });
 }
 
-function createSampleRoute() {
+function createSampleRoute(next) {
     console.log("Creating sample route ...");
     const Route = mongoose.model('Route');
 
-    Route.find({}).exec(function (err, routes) {
+    const options = {
+        criteria: {'name': 'system'}
+    };
+    const User = mongoose.model('User');
+    User.load(options, function (err, user) {
+        if (err) return done(err);
         const options = {
-            criteria: {'email': 'system@explox.de'}
+            criteria: {'title': 'Saarbrücken Uni Route'}
         };
-        const User = mongoose.model('User');
-        User.load(options, function (err, user) {
-            if (err) return done(err);
-            if (routes.length === 0) {
-                Route.load_options(options, function (err, route) {
-                    route = new Route({
-                        title: 'Test Route',
-                        body: 'body',
-                        user: user
-                    });
-                    route.save(function (err) {
-                        if (err) console.log(err);
-                    });
-                });
-            }
+        Route.load_options(options, function (err, route) {
+            route = new Route({
+                title: 'Saarbrücken Uni Route',
+                body: 'This route leads through the univeristy in Saarbrücken.',
+                user: user,
+                comments: [{
+                    body: 'I ran this route today and it is very nice!',
+                    user: user,
+                }],
+                tags: 'Running, Intermediate, Urban'
+            });
+            route.save(function (err) {
+                if (err) console.log(err);
+                if (next) {
+                    next();
+                }
+            });
         });
     });
 }
