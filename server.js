@@ -54,6 +54,7 @@ function listen() {
 
 function connect() {
     var options = {server: {socketOptions: {keepAlive: 1}}};
+    mongoose.Promise = global.Promise;
     return mongoose.connect(config.db, options).connection;
 }
 
