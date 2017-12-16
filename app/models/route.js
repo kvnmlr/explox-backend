@@ -6,13 +6,7 @@
 
 const mongoose = require('mongoose');
 const notify = require('../mailer');
-
-// const Imager = require('imager');
-// const config = require('../../config');
-// const imagerConfig = require(config.root + '/config/imager.js');
-
 const Schema = mongoose.Schema;
-
 const getTags = tags => tags.join(',');
 const setTags = tags => tags.split(',');
 
@@ -21,19 +15,17 @@ const setTags = tags => tags.split(',');
  */
 
 const RouteSchema = new Schema({
-    title: {type: String, default: '', trim: true},
-    body: {type: String, default: '', trim: true},
-    user: {type: Schema.ObjectId, ref: 'User'},
+    title: {type: String, default: '', trim: true},     // Title of the route
+    location: {type: String, default: '', trim: true},     // General location (e.g. the city)
+    body: {type: String, default: '', trim: true},      // Optional description
+    user: {type: Schema.ObjectId, ref: 'User', default: null},         // The user who created this route
+    geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of geo points
     comments: [{
         body: {type: String, default: ''},
         user: {type: Schema.ObjectId, ref: 'User'},
         createdAt: {type: Date, default: Date.now}
     }],
     tags: {type: [], get: getTags, set: setTags},
-    image: {
-        cdnUri: String,
-        files: []
-    },
     createdAt: {type: Date, default: Date.now}
 });
 

@@ -29,7 +29,10 @@ const UserSchema = new Schema({
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
     authToken: {type: String, default: ''},
-    strava: {}
+    strava: {},
+    routes: [{type: Schema.ObjectId, ref: 'Route'}],
+    geo: [{type: Schema.ObjectId, ref: 'Geo'}],
+    role: {type: Schema.ObjectId, ref: 'Role'}
 
     /* facebook: {},
   twitter: {},
