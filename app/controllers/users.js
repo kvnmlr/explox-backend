@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const {respond} = require('../utils');
 const User = mongoose.model('User');
+const Role = mongoose.model('Role');
 
 /**
  * Load
@@ -55,9 +56,28 @@ exports.create = async(function* (req, res) {
 
 exports.show = function (req, res) {
     const user = req.profile;
-    respond(res, 'users/show', {
-        title: user.name,
-        user: user
+    console.log(req.profile);
+
+    var options = {
+        criteria: {'_id': req.profile.role}
+    };
+    Role.load(options, function (err, role) {
+        console.log(role.name);
+        if (role.name === 'admin') {
+            // Show admin dashboard
+            respond(res, 'users/show', {
+                title: user.name,
+                user: user,
+                data: 'Admin data goes here'
+            });
+        } else {
+            // Show user profile
+            respond(res, 'users/show', {
+                title: user.name,
+                user: user,
+                userData: 'User data goes here'
+            });
+        }
     });
 };
 

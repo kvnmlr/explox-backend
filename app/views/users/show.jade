@@ -1,5 +1,15 @@
 extends ../layouts/default
 
 block main
-  - var name = user.name ? user.name : user.username
-  h1= name
+  - var name = user.name ? user.name : user.username;
+
+      h1= name
+
+      - if (data)
+        h3= 'Dasboard'
+        p= data
+
+      - if (!data)
+        p= userData
+
+
