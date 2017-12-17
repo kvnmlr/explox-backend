@@ -14,10 +14,10 @@ const Role = mongoose.model('Role');
  * Load
  */
 
-exports.load = async(function* (req, res, next, _id) {
+exports.load_options = async(function* (req, res, next, _id) {
     const criteria = {_id};
     try {
-        req.profile = yield User.load({criteria});
+        req.profile = yield User.load_options({criteria});
         if (!req.profile) return next(new Error('User not found'));
     } catch (err) {
         return next(err);
@@ -56,13 +56,11 @@ exports.create = async(function* (req, res) {
 
 exports.show = function (req, res) {
     const user = req.profile;
-    console.log(req.profile);
 
     var options = {
         criteria: {'_id': req.profile.role}
     };
-    Role.load(options, function (err, role) {
-        console.log(role.name);
+    Role.load_options(options, function (err, role) {
         if (role.name === 'admin') {
             // Show admin dashboard
             respond(res, 'users/show', {

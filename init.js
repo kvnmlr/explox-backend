@@ -87,7 +87,7 @@ const createDefaultAdmins = function(next) {
     var options = {
         criteria: {'email': 'system@explox.de'}
     };
-    User.load(options, function (err, user) {
+    User.load_options(options, function (err, user) {
         if (err) return done(err);
         if (!user) {
             user = new User({
@@ -112,7 +112,7 @@ const createDefaultUsers = function(next) {
     var options = {
         criteria: {'email': 'user@explox.de'}
     };
-    User.load(options, function (err, user) {
+    User.load_options(options, function (err, user) {
         if (err) return done(err);
         if (!user) {
             user = new User({
@@ -138,7 +138,7 @@ const createRoles = function(next) {
     var options = {
         criteria: {'name': 'admin'}
     };
-    Role.load(options, function (err, role) {
+    Role.load_options(options, function (err, role) {
         if (err) return done(err);
         adminRole = role;
         if (!role) {
@@ -156,7 +156,7 @@ const createRoles = function(next) {
     options = {
         criteria: {'name': 'user'}
     };
-    Role.load(options, function (err, role) {
+    Role.load_options(options, function (err, role) {
         if (err) return done(err);
         userRole = role;
         if (!role) {
@@ -176,7 +176,7 @@ const createSampleRoute = function(next) {
     const options = {
         criteria: {'name': 'user'}
     };
-    User.load(options, function (err, user) {
+    User.load_options(options, function (err, user) {
         if (err) return done(err);
         const options = {
             criteria: {'title': 'Saarbrücken Uni Route'}

@@ -32,7 +32,7 @@ module.exports = function (app, passport) {
     const pauth = passport.authenticate.bind(passport);
 
     // strava routes
-    app.get('/auth/strava/callback', pauth('strava', fail), strava.getAthlete, users.authCallback);
+    app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.authCallback);
     app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // user routes
@@ -46,6 +46,7 @@ module.exports = function (app, passport) {
             failureFlash: 'Invalid email or password.'
         }), users.session);
     app.get('/users/:userId', users.show);
+    app.get('/users/:userId/update', strava.updateUser, users.show);
 
     /*app.get('/auth/facebook',
         pauth('facebook', {
@@ -75,10 +76,10 @@ module.exports = function (app, passport) {
         }), users.signin);
     app.get('/auth/linkedin/callback', pauth('linkedin', fail), users.authCallback); */
 
-    app.param('userId', users.load);
+    app.param('userId', users.load_options);
 
     // article routes
-    app.param('id', routes.load);
+    app.param('id', routes.load_options);
     app.get('/routes', routes.index);
     app.get('/routes/new', auth.requiresLogin, routes.new);
     app.post('/routes', auth.requiresLogin, routes.create);
@@ -91,7 +92,7 @@ module.exports = function (app, passport) {
     app.get('/', routes.index);
 
     // comment routes
-    app.param('commentId', comments.load);
+    app.param('commentId', comments.load_options);
     app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.get('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);

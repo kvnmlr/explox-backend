@@ -15,7 +15,7 @@ const assign = Object.assign;
  * Load
  */
 
-exports.load = async(function* (req, res, next, id) {
+exports.load_options = async(function* (req, res, next, id) {
     try {
         req.article = yield Route.load(id);
         if (!req.article) return next(new Error('Route not found'));

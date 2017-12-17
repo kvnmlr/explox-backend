@@ -26,7 +26,7 @@ RoleSchema.statics = {
      * @api private
      */
 
-    load: function (options, cb) {
+    load_options: function (options, cb) {
         options.select = options.select || 'name';
         return this.findOne(options.criteria)
             .select(options.select)

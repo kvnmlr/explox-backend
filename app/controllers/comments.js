@@ -11,7 +11,7 @@ const {respondOrRedirect} = require('../utils');
  * Load comment
  */
 
-exports.load = function (req, res, next, id) {
+exports.load_options = function (req, res, next, id) {
     req.comment = req.article.comments
         .find(comment => comment.id === id);
 

@@ -6,7 +6,7 @@
 
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-
+var ObjectId = require('mongoose').Types.ObjectId;
 const Schema = mongoose.Schema;
 const oAuthTypes = [
     'strava',
@@ -29,6 +29,7 @@ const UserSchema = new Schema({
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
     authToken: {type: String, default: ''},
+    stravaId: {type: String, default: ''},
     strava: {},
     routes: [{type: Schema.ObjectId, ref: 'Route'}],
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],
@@ -183,12 +184,25 @@ UserSchema.statics = {
      * @api private
      */
 
-    load: function (options, cb) {
+    load_options: function (options, cb) {
         options.select = options.select || 'name username role';
         return this.findOne(options.criteria)
             .select(options.select)
             .exec(cb);
-    }
+    },
+
+    /**
+     * Find route by id
+     *
+     * @param {ObjectId} id
+     * @api private
+     */
+
+    load: function (_id, next) {
+        return this.findOne(ObjectId(_id)).exec(next);
+    },
+
+
 };
 
 mongoose.model('User', UserSchema);

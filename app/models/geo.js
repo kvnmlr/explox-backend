@@ -55,7 +55,7 @@ GeoSchema.statics = {
      * @api private
      */
 
-    load: function (_id) {
+    load_options: function (_id) {
         return this.findOne({_id}).exec();
     },
 

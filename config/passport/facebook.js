@@ -22,7 +22,7 @@ module.exports = new FacebookStrategy({
         const options = {
             criteria: {'facebook.id': profile.id}
         };
-        User.load(options, function (err, user) {
+        User.load_options(options, function (err, user) {
             if (err) return done(err);
             if (!user) {
                 user = new User({
