@@ -96,7 +96,8 @@ const createDefaultAdmins = function(next) {
                 username: 'sys',
                 provider: 'local',
                 password: 'manager',
-                role: adminRole
+                role: adminRole,
+                createdAt: Date.now()
             });
             user.save(function (err) {
                 if (err) console.log(err);
@@ -122,7 +123,8 @@ const createDefaultUsers = function(next) {
                 provider: 'local',
                 password: 'password',
                 geo: geos,
-                role: userRole
+                role: userRole,
+                createdAt: Date.now()
             });
             user.save(function (err) {
                 if (err) console.log(err);

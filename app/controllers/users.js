@@ -54,7 +54,7 @@ exports.create = async(function* (req, res) {
  *  Show profile
  */
 
-exports.show = function (req, res) {
+exports.show = async(function* (req, res) {
     const user = req.profile;
 
     var options = {
@@ -62,12 +62,17 @@ exports.show = function (req, res) {
     };
     Role.load_options(options, function (err, role) {
         if (role.name === 'admin') {
-            // Show admin dashboard
-            respond(res, 'users/show', {
-                title: user.name,
-                user: user,
-                data: 'Admin data goes here'
+            User.find({}, function(err, users) {
+                console.log(JSON.stringify(users));
+                // Show admin dashboard
+                respond(res, 'users/show', {
+                    title: user.name,
+                    user: user,
+                    data: 'Admin data goes here',
+                    all: users
+                });
             });
+
         } else {
             // Show user profile
             respond(res, 'users/show', {
@@ -77,7 +82,7 @@ exports.show = function (req, res) {
             });
         }
     });
-};
+});
 
 exports.signin = function () {
 };
@@ -129,6 +134,9 @@ exports.session = login;
  */
 
 function login(req, res) {
+    console.log(req.user._id);
+    User.update_user(req.user._id, {lastLogin: Date.now()});
+
     const redirectTo = req.session.returnTo
         ? req.session.returnTo
         : '/';

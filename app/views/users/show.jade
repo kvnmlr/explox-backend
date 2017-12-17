@@ -6,11 +6,39 @@ block main
       h1= name
 
       - if (data)
-        h3= 'Dasboard'
-        p= data
+        h3= 'Registered Users'
+        div
+            table
+                thead
+                    tr: th Username
+                        th Name
+                        th E-Mail
+                        th Provider
+                        th Role
+                        th Registered
+                        th Last Login
+
+                tbody
+                    each su in all
+                        tr
+                            td
+                                a(href='/users/' + su._id) #{su.username}
+                            td
+                                p= su.name
+                            td
+                                p= su.email
+                            td
+                                p= su.provider
+                            td
+                                p= su.role
+                            td
+                                p= su.createdAt.toString().substring(0, 24)
+                            td
+                                p= su.lastLogin.toString().substring(0, 24)
 
       - if (!data)
         p= userData
+
 
     a.btn.btn-primary(href='/users/'+user._id+'/update', title="update") Update Profile
     | &nbsp;

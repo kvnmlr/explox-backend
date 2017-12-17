@@ -33,7 +33,9 @@ const UserSchema = new Schema({
     strava: {},
     routes: [{type: Schema.ObjectId, ref: 'Route'}],
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],
-    role: {type: Schema.ObjectId, ref: 'Role'}
+    role: {type: Schema.ObjectId, ref: 'Role'},
+    createdAt: {type: Date, default: Date.now},
+    lastLogin: {type: Date, default: Date.now}
 
     /* facebook: {},
   twitter: {},
@@ -202,6 +204,23 @@ UserSchema.statics = {
         return this.findOne(ObjectId(_id)).exec(next);
     },
 
+    /**
+     * Update user by id
+     *
+     * @param {ObjectId} id
+     * @api private
+     */
+
+    update_user: function (id, data, next) {
+        return this.update({_id: ObjectId(id)}, data, function(err) {
+            if (err) {
+                console.log(err);
+            }
+            if (next) {
+                next();
+            }
+        });
+    },
 
 };
 
