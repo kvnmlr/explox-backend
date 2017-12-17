@@ -222,6 +222,18 @@ UserSchema.statics = {
         });
     },
 
+    list: function (options, cb) {
+        const criteria = options.criteria || {};
+        const page = options.page || 0;
+        const limit = options.limit || 30;
+        return this.find(criteria)
+            .populate('role', 'name')
+            .sort({createdAt: -1})
+            .limit(limit)
+            .skip(limit * page)
+            .exec(cb);
+    }
+
 };
 
 mongoose.model('User', UserSchema);

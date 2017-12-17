@@ -169,7 +169,7 @@ RouteSchema.statics = {
      * @api private
      */
 
-    list: function (options) {
+    list: function (options, cb) {
         const criteria = options.criteria || {};
         const page = options.page || 0;
         const limit = options.limit || 30;
@@ -178,7 +178,7 @@ RouteSchema.statics = {
             .sort({createdAt: -1})
             .limit(limit)
             .skip(limit * page)
-            .exec();
+            .exec(cb);
     }
 };
 

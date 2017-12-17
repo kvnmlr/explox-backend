@@ -188,6 +188,7 @@ const createSampleRoute = function(next) {
                 route = new Route({
                     title: 'Saarbrücken Uni Route',
                     body: 'This route leads through the univeristy in Saarbrücken.',
+                    location: 'Saarbrücken',
                     user: user,
                     comments: [{
                         body: 'I ran this route today and it is very nice!',

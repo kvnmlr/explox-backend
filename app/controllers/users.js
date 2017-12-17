@@ -9,6 +9,7 @@ const {wrap: async} = require('co');
 const {respond} = require('../utils');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
+const Route = mongoose.model('Route');
 
 /**
  * Load
@@ -62,14 +63,16 @@ exports.show = async(function* (req, res) {
     };
     Role.load_options(options, function (err, role) {
         if (role.name === 'admin') {
-            User.find({}, function(err, users) {
-                console.log(JSON.stringify(users));
-                // Show admin dashboard
-                respond(res, 'users/show', {
-                    title: user.name,
-                    user: user,
-                    data: 'Admin data goes here',
-                    all: users
+            User.list({}, function(err, users) {
+                Route.list({}, function(err, routes) {
+                    // Show admin dashboard
+                    respond(res, 'users/show', {
+                        title: user.name,
+                        user: user,
+                        data: 'Admin data goes here',
+                        all: users,
+                        routes: routes
+                    });
                 });
             });
 

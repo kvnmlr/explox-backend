@@ -6,35 +6,57 @@ block main
       h1= name
 
       - if (data)
-        h3= 'Registered Users'
-        div
-            table
-                thead
-                    tr: th Username
-                        th Name
-                        th E-Mail
-                        th Provider
-                        th Role
-                        th Registered
-                        th Last Login
+            h3= 'Registered Users'
+            div
+                table
+                    thead
+                        tr: th Username
+                            th Name
+                            th E-Mail
+                            th Provider
+                            th Role
+                            th Registered
+                            th Last Login
 
-                tbody
-                    each su in all
-                        tr
-                            td
-                                a(href='/users/' + su._id) #{su.username}
-                            td
-                                p= su.name
-                            td
-                                p= su.email
-                            td
-                                p= su.provider
-                            td
-                                p= su.role
-                            td
-                                p= su.createdAt.toString().substring(0, 24)
-                            td
-                                p= su.lastLogin.toString().substring(0, 24)
+                    tbody
+                        each su in all
+                            tr
+                                td
+                                    a(href='/users/' + su._id) #{su.username}
+                                td
+                                    p= su.name
+                                td
+                                    p= su.email
+                                td
+                                    p= su.provider
+                                td
+                                    p= su.role.name
+                                td
+                                    p= su.createdAt.toString().substring(0, 24)
+                                td
+                                    p= su.lastLogin.toString().substring(0, 24)
+
+
+            h3= 'Routes'
+            div
+                table
+                    thead
+                        tr: th Title
+                            th Location
+                            th User
+                            th Created
+
+                    tbody
+                        each route in routes
+                            tr
+                                td
+                                    a(href='/routes/' + route._id) #{route.title}
+                                td
+                                    p= route.location
+                                td
+                                    p= route.user.username
+                                td
+                                    p= route.createdAt.toString().substring(0, 24)
 
       - if (!data)
         p= userData
