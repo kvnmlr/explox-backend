@@ -80,7 +80,6 @@ exports.show = function (req, res) {
 };
 
 exports.signin = function () {
-    console.log('signin')
 };
 
 /**

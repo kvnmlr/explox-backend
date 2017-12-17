@@ -106,6 +106,9 @@ module.exports = function (app, passport) {
      */
 
     app.use(function (err, req, res, next) {
+        if (!err || err === undefined) {
+            return next();
+        }
         // treat as 404
         if (err.message
             && (~err.message.indexOf('not found')
@@ -113,12 +116,15 @@ module.exports = function (app, passport) {
             return next();
         }
 
-        console.error(err.stack);
+        console.error("Error: " + JSON.stringify(err));
 
-        if (err.stack.includes('ValidationError')) {
-            res.status(422).render('422', {error: err.stack});
-            return;
+        if (err.stack) {
+            if (err.stack.includes('ValidationError')) {
+                res.status(422).render('422', {error: err.stack});
+                return;
+            }
         }
+
 
         // error page
         res.status(500).render('500', {error: err.stack});
