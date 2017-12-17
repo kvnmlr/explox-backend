@@ -7,6 +7,9 @@
 const mongoose = require('mongoose');
 const Route = mongoose.model('Route');
 const User = mongoose.model('User');
+const Role = mongoose.model('Role');
+const Geo = mongoose.model('Geo');
+
 const co = require('co');
 
 /**
@@ -20,6 +23,8 @@ exports.cleanup = function (t) {
     co(function* () {
         yield User.remove();
         yield Route.remove();
+        yield Role.remove();
+        yield Geo.remove();
         t.end();
     });
 };
