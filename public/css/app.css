@@ -8,6 +8,17 @@ body {
   /* The html and body elements cannot have any padding or margin. */
 }
 
+table, th, td {
+    padding: 5px 15px;
+    text-align: left;
+}
+
+tr:nth-child(even) {background-color: #f2f2f2;}
+th {
+    background-color: #006dcc;
+    color: white;
+}
+
 /* Wrapper for page content to push down footer */
 #wrap {
   min-height: 100%;
