@@ -134,6 +134,7 @@ exports.authCallback = function (req, res, next) {
         json: true,
         body: myJSONObject
     }, function (error, response) {
+        console.log(JSON.stringify(response));
         const id = response.body.athlete.id;
         const token = response.body.access_token;
         exports.getAthlete(id, token);

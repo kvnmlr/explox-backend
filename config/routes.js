@@ -32,7 +32,7 @@ module.exports = function (app, passport) {
     const pauth = passport.authenticate.bind(passport);
 
     // strava routes
-    app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.authCallback);
+    app.get('/auth/strava/callback', pauth('strava', fail), users.authCallback, strava.authCallback);
     app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // user routes
