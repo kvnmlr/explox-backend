@@ -18,8 +18,15 @@ const GeoSchema = new Schema({
         index: '2d'         // create the geospatial index
     },
     createdAt: {type: Date, default: Date.now}
-});
+}, { autoIndex: false });
 
+GeoSchema.on('index', function(error) {
+    if (error) {
+        console.log("ERR" + error.message);
+    } else {
+        console.log('Index created');
+    }
+});
 /**
  * Validations
  */
@@ -90,7 +97,41 @@ GeoSchema.statics = {
             .limit(limit)
             .skip(limit * page)
             .exec();
+    },
+
+    /**
+     *
+     * @param options distance, longitude, latitude
+     * @param cb
+     */
+    findWithinRadius: function (options, cb) {
+        const limit = options.limit || 10;
+        const latitude = options.latitude;
+        const longitude = options.longitude;
+        let distance = (options.distance || 1)/6371.0;
+        console.log('lat: ' + latitude + ' long: ' + longitude + 'dist' + distance);
+
+        /*return this.aggregate([
+            {
+                $geoNear: {
+                    near: { type: "Point", coordinates: [ longitude , latitude ] },
+                    distanceField: "dist.calculated",
+                    maxDistance: distance,
+                    num: limit,
+                    query: { type: "public" },
+                    spherical: true
+                }
+            }
+        ]).exec(cb);*/
+
+        return this.find({
+            coordinates: {
+                $near: [longitude, latitude],
+                $maxDistance: distance,
+            }
+        }).limit(limit).exec(cb)
     }
+
 };
 
 mongoose.model('Geo', GeoSchema);

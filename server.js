@@ -50,6 +50,7 @@ function listen() {
     console.log('Express app started on port ' + port);
 
     init.init(init.createSampleData);
+
 }
 
 function connect() {
