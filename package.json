@@ -40,6 +40,7 @@
     "express-session": "~1.15.0",
     "forever": "~0.15.1",
     "jade": "~1.11.0",
+    "log4js": "^2.4.1",
     "method-override": "~2.3.5",
     "mongoose": "~4.13.0",
     "mongoose-geojson-schema": "^2.1.2",

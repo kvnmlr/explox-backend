@@ -1,4 +1,5 @@
 'use strict';
+const Log = require('./app/utils/logger');
 
 var mongoose;
 var Route;
@@ -17,7 +18,7 @@ function executeAsynchronously(functions, timeout) {
 }
 
 exports.createSampleData = function () {
-    console.log("creating sample data ...");
+    Log.log('Init', 'Creating sample data');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
     GeoJSON = mongoose.model('GeoJSON');
@@ -26,13 +27,13 @@ exports.createSampleData = function () {
 
     executeAsynchronously(
         [createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, function () {
-            console.log("done");
+            Log.log('Init', 'All done, server is ready to be used');
         }], 50
     );
 }
 
 exports.init = function(next) {
-    console.log("initializing ...");
+    Log.log('Init', 'Initializing database');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
     GeoJSON = mongoose.model('GeoJSON');
@@ -60,7 +61,7 @@ const createDefaultGeo = function(name, lat, long, next) {
     };
 
     GeoJSON.load_options(options, function (err, geo) {
-        if (err) console.log(err);
+        if (err) Log.error("Init", err);
         if (!geo) {
             const coords = [];
             coords[1] = lat;
@@ -74,7 +75,7 @@ const createDefaultGeo = function(name, lat, long, next) {
                 }            });
 
             geo.save(function (err) {
-                if (err) console.log(err);
+                if (err) Log.error("Init", err);;
                 geos[geos.length] = geo;
                 if (next) {
                     next();
@@ -102,7 +103,7 @@ const createDefaultAdmins = function(next) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
-                if (err) console.log(err);
+                if (err) Log.error("Init", err);;
                 if (next) {
                     next();
                 }
@@ -129,7 +130,7 @@ const createDefaultUsers = function(next) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
-                if (err) console.log(err);
+                if (err) Log.error("Init", err);;
                 if (next) {
                     next();
                 }
@@ -152,7 +153,7 @@ const createRoles = function(next) {
             });
             adminRole = role;
             role.save(function (err) {
-                if (err) console.log(err);
+                if (err) Log.error("Init", err);;
             });
         }
     });
@@ -170,7 +171,7 @@ const createRoles = function(next) {
             });
             userRole = role;
             role.save(function (err) {
-                if (err) console.log(err);
+                if (err) Log.error("Init", err);;
             });
         }
     });
@@ -200,7 +201,7 @@ const createSampleRoute = function(next) {
                     geo: geos
                 });
                 route.save(function (err) {
-                    if (err) console.log(err);
+                    if (err) Log.error("Init", err);;
                     if (next) {
                         next();
                     }

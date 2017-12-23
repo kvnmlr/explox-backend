@@ -37,6 +37,9 @@ fs.readdirSync(models)
 require('./config/passport')(passport);
 require('./config/express')(app, passport);
 require('./config/routes')(app, passport);
+const Log = require('./app/utils/logger');
+
+fs.writeFile('application.log', '');        // Reset the log file
 
 connect()
     .on('error', console.log)
@@ -46,16 +49,16 @@ connect()
 function listen() {
     if (app.get('env') === 'test') return;
     app.listen(port);
-
-    console.log('Express app started on port ' + port);
-
     init.init(init.createSampleData);
+    Log.log('Server', 'Server started on port ' + port);
 
 }
 
 function connect() {
-    var options = {server: {socketOptions: {keepAlive: 1}}};
+    const options = {server: {socketOptions: {keepAlive: 1}}};
     mongoose.Promise = global.Promise;
     return mongoose.connect(config.db, options).connection;
 }
+
+Log.log("Server", "\n\nStarting Server\n---------------\n");
 
