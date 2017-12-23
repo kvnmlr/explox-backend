@@ -6,6 +6,7 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const GeoJSON = require('mongoose-geojson-schema');
 
 /**
  * Route Schema
@@ -13,25 +14,16 @@ const Schema = mongoose.Schema;
 
 const GeoSchema = new Schema({
     name: {type: String, default: '', trim: true},  // Optional name for this coordinate (e.g. "DFKI")
-    coordinates: {
-        type: [Number],     // [<longitude>, <latitude>]
-        index: '2d'         // create the geospatial index
-    },
+    location: Schema.Types.Point,
     createdAt: {type: Date, default: Date.now}
-}, { autoIndex: false });
+},{ autoIndex: false });
+GeoSchema.index({ location : '2dsphere' },{unique: true, name: 'location_2dsphere'}); // TODO geht nicht
 
-GeoSchema.on('index', function(error) {
-    if (error) {
-        console.log("ERR" + error.message);
-    } else {
-        console.log('Index created');
-    }
-});
 /**
  * Validations
  */
 
-GeoSchema.path('coordinates').required(true, 'Coordinates cannot be blank');
+GeoSchema.path('location').required(true, 'Coordinates cannot be blank');
 
 /**
  * Pre-remove hook
@@ -101,37 +93,39 @@ GeoSchema.statics = {
 
     /**
      *
-     * @param options distance, longitude, latitude
+     * @param options: distance, longitude, latitude, limit
      * @param cb
      */
     findWithinRadius: function (options, cb) {
-        const limit = options.limit || 10;
+        const limit = options.limit || 100;
         const latitude = options.latitude;
         const longitude = options.longitude;
-        let distance = (options.distance || 1)/6371.0;
-        console.log('lat: ' + latitude + ' long: ' + longitude + 'dist' + distance);
+        let distance = (options.distance || 1000);
+        console.log('lat: ' + latitude + ' long: ' + longitude + ' dist: ' + distance);
 
-        /*return this.aggregate([
-            {
-                $geoNear: {
-                    near: { type: "Point", coordinates: [ longitude , latitude ] },
-                    distanceField: "dist.calculated",
+        return this.aggregate([
+            { $geoNear: {
+                    near: {
+                        type: "Point",
+                        coordinates: [longitude, latitude]
+                    },
                     maxDistance: distance,
-                    num: limit,
-                    query: { type: "public" },
-                    spherical: true
-                }
-            }
-        ]).exec(cb);*/
+                    minDistance: 0.001,            // do not retrieve the point itself
+                    spherical: true,
+                    distanceField: "distance",
+                }}
+        ]).limit(limit).sort('distance').exec(cb)
+    },
 
-        return this.find({
-            coordinates: {
-                $near: [longitude, latitude],
-                $maxDistance: distance,
-            }
-        }).limit(limit).exec(cb)
+    /**
+     *
+     * @param options: longitude, latitude
+     * @param cb
+     */
+    findClosest: function (options, cb) {
+        options.limit = 1;
+        return this.findWithinRadius(options, cb);
     }
-
 };
 
-mongoose.model('Geo', GeoSchema);
+mongoose.model('GeoJSON', GeoSchema);

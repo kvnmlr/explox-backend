@@ -49,5 +49,3 @@ test('Get activity - should return the correct activity', t => {
     // TODO implement
     t.end();
 });
-
-test('Clean up', cleanup);

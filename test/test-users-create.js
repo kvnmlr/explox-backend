@@ -108,5 +108,3 @@ test('strava auth callback - should redirect', t => {
             t.end();
         });
 });
-
-test('Clean up', cleanup);

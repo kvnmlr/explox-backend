@@ -81,6 +81,5 @@ test('POST /routes - valid form - should redirect to the new article page', t =>
         });
 });
 
-test('Clean up', cleanup);
 
 test.onFinish(() => process.exit(0));

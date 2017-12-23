@@ -2,7 +2,7 @@
 
 var mongoose;
 var Route;
-var Geo;
+var GeoJSON;
 var User;
 var Role;
 
@@ -20,7 +20,7 @@ exports.createSampleData = function () {
     console.log("creating sample data ...");
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
-    Geo = mongoose.model('Geo');
+    GeoJSON = mongoose.model('GeoJSON');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
 
@@ -35,7 +35,7 @@ exports.init = function(next) {
     console.log("initializing ...");
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
-    Geo = mongoose.model('Geo');
+    GeoJSON = mongoose.model('GeoJSON');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
 
@@ -59,17 +59,19 @@ const createDefaultGeo = function(name, lat, long, next) {
         criteria: {'name': name}
     };
 
-    Geo.load_options(options, function (err, geo) {
+    GeoJSON.load_options(options, function (err, geo) {
         if (err) console.log(err);
         if (!geo) {
             const coords = [];
-            coords[0] = lat;
-            coords[1] = long;
+            coords[1] = lat;
+            coords[0] = long;
 
-            const geo = new Geo({
+            const geo = new GeoJSON({
                 name: name,
-                coordinates: coords
-            });
+                location: {
+                    type: 'Point',
+                    coordinates: coords
+                }            });
 
             geo.save(function (err) {
                 if (err) console.log(err);
@@ -84,7 +86,7 @@ const createDefaultGeo = function(name, lat, long, next) {
 
 
 const createDefaultAdmins = function(next) {
-    var options = {
+    const options = {
         criteria: {'email': 'system@explox.de'}
     };
     User.load_options(options, function (err, user) {
@@ -110,7 +112,7 @@ const createDefaultAdmins = function(next) {
 };
 
 const createDefaultUsers = function(next) {
-    var options = {
+    const options = {
         criteria: {'email': 'user@explox.de'}
     };
     User.load_options(options, function (err, user) {
