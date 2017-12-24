@@ -9,6 +9,12 @@ const Log = require('../utils/logger')
 
 const TAG = "strava";
 
+var apiLimits = {"shortTermUsage":0,"shortTermLimit":600,"longTermUsage":0,"longTermLimit":30000};
+
+exports.getLimits = function() {
+    return apiLimits;
+};
+
 /**
  * Query all relevant user data
  */
@@ -36,6 +42,7 @@ exports.updateUser = function(req, res, next) {
  */
 exports.getFriends = function (id, token, next) {
     strava.athletes.listFriends({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -52,6 +59,7 @@ exports.getFriends = function (id, token, next) {
  */
 exports.getAthlete = function (id, token, next) {
     strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -68,6 +76,7 @@ exports.getAthlete = function (id, token, next) {
  */
 exports.getStats = function (id, token, next) {
     strava.athletes.stats({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -85,6 +94,7 @@ exports.getStats = function (id, token, next) {
  */
 exports.getRoutes = function(id, token, next) {
     strava.athlete.listRoutes({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -102,6 +112,8 @@ exports.getRoutes = function(id, token, next) {
  */
 exports.getActivities = function(id, token, next) {
     strava.athlete.listActivities({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+        apiLimits = limits;
+        Log.debug(TAG, "limits", limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -119,6 +131,7 @@ exports.getActivities = function(id, token, next) {
  */
 exports.segmentsExplorer = function(token, next) {
     strava.segments.explore({access_token: token, bounds: [37.821362,-122.505373,37.842038,-122.465977], activity_type: 'running', min_cat: 0, max_cat: 100 }, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -135,6 +148,7 @@ exports.segmentsExplorer = function(token, next) {
  */
 const getRoute = function(id, token, userID, next) {
     strava.routes.get({id: id, access_token: token}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -153,6 +167,7 @@ const getRoute = function(id, token, userID, next) {
  */
 const getRouteStream = function(id, token, next) {
     strava.streams.route({id: id, types: '', access_token: token}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
@@ -166,6 +181,7 @@ const getRouteStream = function(id, token, next) {
 
 const getSegmentStream = function(id, token, next) {
     strava.streams.segment({id: id, types:['latlng'], access_token: token}, function (err, payload, limits) {
+        apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }

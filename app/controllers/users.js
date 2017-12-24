@@ -3,14 +3,16 @@
 /**
  * Module dependencies.
  */
-
+const Log = require('../utils/logger');
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const {respond} = require('../utils');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
+const Strava = require('./strava');
 
+const TAG = "views/users";
 /**
  * Load
  */
@@ -71,7 +73,8 @@ exports.show = async(function* (req, res) {
                         user: user,
                         data: 'Admin data goes here',
                         all: users,
-                        routes: routes
+                        routes: routes,
+                        limits: Strava.getLimits()
                     });
                 });
             });
