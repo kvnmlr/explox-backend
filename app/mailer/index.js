@@ -7,7 +7,9 @@
 const Notifier = require('notifier');
 const jade = require('jade');
 const config = require('../../config');
+const Log = require('../utils/logger')
 
+const TAG = "index";
 /**
  * Process the templates using swig - refer to notifier#processTemplate method
  *
@@ -64,7 +66,7 @@ module.exports = {
         try {
             notifier.send('comment', obj, cb);
         } catch (err) {
-            console.log(err);
+            Log.error(TAG, err);
         }
     }
 };

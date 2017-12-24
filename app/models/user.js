@@ -16,6 +16,8 @@ const oAuthTypes = [
   'google',
   'linkedin', */
 ];
+const Log = require('../utils/logger')
+const TAG = "user";
 
 /**
  * User Schema
@@ -214,7 +216,7 @@ UserSchema.statics = {
     update_user: function (id, data, next) {
         return this.update({_id: ObjectId(id)}, data, function(err) {
             if (err) {
-                console.log(err);
+                Log.error(TAG, err);
             }
             if (next) {
                 next();

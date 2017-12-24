@@ -5,6 +5,9 @@ const strava = require('strava-v3');
 const request = require('request');
 const config = require('../../server').config;
 const User = mongoose.model('User');
+const Log = require('../utils/logger')
+
+const TAG = "strava";
 
 /**
  * Query all relevant user data
@@ -12,7 +15,6 @@ const User = mongoose.model('User');
 
 exports.updateUser = function(req, res, next) {
     var id = req.user._id;
-    console.log("update:" + id);
     User.load(id, function (err, user) {
         if (err) return done(err);
         if (user) {
@@ -35,9 +37,9 @@ exports.updateUser = function(req, res, next) {
 exports.getFriends = function (id, token, next) {
     strava.athletes.listFriends({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nFriends: \n' + JSON.stringify(payload));
+        Log.debug(TAG, 'Friends: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -51,9 +53,9 @@ exports.getFriends = function (id, token, next) {
 exports.getAthlete = function (id, token, next) {
     strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nAthlete Profile: \n' + JSON.stringify(payload));
+        Log.debug(TAG, '\nAthlete Profile: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -67,9 +69,9 @@ exports.getAthlete = function (id, token, next) {
 exports.getStats = function (id, token, next) {
     strava.athletes.stats({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nAthlete Stats: \n' + JSON.stringify(payload));
+        Log.debug(TAG, '\nAthlete Stats: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -83,9 +85,9 @@ exports.getStats = function (id, token, next) {
 exports.getRoutes = function(id, token, next) {
     strava.athlete.listRoutes({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nRoutes: \n' + JSON.stringify(payload));
+        Log.debug(TAG,'\nRoutes: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -99,9 +101,9 @@ exports.getRoutes = function(id, token, next) {
 exports.getActivities = function(id, token, next) {
     strava.athlete.listActivities({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nActivities: \n' + JSON.stringify(payload));
+        Log.debug(TAG,'\nActivities: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -112,9 +114,9 @@ exports.getActivities = function(id, token, next) {
 exports.segmentsExplorer = function(token, next) {
     strava.segments.explore({access_token: token, bounds: [37.821362,-122.505373,37.842038,-122.465977], activity_type: 'running', min_cat: 0, max_cat: 100 }, function (err, payload, limits) {
         if (err) {
-            console.log('Error ' + JSON.stringify(err));
+            Log.error(TAG, err);
         }
-        console.log('\nExplore Segments: \n' + JSON.stringify(payload));
+        Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload));
         // todo update database
         if (next) {
             next(null, payload);
@@ -134,7 +136,6 @@ exports.authCallback = function (req, res, next) {
         json: true,
         body: myJSONObject
     }, function (error, response) {
-        console.log(JSON.stringify(response));
         const id = response.body.athlete.id;
         const token = response.body.access_token;
         exports.getAthlete(id, token);

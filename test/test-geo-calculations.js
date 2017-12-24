@@ -16,7 +16,6 @@ const specialPlace2 = 'mpii';
 const specialPlace3 = 'cispa';
 
 var createGeos = function(t) {
-    console.log("create Geos");
     var coords1 = [];
     coords1[1] = 49.256807;
     coords1[0] = 7.04217;
@@ -30,7 +29,6 @@ var createGeos = function(t) {
     });
 
     geo1.save(function (err) {
-        console.log("error: " + err);
         geos[geos.length] = geo1;
         coordinates[geos.length] = coords1;
     });

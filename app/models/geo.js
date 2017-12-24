@@ -101,8 +101,6 @@ GeoSchema.statics = {
         const latitude = options.latitude;
         const longitude = options.longitude;
         let distance = (options.distance || 1000);
-        console.log('lat: ' + latitude + ' long: ' + longitude + ' dist: ' + distance);
-
         return this.aggregate([
             { $geoNear: {
                     near: {

@@ -20,7 +20,7 @@ module.exports.error = function(tag, message, data) {
     var info = '';
     if (data !== undefined && data != null)
         info = '\n' + JSON.stringify(data);
-    log4js.getLogger(tag).error(message + info);
+    log4js.getLogger(tag).error(JSON.stringify(message) + info);
 };
 
 module.exports.debug = function(tag, message, data) {

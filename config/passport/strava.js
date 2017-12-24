@@ -9,7 +9,9 @@ const StravaStrategy = require('passport-strava').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
+const Log = require('../../app/utils/logger')
 
+const TAG = "passport/strava";
 /**
  * Expose
  */
@@ -43,7 +45,7 @@ module.exports = new StravaStrategy({
                             role: role
                         });
                         user.save(function (err) {
-                            if (err) console.log(err);
+                            if (err) Log.error(TAG, err);
                             return done(err, user);
                         });
                     }

@@ -137,9 +137,7 @@ exports.session = login;
  */
 
 function login(req, res) {
-    console.log(req.user._id);
     User.update_user(req.user._id, {lastLogin: Date.now()});
-
     const redirectTo = req.session.returnTo
         ? req.session.returnTo
         : '/';
