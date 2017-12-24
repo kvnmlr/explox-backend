@@ -59,13 +59,37 @@ These steps are optional, do them to see how the strava connection works.
 * Log in as admin ('system@explox.de'), check API limits in the admin dashboard (on the profile page).
 
 ### Development Quick Start:
-* Strava API:
+#### Logging
+Logging is implemented using log4js. The logger implementation is in app/utils/logger.js. Logs will be printed to the console and a log file called application.log will be written in the project root directory.
+It can be used in the following way:
+```javascript
+const Log = require('path/to/logger')    // actually the path to app/utils/logger.js
+const TAG = "strava";                    // should be the module name or whatever makes sense
+
+Log.debug(TAG,'my debug message', data); // data is optional
+Log.error(TAG, err);
+Log.log(TAG,'my log message', data);     // data is optional
+```
+#### Tests
+Tests are implemented in the folder test. Write tests like this:
+```javascript
+const test = require('tape');
+const {cleanup} = require('./helper');
+
+test('Clean up', cleanup);   // used to clean up the test database
+test('this test does x y', t => {
+    t.ifError(err);                                 // error test
+    t.same(1, 1, 'the two values where not equal')  // equality test
+    t.end();  // required at the end of every test
+});
+```
+#### Strava API:
   * Implementation goes into "app\controllers\strava.js"
   * Routes can be set up in "config\routes.js"
   * Tests go into "test\test-strava-api.js"
-* Views:
+#### Views:
   * Routes can be set up in "config\routes.js"
   * Views are in "app\views"
-* Database:
+#### Database:
   * Models are defined in "app\models"
 
