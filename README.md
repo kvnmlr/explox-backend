@@ -1,7 +1,7 @@
 ## ExploX
 Sports Technologies Seminar
 
-####Installation:
+### Installation:
 1. Do the steps in **Database Setup**
 2. Do the steps in **Project Setup**
 3. Optionally, verify the correct installation by doing the steps in **Check Database** and **Check Strava Connection**
@@ -56,6 +56,7 @@ These steps are optional, do them to see how the strava connection works.
 * The browser should redirect to the ExploX Website (i.e. localhost:3000)
 * You should be logged in and able to access your profile from the menu at the top
 * Check the npm console log, the last log entry should contain the user data queried from the API.
+* Log in as admin ('system@explox.de'), check API limits in the admin dashboard (on the profile page).
 
 ### Development Quick Start:
 * Strava API:
