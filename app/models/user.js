@@ -33,7 +33,7 @@ const UserSchema = new Schema({
     authToken: {type: String, default: ''},
     stravaId: {type: String, default: ''},
     strava: {},
-    routes: [{type: Schema.ObjectId, ref: 'Route'}],
+    //routes: [{type: Schema.ObjectId, ref: 'Route'}],
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],
     role: {type: Schema.ObjectId, ref: 'Role'},
     createdAt: {type: Date, default: Date.now},
@@ -189,7 +189,7 @@ UserSchema.statics = {
      */
 
     load_options: function (options, cb) {
-        options.select = options.select || 'name username role';
+        options.select = options.select || '';
         return this.findOne(options.criteria)
             .select(options.select)
             .exec(cb);

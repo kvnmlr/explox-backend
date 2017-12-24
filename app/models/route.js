@@ -9,12 +9,14 @@ const notify = require('../mailer');
 const Schema = mongoose.Schema;
 const getTags = tags => tags.join(',');
 const setTags = tags => tags.split(',');
+var ObjectId = require('mongoose').Types.ObjectId;
 
 /**
  * Route Schema
  */
 
 const RouteSchema = new Schema({
+    stravaId: {type: String, default: ''},
     title: {type: String, default: '', trim: true},     // Title of the route
     location: {type: String, default: '', trim: true},     // General location (e.g. the city)
     body: {type: String, default: '', trim: true},      // Optional description
@@ -156,7 +158,7 @@ RouteSchema.statics = {
      */
 
     load_options: function (options, cb) {
-        options.select = options.select || 'title';
+        options.select = options.select || '';
         return this.findOne(options.criteria)
             .select(options.select)
             .exec(cb);
@@ -179,7 +181,17 @@ RouteSchema.statics = {
             .limit(limit)
             .skip(limit * page)
             .exec(cb);
-    }
+    },
+
+    update_route: function (id, data, next) {
+        return this.update({_id: ObjectId(id)}, data, function(err) {
+            if (err) {
+            }
+            if (next) {
+                next();
+            }
+        });
+    },
 };
 
 mongoose.model('Route', RouteSchema);

@@ -5,6 +5,9 @@ const strava = require('strava-v3');
 const request = require('request');
 const config = require('../../server').config;
 const User = mongoose.model('User');
+const Route = mongoose.model('Route');
+const Geo = mongoose.model('GeoJSON');
+
 const Log = require('../utils/logger')
 
 const TAG = "strava";
@@ -102,6 +105,7 @@ exports.getRoutes = function(id, token, next) {
 
         // for each route, get detailed route information
         for (let i = 0; i < payload.length; ++i) {
+            // TODO only get the routes that are new
             getRoute(payload[i].id, token, id, next);
         }
     });
@@ -152,13 +156,51 @@ const getRoute = function(id, token, userID, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        Log.debug(TAG,'\nRoute '+id+': \n' + JSON.stringify(payload, null, 2));
-        // TODO create or update an entry in db.route, link to db.user using userID
 
-        if (payload) {
-            getRouteStream(id, token, next);
-            // exports.getSegmentStream(15981886, token, next);     // TODO uncomment once this becomes relevant
-        }
+        User.load_options({criteria: {stravaId: userID}}, function (err, user) {
+            if (err) {
+                Log.error(TAG, err);
+                return done(err);
+            }
+            if (user) {
+                // Create or update an entry in db.route, link to db.user using userID
+                Route.load_options({criteria: {stravaId : id}}, function(err, route) {
+                    // If this route does not exist, create a new one
+                    if (!route) {
+                        // TODO fill with actual data from payload
+                        route = new Route({
+                            stravaId: id,
+                            title: 'Saarbrücken Uni Route 2',
+                            body: 'This route leads through the univeristy in Saarbrücken.',
+                            location: 'Saarbrücken',
+                            user: user,
+                            comments: [{
+                                body: 'I ran this route today and it is very nice!',
+                                user: null,
+                            }],
+                            tags: 'Running, Intermediate, Urban',
+                            geo: []
+                        });
+                        getRouteStream(id, token, function() {
+                            route.save(function (err) {
+                                if (err) {
+                                    Log.error(TAG, err);
+                                    return done(next);
+                                }
+                            });
+                        });
+
+                    } else {
+                        Route.update_route(route._id, route, function (err) {
+                            if (err) {
+                                Log.error(TAG, err);
+                                return done(next);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     });
 };
 
@@ -174,7 +216,7 @@ const getRouteStream = function(id, token, next) {
         Log.debug(TAG,'\nRoute '+id+' Stream: \n' + JSON.stringify(payload, null, 2));
         // TODO create entries in db.geo, link to db.route using id
         if (next) {
-            next(null, payload);
+            next();
         }
     });
 };

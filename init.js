@@ -189,6 +189,7 @@ const createSampleRoute = function(next) {
         Route.load_options(options, function (err, route) {
             if (!route) {
                 route = new Route({
+                    stravaId: 123456789,
                     title: 'Saarbrücken Uni Route',
                     body: 'This route leads through the univeristy in Saarbrücken.',
                     location: 'Saarbrücken',
