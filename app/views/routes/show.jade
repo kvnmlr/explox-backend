@@ -9,8 +9,10 @@ block content
       p=article.body
       .meta
         - if (article.user)
+          p='Distance ' + (article.distance.toString().split('.', 1))/1000 + ' km'
+          article.user.username
           - var name = article.user.name ? article.user.name : article.user.username
-          p Author :&nbsp;
+          p Athlete :&nbsp;
             a(href="/users/"+article.user._id)= name
 
         - if (article.tags)

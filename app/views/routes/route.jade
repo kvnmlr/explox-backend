@@ -7,8 +7,8 @@ article.article
     span.muted= formatDate(article.createdAt)
 
     - if (article.user)
-      | &nbsp; - &nbsp;
-      span Author &nbsp;
+      | &nbsp; by &nbsp;
+      span
 
       - var name = article.user.name ? article.user.name : article.user.username
 

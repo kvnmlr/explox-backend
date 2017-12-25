@@ -22,6 +22,7 @@ const RouteSchema = new Schema({
     body: {type: String, default: '', trim: true},      // Optional description
     user: {type: Schema.ObjectId, ref: 'User', default: null},         // The user who created this route
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of geo points
+    distance: {type: String, default: '', trim: true},     // Title of the route
     comments: [{
         body: {type: String, default: ''},
         user: {type: Schema.ObjectId, ref: 'User'},
@@ -36,7 +37,6 @@ const RouteSchema = new Schema({
  */
 
 RouteSchema.path('title').required(true, 'Route title cannot be blank');
-RouteSchema.path('body').required(true, 'Route body cannot be blank');
 
 /**
  * Pre-remove hook

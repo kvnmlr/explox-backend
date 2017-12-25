@@ -75,7 +75,7 @@ const createDefaultGeo = function(name, lat, long, next) {
                 }            });
 
             geo.save(function (err) {
-                if (err) Log.error("Init", err);;
+                if (err) Log.error("Init", err);
                 geos[geos.length] = geo;
                 if (next) {
                     next();
@@ -91,7 +91,6 @@ const createDefaultAdmins = function(next) {
         criteria: {'email': 'system@explox.de'}
     };
     User.load_options(options, function (err, user) {
-        if (err) return done(err);
         if (!user) {
             user = new User({
                 name: 'system',
@@ -198,8 +197,9 @@ const createSampleRoute = function(next) {
                         body: 'I ran this route today and it is very nice!',
                         user: user,
                     }],
-                    tags: 'Running, Intermediate, Urban',
-                    geo: geos
+                    tags: 'run, running, road',
+                    geo: geos,
+                    distance: 1337.42
                 });
                 route.save(function (err) {
                     if (err) Log.error("Init", err);;

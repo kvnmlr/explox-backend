@@ -105,7 +105,7 @@ exports.getRoutes = function(id, token, next) {
 
         // for each route, get detailed route information
         for (let i = 0; i < payload.length; ++i) {
-            // TODO only get the routes that are new
+            // TODO Optimization: only get the routes that are new
             getRoute(payload[i].id, token, id, next);
         }
     });
@@ -156,6 +156,7 @@ const getRoute = function(id, token, userID, next) {
         if (err) {
             Log.error(TAG, err);
         }
+        Log.debug(TAG,'\nRoute ' + id + ': \n' + JSON.stringify(payload, null, 2));
 
         User.load_options({criteria: {stravaId: userID}}, function (err, user) {
             if (err) {
@@ -163,39 +164,49 @@ const getRoute = function(id, token, userID, next) {
                 return done(err);
             }
             if (user) {
-                // Create or update an entry in db.route, link to db.user using userID
+                // If this route does not exist in the db create an entry in db.route, link to db.user using userID
                 Route.load_options({criteria: {stravaId : id}}, function(err, route) {
                     // If this route does not exist, create a new one
                     if (!route) {
                         // TODO fill with actual data from payload
-                        route = new Route({
-                            stravaId: id,
-                            title: 'Saarbrücken Uni Route 2',
-                            body: 'This route leads through the univeristy in Saarbrücken.',
-                            location: 'Saarbrücken',
-                            user: user,
-                            comments: [{
-                                body: 'I ran this route today and it is very nice!',
-                                user: null,
-                            }],
-                            tags: 'Running, Intermediate, Urban',
-                            geo: []
-                        });
-                        getRouteStream(id, token, function() {
+                        getRouteStream(id, token, function(err, geos) {
+                            let tags = '';
+                            if (payload.type === 1) tags += 'ride, cycling';
+                            if (payload.type === 2) tags += 'run, running';
+                            switch (payload.sub_type){
+                                case 1:
+                                    tags += ', road';
+                                    break;
+                                case 2:
+                                    tags += ', mountainbike';
+                                    break;
+                                case 3:
+                                    tags += ', cx';
+                                    break;
+                                case 4:
+                                    tags += ', trail';
+                                    break;
+                                case 5:
+                                    tags += ', mixed';
+                                    break;
+                            }
+
+                            route = new Route({
+                                stravaId: id,
+                                title: payload.name,
+                                body: payload.description || 'auto generated',    // TODO generate
+                                location: '',                                     // TODO find out based on GPS
+                                user: user,
+                                comments: [],
+                                tags: tags,
+                                geo: geos,
+                                distance: payload.distance
+                            });
                             route.save(function (err) {
                                 if (err) {
                                     Log.error(TAG, err);
-                                    return done(next);
                                 }
                             });
-                        });
-
-                    } else {
-                        Route.update_route(route._id, route, function (err) {
-                            if (err) {
-                                Log.error(TAG, err);
-                                return done(next);
-                            }
                         });
                     }
                 });
@@ -214,9 +225,34 @@ const getRouteStream = function(id, token, next) {
             Log.error(TAG, err);
         }
         Log.debug(TAG,'\nRoute '+id+' Stream: \n' + JSON.stringify(payload, null, 2));
-        // TODO create entries in db.geo, link to db.route using id
+
+        var data;
+        for (let i = 0; i < payload.length; ++i) {
+            if (payload[i].type === 'latlng') {
+                data = payload[i].data;
+            }
+        }
+
+        var lat, lng;
+        var geos = [];
+        for (let i = 0; i < data.length; ++i) {
+            lat = data[i][0];
+            lng = data[i][1];
+            const geo = new Geo({
+                name: id,
+                location: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                }
+            });
+
+            geo.save(function (err) {
+                if (err) Log.error(TAG, err);
+            });
+            geos.push(geo);
+        }
         if (next) {
-            next();
+            next(null, geos);
         }
     });
 };

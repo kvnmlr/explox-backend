@@ -6,7 +6,7 @@ block main
       h1= name
 
       - if (data)
-            h3= 'Limits'
+            h3= 'API Limits'
             b= "Short term: "
             p= limits.shortTermUsage + " out of " + limits.shortTermLimit + " requests used (per 15 minutes)"
             div.progress
@@ -55,7 +55,8 @@ block main
                             th Location
                             th User
                             th Created
-
+                            th GPS Points
+                            th Distance
                     tbody
                         each route in routes
                             tr
@@ -67,10 +68,11 @@ block main
                                     p= route.user.username
                                 td
                                     p= route.createdAt.toString().substring(0, 24)
-
-      - if (!data)
-        p= userData
-
-
-    a.btn.btn-primary(href='/users/'+user._id+'/update', title="update") Update Profile
-    | &nbsp;
+                                td
+                                    p= route.geo.length
+                                td
+                                    p= (route.distance.toString().split('.', 1))/1000 + ' km'
+      if (!data)
+            p= userData
+            a.btn.btn-primary(href='/users/'+user._id+'/update', title="update") Update Profile
+            | &nbsp;
