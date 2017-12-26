@@ -10,6 +10,7 @@ const only = require('only');
 const {respond, respondOrRedirect} = require('../utils');
 const Route = mongoose.model('Route');
 const assign = Object.assign;
+const Map = require('./map');
 
 /**
  * Load
@@ -120,9 +121,12 @@ exports.update = async(function* (req, res) {
  */
 
 exports.show = function (req, res) {
+    var map = Map.generateRouteMap();
+
     respond(res, 'routes/show', {
         title: req.article.title,
-        article: req.article
+        article: req.article,
+        map: map
     });
 };
 

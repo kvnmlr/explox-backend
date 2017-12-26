@@ -11,6 +11,7 @@ const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Strava = require('./strava');
+const Map = require('./map');
 
 const TAG = "views/users";
 /**
@@ -81,10 +82,13 @@ exports.show = async(function* (req, res) {
 
         } else {
             // Show user profile
+            var map = Map.generateExploredMapData();
             respond(res, 'users/show', {
                 title: user.name,
                 user: user,
+                map: map,
                 userData: 'User data goes here'
+
             });
         }
     });
