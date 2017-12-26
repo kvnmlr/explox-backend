@@ -73,6 +73,40 @@ block main
                                 td
                                     p= (route.distance.toString().split('.', 1))/1000 + ' km'
       if (!data)
-            p= userData
-            a.btn.btn-primary(href='/users/'+user._id+'/update', title="update") Update Profile
+          div(id='map')
+          script.
+              window.onload = function () {
+                  var testData = {
+                      max: 8,
+                      data: [{lat: 25.72, lng: -80.2707, count: 1}]
+                  };
+                  var baseLayer = L.tileLayer(
+                      'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                          attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+                          maxZoom: 10
+                      }
+                  );
+                  var cfg = {
+                      "radius": .1,
+                      "maxOpacity": .5,
+                      "scaleRadius": true,
+                      "useLocalExtrema": true,
+                      latField: 'lat',
+                      lngField: 'lng',
+                      valueField: 'count'
+                  };
+                  var heatmapLayer = new HeatmapOverlay(cfg);
+                  var map = new L.Map('map', {
+                      center: new L.LatLng(25.72, -80.2707),
+                      zoom: 10,
+                      layers: [baseLayer, heatmapLayer],
+                      scrollWheelZoom: false
+                  });
+                  //map.scrollWheelZoom.disable().
+                  heatmapLayer.setData(testData);
+                  // make accessible for debugging
+                  layer = heatmapLayer;
+              };
+          p= userData
+          a.btn.btn-primary(href='/users/'+user._id+'/update', title="update") Update Profile
             | &nbsp;

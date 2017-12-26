@@ -3,9 +3,67 @@ extends ../layouts/default
 block main
   h1= article.title
 
+block map
+
+
 block content
+  //iframe(style="position: relative; height: 200px; width: 1000px, border: none", scrolling='no', frameborder='no', src='/map')
   .row
-    .col-md-8
+    .col-md-6
+        div(id='map')
+        script.
+                window.onload = function () {
+                    var testData = {
+                        max: 8,
+                        data: [
+                            {lat: 25.7, lng: -80.270, count: 1},
+                            {lat: 25.8, lng: -80.271, count: 1},
+                            {lat: 25.9, lng: -80.272, count: 1}]
+                    };
+                    var baseLayer = L.tileLayer(
+                        'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
+                            maxZoom: 18
+                        }
+                    );
+                    var cfg = {
+                        // radius should be small ONLY if scaleRadius is true (or small radius is intended)
+                        "radius": .1,
+                        "maxOpacity": .8,
+                        // scales the radius based on map zoom
+                        "scaleRadius": true,
+                        // if set to false the heatmap uses the global maximum for colorization
+                        // if activated: uses the data maximum within the current map boundaries
+                        //   (there will always be a red spot with useLocalExtremas true)
+                        "useLocalExtrema": true,
+                        // which field name in your data represents the latitude - default "lat"
+                        latField: 'lat',
+                        // which field name in your data represents the longitude - default "lng"
+                        lngField: 'lng',
+                        // which field name in your data represents the data value - default "value"
+                        valueField: 'count'
+                    };
+                    var heatmapLayer = new HeatmapOverlay(cfg);
+                    heatmapLayer.setData(testData);
+                    // make accessible for debugging
+                    layer = heatmapLayer;
+                    var map = L.map('map',
+                        {
+                            center: new L.LatLng(25.722, -80.271),
+                            zoom: 10,
+                            layers: [baseLayer, heatmapLayer],
+                            scrollWheelZoom: false
+                        });
+
+                    L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                    }).addTo(map);
+
+                    L.marker([25.721, -80.270]).addTo(map)
+                        .bindPopup('A very cool route.<br> 80% undiscovered.')
+                        .openPopup();
+                };
+    .col-md-6
       p=article.body
       .meta
         - if (article.user)
@@ -23,20 +81,14 @@ block content
               | &nbsp;&nbsp;
 
         p.muted= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
-
-    .col-md-4
-      - if (!article.isNew && article.image && article.image.files && article.image.files.length)
-        img(src=article.image.cdnUri + '/mini_' + article.image.files[0])
-
-  form(action="/routes/"+article.id, method="post", onsubmit="return confirm('Are you sure?')")
-    input(type='hidden', name='_csrf', value="#{csrf_token}")
-    a.btn.btn-default(href='/routes/'+article._id+'/edit', title="edit") Edit
-    | &nbsp;
-    input(type="hidden", name="_method", value="DELETE")
-    button.btn.btn-danger(type="submit") Delete
-
-  br
-  h3 Comments
-  - each comment in article.comments
-    include ../comments/comment
-  include ../comments/form
+        form(action="/routes/"+article.id, method="post", onsubmit="return confirm('Are you sure?')")
+        input(type='hidden', name='_csrf', value="#{csrf_token}")
+        a.btn.btn-default(href='/routes/'+article._id+'/edit', title="edit") Edit
+        | &nbsp;
+        input(type="hidden", name="_method", value="DELETE")
+        button.btn.btn-danger(type="submit") Delete
+        br
+        h3 Comments
+        - each comment in article.comments
+          include ../comments/comment
+        include ../comments/form
