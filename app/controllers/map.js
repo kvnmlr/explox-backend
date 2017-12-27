@@ -34,6 +34,7 @@ exports.generateExploredMapData = function(geos) {
             {lat: 25.9, lng: -80.272, count: 1}]
     };
     return {
+        marker: [],
         heatmapConfig: heatmap,
         config: config,
         heatmapData: data
