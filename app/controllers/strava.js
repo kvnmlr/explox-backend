@@ -125,7 +125,7 @@ exports.getActivities = function(id, token, next) {
 
         // for each activity, get detailed activity information
         for (let i = 0; i < payload.length; ++i) {
-            //exports.getActivity(payload[i].id, token, next);  // TODO implement and uncomment
+            getActivity(payload[i].id, token, id, next);
         }
     });
 };
@@ -144,6 +144,20 @@ exports.segmentsExplorer = function(token, next) {
         if (next) {
             next(null, payload);
         }
+    });
+};
+
+
+const getActivity = function(id, token, userID, next) {
+    getActivityStream(id, token, function(err, geos) {
+        if (err) {
+            Log.error(TAG, err); return;
+        }
+        Log.log(TAG, geos.length + " geos extracted for activity " + id);
+        /* TODO associate the geos with the user
+            Either create new table 'activities' and link it to user
+            Or store geos directly in user profile
+         */
     });
 };
 
@@ -170,6 +184,9 @@ const getRoute = function(id, token, userID, next) {
                     if (!route) {
                         // TODO fill with actual data from payload
                         getRouteStream(id, token, function(err, geos) {
+                            if (err) {
+                                Log.error(TAG, err); return;
+                            }
                             let tags = '';
                             if (payload.type === 1) tags += 'ride, cycling';
                             if (payload.type === 2) tags += 'run, running';
@@ -224,51 +241,55 @@ const getRouteStream = function(id, token, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        Log.debug(TAG,'\nRoute '+id+' Stream: \n' + JSON.stringify(payload, null, 2));
-
-        var data;
-        for (let i = 0; i < payload.length; ++i) {
-            if (payload[i].type === 'latlng') {
-                data = payload[i].data;
-            }
-        }
-
-        var lat, lng;
-        var geos = [];
-        for (let i = 0; i < data.length; ++i) {
-            lat = data[i][0];
-            lng = data[i][1];
-            const geo = new Geo({
-                name: id,
-                location: {
-                    type: 'Point',
-                    coordinates: [lng, lat]
-                }
-            });
-
-            geo.save(function (err) {
-                if (err) Log.error(TAG, err);
-            });
-            geos.push(geo);
-        }
-        if (next) {
-            next(null, geos);
-        }
+        Log.debug(TAG,'\nRoute Stream '+id+': \n' + JSON.stringify(payload, null, 2));
+        extractGeosFromPayload(id, payload, next);
     });
 };
 
-const getSegmentStream = function(id, token, next) {
-    strava.streams.segment({id: id, types:['latlng'], access_token: token}, function (err, payload, limits) {
+const getActivityStream = function(id, token, next) {
+    strava.streams.activity({id: id, types: 'latlng', access_token: token}, function (err, payload, limits) {
         apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
-        Log.debug(TAG,'\nSegment '+id+' Stream: \n' + JSON.stringify(payload, null, 2));
-        // todo update database
-        if (next) {
-            next(null, payload);
-        }
+        Log.debug(TAG,'\nActivity Stream '+id+': \n' + JSON.stringify(payload, null, 2));
+        extractGeosFromPayload(id, payload, next);
     });
+};
+
+const extractGeosFromPayload = function(id, payload, next) {
+    Log.debug(TAG, JSON.stringify(payload, null, 2));
+    var data = null;
+    for (let i = 0; i < payload.length; ++i) {
+        if (payload[i].type === 'latlng') {
+            data = payload[i].data;
+        }
+    }
+    if (data == null) {
+        return next("could not read data from payload", null);
+    }
+
+    var lat, lng;
+    var geos = [];
+    for (let i = 0; i < data.length; ++i) {
+        lat = data[i][0];
+        lng = data[i][1];
+        const geo = new Geo({
+            name: id,
+            location: {
+                type: 'Point',
+                coordinates: [lng, lat]
+            }
+        });
+
+        geo.save(function (err) {
+            if (err) Log.error(TAG, err);
+        });
+        geos.push(geo);
+    }
+    if (next) {
+        next(null, geos);
+    }
 };
 
 exports.authCallback = function (req, res, next) {
