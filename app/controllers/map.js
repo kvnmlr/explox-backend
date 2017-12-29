@@ -23,20 +23,25 @@ exports.generateRouteMap = function(geos, exploredGeos) {
  * @param geos
  */
 exports.generateExploredMapData = function(geos) {
-    const config = getConfig(geos);         // general map configuratio (e.g. zoom)
-    const heatmap = getHeatmapConfig();     // heatmap
-
+    const config = getConfig(geos);                 // general map configuratio (e.g. zoom)
+    const heatmap = null /*getHeatmapConfig()*/;    // heatmap
+    const mask = getMaskConfiguration();            // mask
     // TODO generate heatmap format from user geos, transform geojson into heatmap js data format. This is just sample data how it should look like:
     var data = {
         max: 8,         // only used for dynamic content. Always set it to total number of points.
-        data: [
+        /*data: [
             {lat: 25.7, lng: -80.270, count: 1},
             {lat: 25.8, lng: -80.271, count: 1},
-            {lat: 25.9, lng: -80.272, count: 1}]
+            {lat: 25.9, lng: -80.272, count: 1}]*/
+        data: [
+            [25.7, -80.270],
+            [25.8, -80.271],
+            [25.9, -80.272]]
     };
     return {
         marker: [],
-        heatmapConfig: heatmap,
+        //heatmapConfig: heatmap,
+        maskConfig: mask,
         config: config,
         heatmapData: data,
         hasMarker: false,
@@ -45,6 +50,23 @@ exports.generateExploredMapData = function(geos) {
 
 /**
  * Returns the configuration for the explored map
+ */
+var getMaskConfiguration = function() {
+    var config = {
+        radius: 10000,              // radius in pixels or in meters (see useAbsoluteRadius)
+        useAbsoluteRadius: true,    // true: r in meters, false: r in pixels
+        color: '#000',              // the color of the layer
+        opacity: .8,                // opacity of the not covered area
+        noMask: false,              // true results in normal (filled) circled, instead masked circles
+        lineColor: '#A00',          // color of the circle outline if noMask is true
+        blur: .5
+
+    };
+    return config;
+};
+
+/**
+ * !!! NOT USED ATM !!! Returns the configuration for the explored map
  */
 var getHeatmapConfig = function() {
     var config = {
@@ -74,11 +96,11 @@ var getHeatmapConfig = function() {
 };
 
 /**
- * Returns the configuration for the explored map
+ * Returns the configuration for the leaflet map (explored map)
  */
 var getConfig = function (geos) {
     var config = {
-        // TODO determine based on geos
+        // Probably not needed because we use fitBounds which does this automatically
         zoom: 10,                   // Zoom out such that every point is visible
         center: [25.72, -80.2707],  // Center in the middle of the points
         scrollWheelZoom: false,     // Prevents scrolling the map when scrolling the page (maybe turn on for non-mobile page)

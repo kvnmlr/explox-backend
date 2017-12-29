@@ -7,15 +7,13 @@ script.
                 maxZoom: 10
             }
         );
-        var heatmapLayer = new HeatmapOverlay(!{JSON.stringify(map.heatmapConfig)});
+        //var heatmapLayer = new HeatmapOverlay(!{JSON.stringify(map.heatmapConfig)});
         var map = new L.Map('map', {
-            center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
-            zoom: !{map.config.zoom},
-            layers: [baseLayer, heatmapLayer],
+            //center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
+            //zoom: !{map.config.zoom},
+            layers: [baseLayer],
             scrollWheelZoom: !{map.config.scrollWheelZoom}
         });
-        heatmapLayer.setData(!{JSON.stringify(map.heatmapData)});
-        layer = heatmapLayer;
 
         if (!{map.hasMarker}) {
             L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
@@ -26,4 +24,11 @@ script.
                 .bindPopup('!{map.marker.text}')
                 .openPopup();
         }
+
+        L.control.scale().addTo(map);
+
+        var coverageLayer = new L.TileLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
+        coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
+        map.fitBounds(coverageLayer.bounds);
+        map.addLayer(coverageLayer);
     };
