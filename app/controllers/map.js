@@ -12,6 +12,7 @@ exports.generateRouteMap = function(geos, exploredGeos) {
 
     // TODO generate leaflet format from route geos (i.e. geojson points and lines to display on the map)
     exploredData.marker = {text: "A very cool route.<br> 80% undiscovered.", coords: [25.721, -80.270]};
+    exploredData.hasMarker = true;
     exploredData.config = getConfig(geos /*union with exploredGeos*/);         // general map configuratio (e.g. zoom)
 
     return exploredData;
@@ -37,7 +38,8 @@ exports.generateExploredMapData = function(geos) {
         marker: [],
         heatmapConfig: heatmap,
         config: config,
-        heatmapData: data
+        heatmapData: data,
+        hasMarker: false,
     };
 };
 
@@ -47,13 +49,26 @@ exports.generateExploredMapData = function(geos) {
 var getHeatmapConfig = function() {
     var config = {
         // this is static and should not depend on geos.
-        "radius": .1,
-        "maxOpacity": .5,
-        "scaleRadius": true,
-        "useLocalExtrema": true,
+        radius: .1,
+        maxOpacity: 100,
+        minOpacity: 0.5,
+        scaleRadius: true,
+        useLocalExtrema: true,
         latField: 'lat',
         lngField: 'lng',
-        valueField: 'count'
+        valueField: 'count',
+        //blur: .75,
+        //backgroundColor: 'rgba(0,0,0,1)',
+        gradient: {
+            // enter n keys between 0 and 1 here
+            // for gradient color customization
+            '0': 'red',
+            '.5': 'blue',
+            '.8': 'red',
+            '.95': 'rgba(255,255,255,0.001)'
+            //'.95': 'transparent'
+
+        },
     };
     return config;
 };

@@ -16,13 +16,14 @@ script.
         });
         heatmapLayer.setData(!{JSON.stringify(map.heatmapData)});
         layer = heatmapLayer;
-        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
 
-        L.marker([!{map.marker.coords}]).addTo(map)
-            .bindPopup('!{map.marker.text}')
-            .openPopup();
+        if (!{map.hasMarker}) {
+            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
 
-
+            L.marker([!{map.marker.coords}]).addTo(map)
+                .bindPopup('!{map.marker.text}')
+                .openPopup();
+        }
     };
