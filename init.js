@@ -6,6 +6,7 @@ var Route;
 var GeoJSON;
 var User;
 var Role;
+var Activity;
 
 var geos = [];
 var adminRole;
@@ -24,6 +25,7 @@ exports.createSampleData = function () {
     GeoJSON = mongoose.model('GeoJSON');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
+    Activity = mongoose.model('Activity');
 
     executeAsynchronously(
         [createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, function () {

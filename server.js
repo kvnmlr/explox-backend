@@ -37,6 +37,7 @@ fs.readdirSync(models)
 require('./config/passport')(passport);
 require('./config/express')(app, passport);
 require('./config/routes')(app, passport);
+
 const Log = require('./app/utils/logger');
 
 fs.writeFile('application.log', '');        // Reset the log file

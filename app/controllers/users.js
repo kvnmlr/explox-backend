@@ -10,6 +10,8 @@ const {respond} = require('../utils');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
+const Activity = mongoose.model('Activity');
+
 const Strava = require('./strava');
 const Map = require('./map');
 
@@ -69,20 +71,24 @@ exports.show = async(function* (req, res) {
             User.list({}, function(err, users) {
                 Route.list({}, function(err, routes) {
                     // Show admin dashboard
-                    respond(res, 'users/show', {
-                        title: user.name,
-                        user: user,
-                        data: 'Admin data goes here',
-                        all: users,
-                        routes: routes,
-                        limits: Strava.getLimits()
+                    Activity.list({}, function(err, activities) {
+                        respond(res, 'users/show', {
+                            title: user.name,
+                            user: user,
+                            data: 'Admin data goes here',
+                            all: users,
+                            routes: routes,
+                            activities: activities,
+                            limits: Strava.getLimits()
+                        });
                     });
                 });
             });
 
         } else {
             // Show user profile
-            var map = Map.generateExploredMapData();
+            var geos = Strava.activitiesToGeos(req.user.activities);
+            var map = Map.generateExploredMapData(geos);
             respond(res, 'users/show', {
                 title: user.name,
                 user: user,

@@ -20,19 +20,15 @@ exports.generateRouteMap = function(geos, exploredGeos) {
 
 /**
  * Transforms an array of db.geos into the data format used by heatmao.js to show the explored map
- * @param geos
+ * @param exploredGeos
  */
-exports.generateExploredMapData = function(geos) {
-    const config = getConfig(geos);                 // general map configuratio (e.g. zoom)
-    const heatmap = null /*getHeatmapConfig()*/;    // heatmap
-    const mask = getMaskConfiguration();            // mask
+exports.generateExploredMapData = function(exploredGeos) {
+    const mapConfig = getConfig(exploredGeos); // general map configuratio (e.g. zoom)
+    const maskConfig = getMaskConfiguration(); // mask
     // TODO generate heatmap format from user geos, transform geojson into heatmap js data format. This is just sample data how it should look like:
+
     var data = {
         max: 8,         // only used for dynamic content. Always set it to total number of points.
-        /*data: [
-            {lat: 25.7, lng: -80.270, count: 1},
-            {lat: 25.8, lng: -80.271, count: 1},
-            {lat: 25.9, lng: -80.272, count: 1}]*/
         data: [
             [25.7, -80.270],
             [25.8, -80.271],
@@ -40,9 +36,8 @@ exports.generateExploredMapData = function(geos) {
     };
     return {
         marker: [],
-        //heatmapConfig: heatmap,
-        maskConfig: mask,
-        config: config,
+        maskConfig: maskConfig,
+        config: mapConfig,
         heatmapData: data,
         hasMarker: false,
     };

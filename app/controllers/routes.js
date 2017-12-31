@@ -121,7 +121,7 @@ exports.update = async(function* (req, res) {
  */
 
 exports.show = function (req, res) {
-    var map = Map.generateRouteMap();
+    var map = Map.generateRouteMap(req.article.geo);
 
     respond(res, 'routes/show', {
         title: req.article.title,

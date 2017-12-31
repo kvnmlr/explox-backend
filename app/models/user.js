@@ -34,7 +34,7 @@ const UserSchema = new Schema({
     stravaId: {type: String, default: ''},
     strava: {},
     //routes: [{type: Schema.ObjectId, ref: 'Route'}],
-    geo: [{type: Schema.ObjectId, ref: 'Geo'}],
+    activities: [{type: Schema.ObjectId, ref: 'Activity'}],
     role: {type: Schema.ObjectId, ref: 'Role'},
     createdAt: {type: Date, default: Date.now},
     lastLogin: {type: Date, default: Date.now}
@@ -191,6 +191,8 @@ UserSchema.statics = {
     load_options: function (options, cb) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
+            .populate('role')
+            .populate('activities')
             .select(options.select)
             .exec(cb);
     },
@@ -203,7 +205,7 @@ UserSchema.statics = {
      */
 
     load: function (_id, next) {
-        return this.findOne(ObjectId(_id)).exec(next);
+        return this.load_options({criteria: {_id: _id}}, next);
     },
 
     /**
@@ -226,13 +228,9 @@ UserSchema.statics = {
 
     list: function (options, cb) {
         const criteria = options.criteria || {};
-        const page = options.page || 0;
-        const limit = options.limit || 30;
         return this.find(criteria)
             .populate('role', 'name')
             .sort({createdAt: -1})
-            .limit(limit)
-            .skip(limit * page)
             .exec(cb);
     }
 

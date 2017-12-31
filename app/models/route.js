@@ -21,7 +21,7 @@ const RouteSchema = new Schema({
     location: {type: String, default: '', trim: true},     // General location (e.g. the city)
     body: {type: String, default: '', trim: true},      // Optional description
     user: {type: Schema.ObjectId, ref: 'User', default: null},         // The user who created this route
-    geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of geo points
+    geo: [{type: Schema.ObjectId, ref: 'GeoJSON'}],         // List of geo points
     distance: {type: String, default: '', trim: true},     // Title of the route
     comments: [{
         body: {type: String, default: ''},
@@ -143,10 +143,7 @@ RouteSchema.statics = {
      */
 
     load: function (_id) {
-        return this.findOne({_id})
-            .populate('user', 'name email username')
-            .populate('comments.user')
-            .exec();
+        return this.load_options({criteria: {_id: _id}}, null);
     },
 
     /**
@@ -160,6 +157,9 @@ RouteSchema.statics = {
     load_options: function (options, cb) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
+            .populate('user', 'name email username')
+            .populate('geo')
+            .populate('comments.user')
             .select(options.select)
             .exec(cb);
     },
@@ -173,13 +173,10 @@ RouteSchema.statics = {
 
     list: function (options, cb) {
         const criteria = options.criteria || {};
-        const page = options.page || 0;
-        const limit = options.limit || 30;
         return this.find(criteria)
             .populate('user', 'name username')
+            .populate('geo')
             .sort({createdAt: -1})
-            .limit(limit)
-            .skip(limit * page)
             .exec(cb);
     },
 

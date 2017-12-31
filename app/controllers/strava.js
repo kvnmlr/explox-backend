@@ -6,6 +6,7 @@ const request = require('request');
 const config = require('../../server').config;
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
+const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('GeoJSON');
 
 const Log = require('../utils/logger')
@@ -149,22 +150,59 @@ exports.segmentsExplorer = function(token, next) {
 
 
 const getActivity = function(id, token, userID, next) {
-    getActivityStream(id, token, function(err, geos) {
+    Activity.load_options({criteria: {activityId: id}}, function(err, activity) {
         if (err) {
             Log.error(TAG, err); return;
         }
-        Log.log(TAG, geos.length + " geos extracted for activity " + id);
-        /* TODO associate the geos with the user
-            Either create new table 'activities' and link it to user
-            Or store geos directly in user profile
-         */
+        if (!activity) {
+            Log.debug(TAG, "Activity " + id + " does not exist, creating it ...");
+            getActivityStream(id, token, function(err, geos) {
+                if (err) {
+                    Log.error(TAG, err); return;
+                }
+                Log.log(TAG, geos.length + " geos extracted for activity " + id);
+
+                // Create the activity
+                var activity = new Activity({
+                    activityId: id,
+                    geo: geos
+                });
+                activity.save(function (err) {
+                    if (err) {
+                        Log.error(TAG, err);
+                    }
+                });
+
+                // Link activity to user
+                User.load_options({criteria: {stravaId: userID}}, function (err, user) {
+                    if (err) {
+                        Log.error(TAG, err);
+                    }
+                    if (user) {
+                        user.activities.push(activity);
+                        user.save(function (err) {
+                            Log.log(TAG, "USER SAVED");
+                            if (err) {
+                                Log.error(TAG, err);
+                            }
+                        });
+                    }
+                });
+            });
+        } else {
+            Log.debug(TAG, "Activity " + id + " already exist.");
+        }
     });
+    return;
+
 };
 
 /**
  * Retrieves detailed route information given a route id. Updates db.route with the route information (e.g. distance).
  */
 const getRoute = function(id, token, userID, next) {
+    // TODO reorder: Frist check if already exists, then do API call
+
     strava.routes.get({id: id, access_token: token}, function (err, payload, limits) {
         apiLimits = limits;
         if (err) {
@@ -313,3 +351,7 @@ exports.authCallback = function (req, res, next) {
         next(null, response);
     });
 };
+
+exports.activitiesToGeos = function(activities, next) {
+    // TODO transform activities to array of geos
+}
