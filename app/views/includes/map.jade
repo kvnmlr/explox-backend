@@ -4,31 +4,107 @@ script.
         var baseLayer = L.tileLayer(
             'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
-                maxZoom: 10
+                maxZoom: 100
             }
         );
         //var heatmapLayer = new HeatmapOverlay(!{JSON.stringify(map.heatmapConfig)});
         var map = new L.Map('map', {
-            //center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
-            //zoom: !{map.config.zoom},
+            center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
+            zoom: !{map.config.zoom},
             layers: [baseLayer],
-            scrollWheelZoom: !{map.config.scrollWheelZoom}
+            scrollWheelZoom: !{map.config.scrollWheelZoom},
+            minZoom: 0,
+            maxZoom: 100
         });
 
-        if (!{map.hasMarker}) {
-            L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+        if ((!{map.hasMarker})) {
+            var control = L.Routing.control({
+                waypoints: [
+                    L.latLng(25.7, -80.270),
+                    L.latLng(25.9, -80.272),
+                    L.latLng(25.8, -80.3)
+                ],
+                routeWhileDragging: true,
+                lineOptions: {
+                    styles: [{color: 'black', opacity: 0.15, weight: 9}, {color: 'white', opacity: 0.5, weight: 6}, {color: 'red', opacity: 1, weight: 2}]
+                },
+                createMarker: function (i, wp) {
+                    return L.marker(wp.latLng, {
+                        draggable: false,
+                        opacity: 0
+                    });
+                }
+            });
+            //control.hide();
+            control.addTo(map)
 
-            L.marker([!{map.marker.coords}]).addTo(map)
-                .bindPopup('!{map.marker.text}')
-                .openPopup();
+
+            function onEachFeature(feature, layer) {
+                if (feature.properties && feature.properties.popupContent) {
+                    layer.bindPopup(feature.properties.popupContent);
+                }
+            }
+
+            var states = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-80.270, 25.7]
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [-80.3, 25.8]
+                    }
+                }];
+
+            var geojsonMarkerOptions = {
+                radius: 8,
+                fillColor: "#ff780000",
+                color: "#000",
+                weight: 5,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+
+            L.geoJSON(states, {
+                onEachFeature: onEachFeature,
+                style: function (feature) {
+                    switch (feature.properties.type) {
+                        case 'route':
+                            geojsonMarkerOptions.color = "#007bff"
+                            return geojsonMarkerOptions;
+                        case 'start':
+                            geojsonMarkerOptions.color = "#000000"
+                            return geojsonMarkerOptions;
+                        case 'end':
+                            geojsonMarkerOptions.color = "#00ff5e"
+                            return geojsonMarkerOptions;
+                    }
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, geojsonMarkerOptions);
+                }
+            }).addTo(map);
         }
 
-        L.control.scale().addTo(map);
 
-        var coverageLayer = new L.TileLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
+        var coverageLayer = new L.GridLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
         coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
         map.fitBounds(coverageLayer.bounds);
         map.addLayer(coverageLayer);
+
+        L.control.scale().addTo(map);
+
     };

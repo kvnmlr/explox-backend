@@ -20,12 +20,22 @@ head
             line-height: 150%;
             border: 1px solid rgba(0, 0, 0, .2);
         }
-  link(rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css")
-  script(src='http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js')
+
+        .leaflet-control-container .leaflet-routing-container {
+            display: none;
+         }
+
+  link(rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css")
+  script(src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js")
   //script(src='/js/heatmap.js/build/heatmap.js')
   script(src='/js/leaflet-maskcanvas/QuadTree.js')
-  script(src='/js/leaflet-maskcanvas/L.TileLayer.MaskCanvas.js')
-  script(src='/js/leaflet-heatmap/leaflet-heatmap.js')
+  script(src='/js/leaflet-maskcanvas/L.GridLayer.MaskCanvas.js')
+
+  link(rel='stylesheet', href='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css')
+  script(src='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js')
+  script(type='text/javascript', src='/js/icon-glyph.js')
+
+    //script(src='/js/leaflet-heatmap/leaflet-heatmap.js')
   link(href="//netdna.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css", rel="stylesheet")
   link(href="/css/jquery.tagsinput.css", rel="stylesheet")
   link(href="//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css", rel="stylesheet")
