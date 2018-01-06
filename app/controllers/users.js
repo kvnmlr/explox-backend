@@ -62,44 +62,46 @@ exports.create = async(function* (req, res) {
 
 exports.show = async(function* (req, res) {
     const user = req.profile;
-
+    Log.debug(TAG, req.profile.role);
     var options = {
         criteria: {'_id': req.profile.role}
     };
     Role.load_options(options, function (err, role) {
-        if (role.name === 'admin') {
-            User.list({}, function(err, users) {
-                Route.list({}, function(err, routes) {
-                    // Show admin dashboard
-                    Activity.list({}, function(err, activities) {
-                        respond(res, 'users/show', {
-                            title: user.name,
-                            user: user,
-                            data: 'Admin data goes here',
-                            all: users,
-                            routes: routes,
-                            activities: activities,
-                            limits: Strava.getLimits()
+        if (role) {
+            if (role.name === 'admin') {
+                User.list({}, function (err, users) {
+                    Route.list({}, function (err, routes) {
+                        // Show admin dashboard
+                        Activity.list({}, function (err, activities) {
+                            respond(res, 'users/show', {
+                                title: user.name,
+                                user: user,
+                                data: 'Admin data goes here',
+                                all: users,
+                                routes: routes,
+                                activities: activities,
+                                limits: Strava.getLimits()
+                            });
                         });
                     });
                 });
-            });
+            }
+            else {
+                // Show user profile
+                User.load_full({criteria: {_id: req.user._id}}, function (err, user) {
+                    if (user) {
+                        const geos = Strava.activitiesToGeos(user.activities);
+                        const map = Map.generateExploredMapData(geos);
+                        respond(res, 'users/show', {
+                            title: user.name,
+                            user: user,
+                            map: map,
+                            userData: 'User data goes here'
 
-        } else {
-            // Show user profile
-            User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
-                if (user) {
-                    const geos = Strava.activitiesToGeos(user.activities);
-                    const map = Map.generateExploredMapData(geos);
-                    respond(res, 'users/show', {
-                        title: user.name,
-                        user: user,
-                        map: map,
-                        userData: 'User data goes here'
-
-                    });
-                }
-            })
+                        });
+                    }
+                })
+            }
         }
     });
 });

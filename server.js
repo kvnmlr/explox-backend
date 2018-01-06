@@ -52,7 +52,6 @@ function listen() {
     app.listen(port);
     init.init(init.createSampleData);
     Log.log('Server', 'Server started on port ' + port);
-
 }
 
 function connect() {

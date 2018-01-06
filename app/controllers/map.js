@@ -33,9 +33,7 @@ exports.generateRouteMap = function(geos, exploredGeos) {
 exports.generateExploredMapData = function(exploredGeos) {
     const mapConfig = getConfig(exploredGeos); // general map configuratio (e.g. zoom)
     const maskConfig = getMaskConfiguration(); // mask
-    // TODO generate heatmap format from user geos, transform geojson into heatmap js data format. This is just sample data how it should look like:
 
-    //Log.debug(TAG, exploredGeos);
     var data = {
         max: 8,         // only used for dynamic content. Always set it to total number of points.
         data: exploredGeos
@@ -102,8 +100,8 @@ var getHeatmapConfig = function() {
 var getConfig = function (geos) {
     var config = {
         // Probably not needed because we use fitBounds which does this automatically
-        zoom: 10,                   // Zoom out such that every point is visible
-        center: [25.72, -80.2707],  // Center in the middle of the points
+        zoom: 11,                   // Zoom out such that every point is visible
+        center: [49.21296,7.127770000000001],  // Center in the middle of the points
         scrollWheelZoom: false,     // Prevents scrolling the map when scrolling the page (maybe turn on for non-mobile page)
     };
     return config;

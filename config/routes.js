@@ -36,11 +36,6 @@ module.exports = function (app, passport) {
     app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // user routes
-    app.get('/map', function(req, res) {
-        res.render('routes/map', {
-        });
-    });
-
     app.get('/login', users.login);
     app.get('/signup', users.signup);
     app.get('/logout', users.logout);

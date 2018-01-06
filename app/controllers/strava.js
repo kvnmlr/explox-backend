@@ -249,7 +249,7 @@ const getRoute = function(id, token, userID, next) {
                             route = new Route({
                                 stravaId: id,
                                 title: payload.name,
-                                body: payload.description || 'auto generated',    // TODO generate
+                                body: payload.description || 'A Strava route created by ' + user.username,    // TODO generate
                                 location: '',                                     // TODO find out based on GPS
                                 user: user,
                                 comments: [],
@@ -296,7 +296,6 @@ const getActivityStream = function(id, token, next) {
 };
 
 const extractGeosFromPayload = function(id, payload, next) {
-    Log.debug(TAG, JSON.stringify(payload, null, 2));
     var data = null;
     for (let i = 0; i < payload.length; ++i) {
         if (payload[i].type === 'latlng') {
@@ -354,8 +353,6 @@ exports.authCallback = function (req, res, next) {
 
 exports.activitiesToGeos = function(activities) {
     // TODO transform activities to array of geos
-    //Log.debug(TAG, activities);
-
     let res = [];
     for(let i = 0; i < activities.length; ++i) {
         const activity = activities[i];
@@ -363,7 +360,6 @@ exports.activitiesToGeos = function(activities) {
         for (let j = 0; j < geos.length; ++j) {
             if (geos[j].location) {
                 const coords = [geos[j].location.coordinates[1],geos[j].location.coordinates[0]];
-                //Log.debug(TAG, coords.length);
                 res.push(coords);
             }
         }

@@ -43,7 +43,7 @@ exports.init = function(next) {
     Role = mongoose.model('Role');
 
     executeAsynchronously(
-        [createRoles, createDefaultAdmins, next], 50
+        [createRoles, createDefaultAdmins, next], 100
     );
 };
 

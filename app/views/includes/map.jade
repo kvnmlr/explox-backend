@@ -27,7 +27,7 @@ script.
                 createMarker: function (i, wp) {
                     return L.marker(wp.latLng, {
                         draggable: false,
-                        opacity: .1
+                        opacity: 0
                     });
                 }
             });
@@ -98,7 +98,7 @@ script.
 
         var coverageLayer = new L.GridLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
         coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
-        map.fitBounds(coverageLayer.bounds);
+        //map.fitBounds(coverageLayer.bounds);
         map.addLayer(coverageLayer);
 
         L.control.scale().addTo(map);
