@@ -1,5 +1,8 @@
 'use strict';
 
+const Log = require('../utils/logger');
+const TAG = "controllers/routes";
+
 /**
  * Module dependencies.
  */
@@ -11,6 +14,8 @@ const {respond, respondOrRedirect} = require('../utils');
 const Route = mongoose.model('Route');
 const assign = Object.assign;
 const Map = require('./map');
+const Strava = require('./strava');
+const User = mongoose.model('User');
 
 /**
  * Load
@@ -121,13 +126,18 @@ exports.update = async(function* (req, res) {
  */
 
 exports.show = function (req, res) {
-    var map = Map.generateRouteMap(req.article.geo);
+    User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
+        if (user) {
+            const geos = Strava.activitiesToGeos(user.activities);
+            const map = Map.generateRouteMap(req.article.geo, geos);
+            respond(res, 'routes/show', {
+                title: req.article.title,
+                article: req.article,
+                map: map
+            });
+        }
+    })
 
-    respond(res, 'routes/show', {
-        title: req.article.title,
-        article: req.article,
-        map: map
-    });
 };
 
 /**

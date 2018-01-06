@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../utils/logger');
-const TAG = "views/users";
+const TAG = "map";
 
 /**
  * Transforms an array of db.geos into the data format used by leaflet.js to display a route on the map
@@ -10,11 +10,19 @@ const TAG = "views/users";
 exports.generateRouteMap = function(geos, exploredGeos) {
     const exploredData = exports.generateExploredMapData(exploredGeos);
 
-    // TODO generate leaflet format from route geos (i.e. geojson points and lines to display on the map)
+    var routeGeo = []
+    Log.debug(TAG, geos.length);
+    var len = geos.length < 200 ? geos.length : 200;
+    for (let i = 0; i < len; ++i) {
+        if (geos[i].location) {
+            const coords = 'L.latLng('+geos[i].location.coordinates[1] + ',' + geos[i].location.coordinates[0]+')';
+            routeGeo.push(coords);        }
+    }
+    Log.debug(TAG, "", routeGeo);
     exploredData.marker = {text: "A very cool route.<br> 80% undiscovered.", coords: [25.721, -80.270]};
-    exploredData.hasMarker = true;
+    exploredData.hasRoute = true;
     exploredData.config = getConfig(geos /*union with exploredGeos*/);         // general map configuratio (e.g. zoom)
-
+    exploredData.routeData = routeGeo;
     return exploredData;
 };
 
@@ -27,19 +35,17 @@ exports.generateExploredMapData = function(exploredGeos) {
     const maskConfig = getMaskConfiguration(); // mask
     // TODO generate heatmap format from user geos, transform geojson into heatmap js data format. This is just sample data how it should look like:
 
+    //Log.debug(TAG, exploredGeos);
     var data = {
         max: 8,         // only used for dynamic content. Always set it to total number of points.
-        data: [
-            [25.7, -80.270],
-            [25.8, -80.271],
-            [25.9, -80.272]]
+        data: exploredGeos
     };
     return {
         marker: [],
         maskConfig: maskConfig,
         config: mapConfig,
         heatmapData: data,
-        hasMarker: false,
+        hasRoute: false,
     };
 };
 
@@ -48,7 +54,7 @@ exports.generateExploredMapData = function(exploredGeos) {
  */
 var getMaskConfiguration = function() {
     var config = {
-        radius: 10000,              // radius in pixels or in meters (see useAbsoluteRadius)
+        radius: 100,              // radius in pixels or in meters (see useAbsoluteRadius)
         useAbsoluteRadius: true,    // true: r in meters, false: r in pixels
         color: '#000',              // the color of the layer
         opacity: .8,                // opacity of the not covered area
@@ -66,7 +72,7 @@ var getMaskConfiguration = function() {
 var getHeatmapConfig = function() {
     var config = {
         // this is static and should not depend on geos.
-        radius: .1,
+        radius: .5,
         maxOpacity: 100,
         minOpacity: 0.5,
         scaleRadius: true,

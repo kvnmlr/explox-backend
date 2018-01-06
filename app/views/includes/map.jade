@@ -17,13 +17,9 @@ script.
             maxZoom: 100
         });
 
-        if ((!{map.hasMarker})) {
+        if ((!{map.hasRoute})) {
             var control = L.Routing.control({
-                waypoints: [
-                    L.latLng(25.7, -80.270),
-                    L.latLng(25.9, -80.272),
-                    L.latLng(25.8, -80.3)
-                ],
+                waypoints: [!{map.routeData}],
                 routeWhileDragging: true,
                 lineOptions: {
                     styles: [{color: 'black', opacity: 0.15, weight: 9}, {color: 'white', opacity: 0.5, weight: 6}, {color: 'red', opacity: 1, weight: 2}]
@@ -31,7 +27,7 @@ script.
                 createMarker: function (i, wp) {
                     return L.marker(wp.latLng, {
                         draggable: false,
-                        opacity: 0
+                        opacity: .1
                     });
                 }
             });

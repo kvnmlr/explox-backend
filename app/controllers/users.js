@@ -87,15 +87,19 @@ exports.show = async(function* (req, res) {
 
         } else {
             // Show user profile
-            var geos = Strava.activitiesToGeos(req.user.activities);
-            var map = Map.generateExploredMapData(geos);
-            respond(res, 'users/show', {
-                title: user.name,
-                user: user,
-                map: map,
-                userData: 'User data goes here'
+            User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
+                if (user) {
+                    const geos = Strava.activitiesToGeos(user.activities);
+                    const map = Map.generateExploredMapData(geos);
+                    respond(res, 'users/show', {
+                        title: user.name,
+                        user: user,
+                        map: map,
+                        userData: 'User data goes here'
 
-            });
+                    });
+                }
+            })
         }
     });
 });

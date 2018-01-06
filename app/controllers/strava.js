@@ -116,7 +116,7 @@ exports.getRoutes = function(id, token, next) {
  * Get all activities for the given user
  */
 exports.getActivities = function(id, token, next) {
-    strava.athlete.listActivities({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+    strava.athlete.listActivities({id: id, access_token: token, page: 1, per_page: 100 /*TODO set up again, just 10 for testing*/}, function (err, payload, limits) {
         apiLimits = limits;
         Log.debug(TAG, "limits", limits);
         if (err) {
@@ -352,6 +352,21 @@ exports.authCallback = function (req, res, next) {
     });
 };
 
-exports.activitiesToGeos = function(activities, next) {
+exports.activitiesToGeos = function(activities) {
     // TODO transform activities to array of geos
-}
+    //Log.debug(TAG, activities);
+
+    let res = [];
+    for(let i = 0; i < activities.length; ++i) {
+        const activity = activities[i];
+        const geos = activity.geo;
+        for (let j = 0; j < geos.length; ++j) {
+            if (geos[j].location) {
+                const coords = [geos[j].location.coordinates[1],geos[j].location.coordinates[0]];
+                //Log.debug(TAG, coords.length);
+                res.push(coords);
+            }
+        }
+    }
+    return res;
+};

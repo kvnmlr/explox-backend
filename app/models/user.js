@@ -181,6 +181,25 @@ UserSchema.methods = {
 UserSchema.statics = {
 
     /**
+     * Populates all activities, this can get quite large so only use it when all user Geo data is required.
+     * @param options
+     * @param cb
+     * @returns {Promise}
+     */
+    load_full: function (options, cb) {
+        options.select = options.select || '';
+        return this.findOne(options.criteria)
+            .populate('role')
+            .populate({
+                path: 'activities',
+                populate: {
+                    path: 'geo',
+                    model: 'GeoJSON'
+                }
+            })
+            .select(options.select)
+            .exec(cb);
+    },    /**
      * Load
      *
      * @param {Object} options
