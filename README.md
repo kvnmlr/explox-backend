@@ -1,3 +1,15 @@
+spatial clustering of gps points, database clustering.
+get more routes from private data
+
+How to get a route:
+parameters: distance, startpoint (endpoint, should be the same), elevation profile [, minFamiliarity (= 80%)]
+	get the area (polygon) of the undiscovered area (concave hull)
+	get an activity in undiscovered area
+		do radius search (r=distance/2) around start area, get activities that match criteria
+		use routing engine (mapbox) to get transition from start point to strava route
+	add up distance and transition length and sort and get the best match.
+
+
 ## ExploX
 Sports Technologies Seminar
 
