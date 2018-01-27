@@ -69,9 +69,16 @@ function listen() {
 }
 
 function connect() {
-    const options = {server: {socketOptions: {keepAlive: 1}}};
+    const options = {
+        keepAlive: true,
+        useMongoClient: true,
+        autoIndex: false,                   // TODO build the spatial index
+        reconnectTries: Number.MAX_VALUE,   // Always try to reconnect
+        reconnectInterval: 500,             // Reconnect every 500ms
+        bufferMaxEntries: 0                 // If not connected, return errors immediately
+    };
     mongoose.Promise = global.Promise;
-    return mongoose.connect(config.db, options).connection;
+    return mongoose.connect(config.db, options);
 }
 
 
