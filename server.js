@@ -10,6 +10,7 @@ const fs = require('fs');
 const join = require('path').join;
 const express = require('express');
 const mongoose = require('mongoose');
+const cluster = require('cluster');
 
 const passport = require('passport');
 const config = require('./config');
@@ -18,7 +19,8 @@ const init = require('./init');
 const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
 const app = express();
-
+const os = require('os');
+const numCPUs = os.cpus().length;
 
 /**
  * Expose
@@ -42,16 +44,28 @@ const Log = require('./app/utils/logger');
 
 fs.writeFile('application.log', '');        // Reset the log file
 
-connect()
-    .on('error', console.log)
-    .on('disconnected', connect)
-    .once('open', listen);
+if (cluster.isMaster) {
+    Log.log("Server", "\n\nStarting Server\n---------------\n");
+    init.init(init.createSampleData);
+    Log.log('Server', 'Starting ' + numCPUs + ' workers on port ' + port);
+
+    for (let i = 0; i < numCPUs; i++) {
+        cluster.fork();
+    }
+
+    Object.keys(cluster.workers).forEach(function(id) {
+        Log.log('Server', 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
+    });
+} else {
+    connect()
+        .on('error', console.log)
+        .on('disconnected', connect)
+        .once('open', listen);
+}
 
 function listen() {
     if (app.get('env') === 'test') return;
     app.listen(port);
-    init.init(init.createSampleData);
-    Log.log('Server', 'Server started on port ' + port);
 }
 
 function connect() {
@@ -60,5 +74,4 @@ function connect() {
     return mongoose.connect(config.db, options).connection;
 }
 
-Log.log("Server", "\n\nStarting Server\n---------------\n");
 
