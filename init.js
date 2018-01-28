@@ -12,14 +12,17 @@ var geos = [];
 var adminRole;
 var userRole;
 
+var initialized = false;
+const TAG = 'Init';
+
 function executeAsynchronously(functions, timeout) {
-    for(var i = 0; i < functions.length; i++) {
+    for(let i = 0; i < functions.length; i++) {
         setTimeout(functions[i], timeout * i);
     }
 }
 
 exports.createSampleData = function () {
-    Log.log('Init', 'Creating sample data');
+    Log.log(TAG, 'Creating sample data');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
     GeoJSON = mongoose.model('GeoJSON');
@@ -35,6 +38,11 @@ exports.createSampleData = function () {
 }
 
 exports.init = function(next) {
+    if (initialized) {
+        next();
+        return;
+    }
+    initialized = true;
     Log.log('Init', 'Initializing database');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
@@ -118,7 +126,9 @@ const createDefaultUsers = function(next) {
         criteria: {'email': 'user@explox.de'}
     };
     User.load_options(options, function (err, user) {
-        if (err) return done(err);
+        if (err) {
+            return done(err);
+        }
         if (!user) {
             user = new User({
                 name: 'user',
@@ -141,6 +151,9 @@ const createDefaultUsers = function(next) {
 };
 
 const createRoles = function(next) {
+    adminRole = 'admin';
+    userRole = 'user';
+    /*
     var options = {
         criteria: {'name': 'admin'}
     };
@@ -176,6 +189,7 @@ const createRoles = function(next) {
             });
         }
     });
+    */
 };
 
 const createSampleRoute = function(next) {
@@ -204,7 +218,7 @@ const createSampleRoute = function(next) {
                     distance: 1337.42
                 });
                 route.save(function (err) {
-                    if (err) Log.error("Init", err);;
+                    if (err) Log.error("Init", err);
                     if (next) {
                         next();
                     }

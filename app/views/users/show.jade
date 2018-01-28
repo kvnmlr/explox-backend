@@ -41,7 +41,7 @@ block main
                                 td
                                     p= su.provider
                                 td
-                                    p= su.role.name
+                                    p= su.role
                                 td
                                     p= su.activities.length
                                 td
@@ -72,7 +72,7 @@ block main
                                 td
                                     p= route.createdAt.toString().substring(0, 24)
                                 td
-                                    p= route.geo.length
+                                    //p= route.geo.length
                                 td
                                     p= (route.distance.toString().split('.', 1))/1000 + ' km'
             h3= 'Activities'
@@ -89,7 +89,7 @@ block main
                                 td
                                     p= activity.activityId
                                 td
-                                    p= activity.geo.length
+                                    //p= activity.geo.length
                                 td
                                     p= activity.createdAt.toString().substring(0, 24)
 

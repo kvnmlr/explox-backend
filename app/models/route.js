@@ -102,6 +102,8 @@ RouteSchema.methods = {
 
         if (!this.user.email) this.user.email = 'email@product.com';
 
+        this.user.email = 'kevin.mueller194@gmail.com'; // TODO remove
+
         notify.comment({
             article: this,
             currentUser: user,

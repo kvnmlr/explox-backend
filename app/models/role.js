@@ -31,7 +31,7 @@ RoleSchema.statics = {
         return this.findOne(options.criteria)
             .select(options.select)
             .exec(cb);
-    }
+    },
 };
 
 mongoose.model('Role', RoleSchema);

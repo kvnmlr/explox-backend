@@ -46,12 +46,24 @@ fs.writeFile('application.log', '');        // Reset the log file
 
 if (cluster.isMaster) {
     Log.log("Server", "\n\nStarting Server\n---------------\n");
-    init.init(init.createSampleData);
     Log.log('Server', 'Starting ' + numCPUs + ' workers on port ' + port);
+
+    connect()
+        .on('error', console.log)
+        .on('disconnected', connect)
+        .once('open', initialize);
 
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
+    cluster.on('exit', function(deadWorker, code, signal) {
+        // Restart the worker
+        const worker = cluster.fork();
+
+        // Log the event
+        Log.error('Server', 'Worker '+deadWorker.process.pid+' has died.');
+        Log.log('Server', 'Worker '+worker.process.pid+' was born.');
+    });
 
     Object.keys(cluster.workers).forEach(function(id) {
         Log.log('Server', 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
@@ -68,6 +80,11 @@ function listen() {
     app.listen(port);
 }
 
+function initialize() {
+    init.init(init.createSampleData);
+
+}
+
 function connect() {
     const options = {
         keepAlive: true,
@@ -80,5 +97,4 @@ function connect() {
     mongoose.Promise = global.Promise;
     return mongoose.connect(config.db, options);
 }
-
 

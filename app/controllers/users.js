@@ -4,6 +4,7 @@
  * Module dependencies.
  */
 const Log = require('../utils/logger');
+const mailer = require('../mailer/index');
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const {respond} = require('../utils');
@@ -38,10 +39,13 @@ exports.load_options = async(function* (req, res, next, _id) {
 exports.create = async(function* (req, res) {
     const user = new User(req.body);
     user.provider = 'local';
+    user.role = 'user';
     try {
         yield user.save();
         req.logIn(user, err => {
             if (err) req.flash('info', 'Sorry! We are not able to log you in!');
+            mailer.registeredConfirmation(user);
+            Log.log(TAG, "User " + user.username + " has registered");
             return res.redirect('/');
         });
     } catch (err) {
@@ -62,48 +66,45 @@ exports.create = async(function* (req, res) {
 
 exports.show = async(function* (req, res) {
     const user = req.profile;
+    //mailer.registeredConfirmation(user);
+
     Log.debug(TAG, req.profile.role);
-    var options = {
-        criteria: {'_id': req.profile.role}
-    };
-    Role.load_options(options, function (err, role) {
-        if (role) {
-            if (role.name === 'admin') {
-                User.list({}, function (err, users) {
-                    Route.list({}, function (err, routes) {
-                        // Show admin dashboard
-                        Activity.list({}, function (err, activities) {
-                            respond(res, 'users/show', {
-                                title: user.name,
-                                user: user,
-                                data: 'Admin data goes here',
-                                all: users,
-                                routes: routes,
-                                activities: activities,
-                                limits: Strava.getLimits()
-                            });
-                        });
-                    });
+    if (req.profile.role === 'admin') {
+        User.list({}, function (err, users) {
+            Route.list({}, function (err, routes) {
+                // Show admin dashboard
+                Activity.list({}, function (err, activities) {
+                    const data = {
+                        title: user.name,
+                        user: user,
+                        data: 'Admin data goes here',
+                        all: users,
+                        routes: routes,
+                        activities: activities,
+                        limits: Strava.getLimits()
+                    };
+                    Log.log(TAG, JSON.stringify(data));
+                    respond(res, 'users/show', data);
+                });
+            });
+        });
+    }
+    else {
+        // Show user profile
+        User.load_full({criteria: {_id: req.user._id}}, function (err, user) {
+            if (user) {
+                const geos = Strava.activitiesToGeos(user.activities);
+                const map = Map.generateExploredMapData(geos);
+                respond(res, 'users/show', {
+                    title: user.name,
+                    user: user,
+                    map: map,
+                    userData: 'User data goes here'
+
                 });
             }
-            else {
-                // Show user profile
-                User.load_full({criteria: {_id: req.user._id}}, function (err, user) {
-                    if (user) {
-                        const geos = Strava.activitiesToGeos(user.activities);
-                        const map = Map.generateExploredMapData(geos);
-                        respond(res, 'users/show', {
-                            title: user.name,
-                            user: user,
-                            map: map,
-                            userData: 'User data goes here'
-
-                        });
-                    }
-                })
-            }
-        }
-    });
+        })
+    }
 });
 
 exports.signin = function () {
