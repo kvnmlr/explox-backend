@@ -30,11 +30,11 @@ exports.updateUser = function(req, res, next) {
         if (user) {
             const token = user.authToken;
             const id = user.stravaId;
-            exports.getAthlete(id, token);
-            exports.getFriends(id, token);
-            exports.getStats(id, token);
-            exports.getRoutes(id, token);
-            exports.getActivities(id, token);
+            //exports.getAthlete(id, token);
+            //exports.getFriends(id, token);
+            //exports.getStats(id, token);
+            //exports.getRoutes(id, token);
+            //exports.getActivities(id, token);
             exports.segmentsExplorer(token);
             next();
         }
@@ -135,16 +135,25 @@ exports.getActivities = function(id, token, next) {
  * TODO implement
  */
 exports.segmentsExplorer = function(token, next) {
-    strava.segments.explore({access_token: token, bounds: [37.821362,-122.505373,37.842038,-122.465977], activity_type: 'running', min_cat: 0, max_cat: 100 }, function (err, payload, limits) {
+    strava.segments.explore({access_token: token, bounds: '49.25, 7.04, 49.60, 7.1', activity_type: 'running', min_cat: 0, max_cat: 100 }, function (err, payload, limits) {
         apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         }
         Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload, null, 2));
-        // todo update database
-        if (next) {
-            next(null, payload);
+        for (let i = 0; i < payload.segments.length; ++i) {
+            getSegmentStream(payload.segments[i].id, token, next);
         }
+    });
+};
+
+const getSegmentStream = function(id, token, next) {
+    strava.streams.segment({id: id, types: '', access_token: token}, function (err, payload, limits) {
+        apiLimits = limits;
+        if (err) {
+            Log.error(TAG, err);
+        }
+        Log.debug(TAG,'\nSegment Stream '+id+': \n' + JSON.stringify(payload, null, 2));
     });
 };
 
