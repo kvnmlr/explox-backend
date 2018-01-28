@@ -1,15 +1,3 @@
-spatial clustering of gps points, database clustering.
-get more routes from private data
-
-How to get a route:
-parameters: distance, startpoint (endpoint, should be the same), elevation profile [, minFamiliarity (= 80%)]
-	get the area (polygon) of the undiscovered area (concave hull)
-	get an activity in undiscovered area
-		do radius search (r=distance/2) around start area, get activities that match criteria
-		use routing engine (mapbox) to get transition from start point to strava route
-	add up distance and transition length and sort and get the best match.
-
-
 ## ExploX
 Sports Technologies Seminar
 
@@ -30,10 +18,12 @@ Sports Technologies Seminar
   * _db.geojsons.createIndex({location: "2dsphere"})_
   * _use exploxdb_test_
   * _db.geojsons.createIndex({location: "2dsphere"})_
+  
 ### Project Setup
 * Install **Nodejs** https://nodejs.org/en/download/
 * cd into project root directory
 * Run _npm install_
+* Open file .env and fill in strava client ID, strava secret, gmail adress and gmail password (never commit this file).
 * Make sure mongod is running (see above)
 * Run _npm start_
 * Visit http://localhost:3000/
