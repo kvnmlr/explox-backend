@@ -15,6 +15,7 @@ const TAG = "strava";
 
 var apiLimits = {"shortTermUsage":0,"shortTermLimit":600,"longTermUsage":0,"longTermLimit":30000};
 
+// TODO this must come from the DB, otherwise every worker will have different data
 exports.getLimits = function() {
     return apiLimits;
 };
@@ -30,11 +31,11 @@ exports.updateUser = function(req, res, next) {
         if (user) {
             const token = user.authToken;
             const id = user.stravaId;
-            //exports.getAthlete(id, token);
-            //exports.getFriends(id, token);
-            //exports.getStats(id, token);
-            //exports.getRoutes(id, token);
-            //exports.getActivities(id, token);
+            exports.getAthlete(id, token);
+            exports.getFriends(id, token);
+            exports.getStats(id, token);
+            exports.getRoutes(id, token);
+            exports.getActivities(id, token);
             exports.segmentsExplorer(token);
             next();
         }

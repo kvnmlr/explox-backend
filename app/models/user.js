@@ -33,7 +33,7 @@ const UserSchema = new Schema({
     authToken: {type: String, default: ''},
     stravaId: {type: String, default: ''},
     strava: {},
-    //routes: [{type: Schema.ObjectId, ref: 'Route'}],
+    routes: [{type: Schema.ObjectId, ref: 'Route'}],
     activities: [{type: Schema.ObjectId, ref: 'Activity'}],
     role: {type: String, default: 'user'},
     createdAt: {type: Date, default: Date.now},
