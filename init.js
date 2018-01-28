@@ -30,7 +30,7 @@ exports.createSampleData = function () {
     executeAsynchronously(
         [createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, function () {
             Log.log('Init', 'All done, server is ready to be used');
-        }], 50
+        }], 500
     );
 }
 
@@ -43,7 +43,7 @@ exports.init = function(next) {
     Role = mongoose.model('Role');
 
     executeAsynchronously(
-        [createRoles, createDefaultAdmins, next], 100
+        [createRoles, createDefaultAdmins, next], 1000
     );
 };
 

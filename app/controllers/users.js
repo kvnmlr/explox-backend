@@ -11,6 +11,7 @@ const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
+const mailer = require('../mailer/index');
 
 const Strava = require('./strava');
 const Map = require('./map');
@@ -42,6 +43,7 @@ exports.create = async(function* (req, res) {
         yield user.save();
         req.logIn(user, err => {
             if (err) req.flash('info', 'Sorry! We are not able to log you in!');
+            mailer.registeredConfirmation(user);
             return res.redirect('/');
         });
     } catch (err) {
@@ -62,7 +64,7 @@ exports.create = async(function* (req, res) {
 
 exports.show = async(function* (req, res) {
     const user = req.profile;
-    Log.debug(TAG, req.profile.role);
+    Log.debug(TAG, "Role " + req.profile.role);
     var options = {
         criteria: {'_id': req.profile.role}
     };

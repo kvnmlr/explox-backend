@@ -3,70 +3,56 @@
 /**
  * Module dependencies.
  */
-
-const Notifier = require('notifier');
-const jade = require('jade');
-const config = require('../../config');
+const nodemailer = require('nodemailer');
 const Log = require('../utils/logger')
+const config = require('../../server').config;
 
-const TAG = "index";
-/**
- * Process the templates using swig - refer to notifier#processTemplate method
- *
- * @param {String} tplPath
- * @param {Object} locals
- * @return {String}
- * @api public
- */
+const TAG = "Mailer";
 
-Notifier.prototype.processTemplate = function (tplPath, locals) {
-    locals.filename = tplPath;
-    return jade.renderFile(tplPath, locals);
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: config.email,
+        pass: config.email_password
+    }
+});
+
+var mailOptions = {
+    from: '"ExploX" <'+config.email+'>',
+    to: 'kevin.mueller194@gmail.com',
+    subject: 'This is a test email',
+    text: 'It works'
 };
+
 
 /**
  * Expose
  */
 
 module.exports = {
-
-    /**
-     * Comment notification
-     *
-     * @param {Object} options
-     * @param {Function} cb
-     * @api public
-     */
-
-    comment: function (options, cb) {
-        const article = options.article;
-        const author = article.user;
-        const user = options.currentUser;
-        const notifier = new Notifier(config.notifier);
-
-        const obj = {
-            to: author.email,
-            from: 'your@product.com',
-            subject: user.name + ' added a comment on your article ' + article.title,
-            alert: user.name + ' says: "' + options.comment,
-            locals: {
-                to: author.name,
-                from: user.name,
-                body: options.comment,
-                article: article.name
+    registeredConfirmation: function (user, cb) {
+        mailOptions.to = user.email;
+        mailOptions.subject = "You have been registered!";
+        mailOptions.html = "<h1>Welcome</h1><p>You are now registered!</p>'";
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                Log.error(TAG, error);
+            } else {
+                Log.log(TAG, 'Email sent: ' + info.response);
             }
-        };
+        });
+    },
 
-        // for apple push notifications
-        /*notifier.use({
-          APN: true
-          parseChannels: ['USER_' + author._id.toString()]
-        })*/
-
-        try {
-            notifier.send('comment', obj, cb);
-        } catch (err) {
-            Log.error(TAG, err);
-        }
+    updatedData: function (user, cb) {
+        mailOptions.to = user.email;
+        mailOptions.subject = "Data updated";
+        mailOptions.html = "<p>Your data has been updated!</p>";
+        transporter.sendMail(mailOptions, function(error, info){
+            if (error) {
+                Log.error(TAG, error);
+            } else {
+                Log.log(TAG, 'Email sent: ' + info.response);
+            }
+        });
     }
 };

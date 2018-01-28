@@ -139,10 +139,11 @@ exports.segmentsExplorer = function(token, next) {
         apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
-        }
-        Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload, null, 2));
-        for (let i = 0; i < payload.segments.length; ++i) {
-            getSegmentStream(payload.segments[i].id, token, next);
+        } else {
+            Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload, null, 2));
+            for (let i = 0; i < payload.segments.length; ++i) {
+                getSegmentStream(payload.segments[i].id, token, next);
+            }
         }
     });
 };
