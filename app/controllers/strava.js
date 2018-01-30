@@ -135,15 +135,56 @@ exports.getActivities = function(id, token, next) {
 /**
  * TODO implement
  */
-exports.segmentsExplorer = function(token, next) {
-    strava.segments.explore({access_token: token, bounds: '49.25, 7.04, 49.60, 7.1', activity_type: 'running', min_cat: 0, max_cat: 100 }, function (err, payload, limits) {
+exports.segmentsExplorer = function(token, options, next) {
+    if (!options) {
+        options = {
+            bounds: '49.25, 7.04, 49.60, 7.1',
+            activity_type: 'running',
+            min_cat: 0,
+            max_cat: 100,
+        }
+    }
+
+    strava.segments.explore({access_token: token, bounds: options.bounds, activity_type: options.activity_type, min_cat: options.min_cat, max_cat: options.max_cat }, function (err, payload, limits) {
         apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
         } else {
             Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload, null, 2));
             for (let i = 0; i < payload.segments.length; ++i) {
-                getSegmentStream(payload.segments[i].id, token, next);
+                next(null, payload.segments[i]);
+
+                var id = payload.segments[i].id;
+                Route.load_options({criteria: {stravaId : id}}, function(err, route) {
+                    // If this route does not exist, create a new one
+                    if (!route) {
+                        // TODO fill with actual data from payload
+                        getSegmentStream(id, token, function(err, geos) {
+                            if (err) {
+                                Log.error(TAG, err); return;
+                            }
+                            let tags = '';
+                            route = new Route({
+                                stravaId: id,
+                                title: payload.segments[i].name,
+                                body: payload.segments[i].description || 'A Strava segment',    // TODO generate
+                                location: '',                                     // TODO find out based on GPS
+                                user: null,
+                                comments: [],
+                                tags: tags,
+                                geo: geos,
+                                distance: payload.segments[i].distance
+                            });
+                            route.save(function (err) {
+                                if (err) {
+                                    Log.error(TAG, err);
+                                }
+                            });
+                        });
+                    }
+                });
+
+
             }
         }
     });
@@ -155,7 +196,7 @@ const getSegmentStream = function(id, token, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        Log.debug(TAG,'\nSegment Stream '+id+': \n' + JSON.stringify(payload, null, 2));
+        extractGeosFromPayload(id, payload, next);
     });
 };
 

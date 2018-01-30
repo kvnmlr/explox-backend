@@ -9,6 +9,7 @@ const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
 const strava = require('../app/controllers/strava')
 const tags = require('../app/controllers/tags');
+const crawler = require('../app/controllers/crawler');
 const auth = require('./middlewares/authorization');
 
 
@@ -34,6 +35,9 @@ module.exports = function (app, passport) {
     // strava routes
     app.get('/auth/strava/callback', pauth('strava', fail), users.authCallback, strava.authCallback);
     app.get('/auth/strava', pauth('strava', fail), users.signin);
+
+    // crawler
+    app.get('/crawl', crawler.crawlSegments);
 
     // user routes
     app.get('/login', users.login);
