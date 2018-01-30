@@ -173,7 +173,8 @@ exports.segmentsExplorer = function(token, options, next) {
                                 comments: [],
                                 tags: tags,
                                 geo: geos,
-                                distance: payload.segments[i].distance
+                                distance: payload.segments[i].distance,
+                                isRoute: false
                             });
                             route.save(function (err) {
                                 if (err) {

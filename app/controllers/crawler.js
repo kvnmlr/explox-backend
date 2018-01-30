@@ -21,7 +21,7 @@ exports.crawlSegments = function() {
     const start = [49.25329, 7.04142];
 
     var segments = new Set();
-    for (let i = 1; i < 2; ++i) {
+    for (let i = 1; i < 11; ++i) {
         var bounds = '' + (start[0] - i * horizontal/2) + ',' + (start[1] - i * vertical/2) + ',' + (start[0] + i * horizontal/2) + ',' + (start[1] + i * vertical/2);
         Log.debug(TAG, bounds);
         var options = {
