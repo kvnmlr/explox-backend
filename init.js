@@ -112,7 +112,7 @@ const createDefaultAdmins = function(next) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
-                if (err) Log.error("Init", err);;
+                if (err) Log.error("Init", err);
                 if (next) {
                     next();
                 }

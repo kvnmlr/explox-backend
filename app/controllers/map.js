@@ -6,19 +6,20 @@ const TAG = "map";
 /**
  * Transforms an array of db.geos into the data format used by leaflet.js to display a route on the map
  * @param geos array of geos
+ * @param exploredGeos array of explored geos
  */
 exports.generateRouteMap = function(geos, exploredGeos) {
-    const exploredData = exports.generateExploredMapData(exploredGeos);
-
-    var routeGeo = []
+    const routeGeo = [];
     Log.debug(TAG, geos.length);
-    var len = geos.length < 200 ? geos.length : 200;
+    const len = geos.length < 200 ? geos.length : 200;
     for (let i = 0; i < len; ++i) {
         if (geos[i].location) {
             const coords = 'L.latLng('+geos[i].location.coordinates[1] + ',' + geos[i].location.coordinates[0]+')';
             routeGeo.push(coords);        }
     }
     Log.debug(TAG, "", routeGeo);
+
+    const exploredData = exports.generateExploredMapData(exploredGeos);
     exploredData.marker = {text: "A very cool route.<br> 80% undiscovered.", coords: [25.721, -80.270]};
     exploredData.hasRoute = true;
     exploredData.config = getConfig(geos /*union with exploredGeos*/);         // general map configuratio (e.g. zoom)

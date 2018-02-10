@@ -126,17 +126,27 @@ exports.update = async(function* (req, res) {
  */
 
 exports.show = function (req, res) {
-    User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
-        if (user) {
-            const geos = Strava.activitiesToGeos(user.activities);
-            const map = Map.generateRouteMap(req.article.geo, geos);
-            respond(res, 'routes/show', {
-                title: req.article.title,
-                article: req.article,
-                map: map
-            });
-        }
-    })
+    if (req.user) {
+        User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
+            if (user) {
+                const geos = Strava.activitiesToGeos(user.activities);
+                const map = Map.generateRouteMap(req.article.geo, geos);
+                respond(res, 'routes/show', {
+                    title: req.article.title,
+                    article: req.article,
+                    map: map
+                });
+            }
+        })
+    } else {
+        const map = Map.generateRouteMap(req.article.geo, null);
+        respond(res, 'routes/show', {
+            title: req.article.title,
+            article: req.article,
+            map: map
+        });
+    }
+
 
 };
 

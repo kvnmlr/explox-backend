@@ -8,6 +8,7 @@ const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('GeoJSON');
+const Init = require('../../init');
 
 const Log = require('../utils/logger')
 
@@ -132,6 +133,38 @@ exports.getActivities = function(id, token, next) {
     });
 };
 
+
+const getSegment = function(id, token, segment, next) {
+    Route.load_options({criteria: {stravaId: id}}, function(err, route) {
+        // If this segment does not exist, create a new one
+        if (!route) {
+            getSegmentStream(id, token, function(err, geos) {
+                if (err) {
+                    Log.error(TAG, err); return;
+                }
+                let tags = '';
+                route = new Route({
+                    stravaId: segment.id,
+                    title: segment.name,
+                    body: segment.description || 'A Strava segment',
+                    location: '',
+                    user: null,
+                    comments: [],
+                    tags: tags,
+                    geo: geos,
+                    distance: segment.distance,
+                    isRoute: false
+                });
+                route.save(function (err) {
+                    if (!err) {
+                        Log.debug(TAG, "Found a new segment: " + segment.name + " with id " + segment.id + " and " + geos.length + " coordinates");
+                    }
+                });
+            });
+        }
+    });
+    next(null, segment);
+};
 /**
  * TODO implement
  */
@@ -150,42 +183,8 @@ exports.segmentsExplorer = function(token, options, next) {
         if (err) {
             Log.error(TAG, err);
         } else {
-            Log.debug(TAG,'\nExplore Segments: \n' + JSON.stringify(payload, null, 2));
             for (let i = 0; i < payload.segments.length; ++i) {
-                next(null, payload.segments[i]);
-
-                var id = payload.segments[i].id;
-                Route.load_options({criteria: {stravaId : id}}, function(err, route) {
-                    // If this route does not exist, create a new one
-                    if (!route) {
-                        // TODO fill with actual data from payload
-                        getSegmentStream(id, token, function(err, geos) {
-                            if (err) {
-                                Log.error(TAG, err); return;
-                            }
-                            let tags = '';
-                            route = new Route({
-                                stravaId: id,
-                                title: payload.segments[i].name,
-                                body: payload.segments[i].description || 'A Strava segment',    // TODO generate
-                                location: '',                                     // TODO find out based on GPS
-                                user: null,
-                                comments: [],
-                                tags: tags,
-                                geo: geos,
-                                distance: payload.segments[i].distance,
-                                isRoute: false
-                            });
-                            route.save(function (err) {
-                                if (err) {
-                                    Log.error(TAG, err);
-                                }
-                            });
-                        });
-                    }
-                });
-
-
+                getSegment(payload.segments[i].id, token, payload.segments[i], next);
             }
         }
     });
