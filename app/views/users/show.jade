@@ -16,7 +16,7 @@ block main
             div.progress
                 div.progress-bar(role="progressbar" style="width: " + (limits.longTermUsage/limits.longTermLimit) + "%;" aria-valuenow=limits.longTermUsage aria-valuemin="0" aria-valuemax=limits.longTermLimit)
 
-            h3= 'Registered Users'
+            h3= 'Registered Users (' + all.length + ')'
             div
                 table
                     thead
@@ -50,7 +50,7 @@ block main
                                     p= su.lastLogin.toString().substring(0, 24)
 
 
-            h3= 'Routes'
+            h3= 'Routes (' + routes.length + ')'
             div
                 table
                     thead
@@ -72,10 +72,34 @@ block main
                                 td
                                     p= route.createdAt.toString().substring(0, 24)
                                 td
-                                    //p= route.geo.length
+                                    p= route.geo.length
                                 td
                                     p= (route.distance.toString().split('.', 1))/1000 + ' km'
-            h3= 'Activities'
+
+            h3= 'Segments (' + segments.length + ')'
+            div
+                table
+                    thead
+                        tr: th Title
+                            th Location
+                            th Created
+                            th GPS Points
+                            th Distance
+                    tbody
+                        each segment in segments
+                            tr
+                                td
+                                    a(href='/routes/' + segment._id) #{segment.title}
+                                td
+                                    p= segment.location
+                                td
+                                    p= segment.createdAt.toString().substring(0, 24)
+                                td
+                                    p= segment.geo.length
+                                td
+                                    p= (segment.distance.toString().split('.', 1))/1000 + ' km'
+
+            h3= 'Activities (' + activities.length + ')'
             div
                 table
                     thead

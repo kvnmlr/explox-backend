@@ -37,7 +37,6 @@ exports.updateUser = function(req, res, next) {
             exports.getStats(id, token);
             exports.getRoutes(id, token);
             exports.getActivities(id, token);
-            exports.segmentsExplorer(token);
             next();
         }
     });

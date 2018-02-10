@@ -72,17 +72,20 @@ exports.show = async(function* (req, res) {
     };
     if (req.profile.role === 'admin') {
         User.list({}, function (err, users) {
-            Route.list({}, function (err, routes) {
+            Route.list({criteria: {isRoute: true}}, function (err, routes) {
                 // Show admin dashboard
                 Activity.list({}, function (err, activities) {
-                    respond(res, 'users/show', {
-                        title: user.name,
-                        user: user,
-                        data: 'Admin data goes here',
-                        all: users,
-                        routes: routes,
-                        activities: activities,
-                        limits: Strava.getLimits()
+                    Route.list({criteria: {isRoute: false}}, function(err, segments) {
+                        respond(res, 'users/show', {
+                            title: user.name,
+                            user: user,
+                            data: 'Admin data goes here',
+                            all: users,
+                            routes: routes,
+                            segments: segments,
+                            activities: activities,
+                            limits: Strava.getLimits()
+                    });
                     });
                 });
             });
