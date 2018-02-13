@@ -12,9 +12,14 @@ const Schema = mongoose.Schema;
  */
 
 const ActivitySchema = new Schema({
-    activityId: {type: String, default: ''},
-    createdAt: {type: Date, default: Date.now},
-    geo: [{type: Schema.ObjectId, ref: 'GeoJSON'}],
+    /** TODO extend schema
+     * 1. add user reference
+     * 2. add distance
+     * 3. add title
+     */
+    activityId: {type: String, default: '', trim: true,  index: {unique: true}},     // The ID this activity has in Strava
+    createdAt: {type: Date, default: Date.now},                         // The creation date (i.e. when imported into ExploX)
+    geo: [{type: Schema.ObjectId, ref: 'Geo'}],                     // List of references to geo points
 });
 
 ActivitySchema.statics = {

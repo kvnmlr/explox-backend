@@ -7,7 +7,7 @@ const config = require('../../server').config;
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
-const Geo = mongoose.model('GeoJSON');
+const Geo = mongoose.model('Geo');
 const Init = require('../../init');
 
 const Log = require('../utils/logger')

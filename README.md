@@ -13,11 +13,6 @@ Sports Technologies Seminar
 * Run **mongod** ([mongoroot]\Server\3.4\bin\mongod.exe)
 * The process should run in a window and not terminate. If it terminates, an error should be logged which you can use to solve the problem.
 * Run mongo ([mongoroot]\Server\3.4\bin\mongo.exe)
-* Execute the following commands within mongo to create the indexes used for GeoJSON data:
-  * _use exploxdb_dev_
-  * _db.geojsons.createIndex({location: "2dsphere"})_
-  * _use exploxdb_test_
-  * _db.geojsons.createIndex({location: "2dsphere"})_
   
 ### Project Setup
 * Install **Nodejs** https://nodejs.org/en/download/

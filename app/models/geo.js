@@ -13,33 +13,20 @@ const GeoJSON = require('mongoose-geojson-schema');
  */
 
 const GeoSchema = new Schema({
-    name: {type: String, default: '', trim: true},  // Optional name for this coordinate (e.g. "DFKI")
-    location: Schema.Types.Point,
-    createdAt: {type: Date, default: Date.now}
-},{ autoIndex: false });
-GeoSchema.index({ location : '2dsphere' },{unique: true, name: 'location_2dsphere'}); // TODO geht nicht
+    // TODO extend schema with a list of routes/activities that contain this point
+    name: {type: String, default: '', trim: true},              // Optional name for this coordinate (e.g. "DFKI")
+    location: {type: Schema.Types.Point, index: '2dsphere'},    // The coordinate with 2dsphere index for spatial queries
+});
 
 /**
  * Validations
  */
-
 GeoSchema.path('location').required(true, 'Coordinates cannot be blank');
 
 /**
  * Pre-remove hook
  */
 
-GeoSchema.pre('remove', function (next) {
-    // const imager = new Imager(imagerConfig, 'S3');
-    // const files = this.image.files;
-
-    // if there are files associated with the item, remove from the cloud too
-    // imager.remove(files, function (err) {
-    //   if (err) return next(err);
-    // }, 'Route');
-
-    next();
-});
 
 /**
  * Statics
@@ -50,7 +37,7 @@ GeoSchema.statics = {
     /**
      * Find geo data by id
      *
-     * @param {ObjectId} id
+     * @param {ObjectId} _id
      * @api private
      */
 
@@ -126,4 +113,4 @@ GeoSchema.statics = {
     }
 };
 
-mongoose.model('GeoJSON', GeoSchema);
+mongoose.model('Geo', GeoSchema);

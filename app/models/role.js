@@ -12,9 +12,12 @@ const Schema = mongoose.Schema;
  */
 
 const RoleSchema = new Schema({
-    name: {type: String, default: ''},
-    permissions: [{type: String, default: ''}],
+    name: {type: String, default: '', index: {unique: true}},   // name of the role, currently either "user" or "admin"
+    permissions: [{type: String, default: ''}],                 // list of string permissions, currently not used
 });
+
+RoleSchema.path('name').required(true, 'Role name cannot be blank');
+
 
 RoleSchema.statics = {
 

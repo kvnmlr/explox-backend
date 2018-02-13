@@ -6,17 +6,10 @@
 
 const mongoose = require('mongoose');
 const crypto = require('crypto');
-var ObjectId = require('mongoose').Types.ObjectId;
+const ObjectId = require('mongoose').Types.ObjectId;
 const Schema = mongoose.Schema;
-const oAuthTypes = [
-    'strava',
-    /* 'github',
-  'twitter',
-  'facebook',
-  'google',
-  'linkedin', */
-];
-const Log = require('../utils/logger')
+const oAuthTypes = ['strava'];
+const Log = require('../utils/logger');
 const TAG = "user";
 
 /**
@@ -25,8 +18,8 @@ const TAG = "user";
 
 const UserSchema = new Schema({
     name: {type: String, default: ''},
-    email: {type: String, default: ''},
-    username: {type: String, default: ''},
+    email: {type: String, default: '', index: {unique: true}},
+    username: {type: String, default: '', trim: true, index: {unique: true}},
     provider: {type: String, default: ''},
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
@@ -38,12 +31,6 @@ const UserSchema = new Schema({
     role: {type: String, default: 'user'},
     createdAt: {type: Date, default: Date.now},
     lastLogin: {type: Date, default: Date.now}
-
-    /* facebook: {},
-  twitter: {},
-  github: {},
-  google: {},
-  linkedin: {}, */
 });
 
 const validatePresenceOf = value => value && value.length;
@@ -106,13 +93,13 @@ UserSchema.path('hashed_password').validate(function (hashed_password) {
  * Pre-save hook
  */
 
-UserSchema.pre('save', function (next) {
-    if (!this.isNew) return next();
+UserSchema.pre('save', function (cb) {
+    if (!this.isNew) return cb();
 
     if (!validatePresenceOf(this.password) && !this.skipValidation()) {
-        next(new Error('Invalid password'));
+        cb(new Error('Invalid password'));
     } else {
-        next();
+        cb();
     }
 });
 
@@ -217,28 +204,31 @@ UserSchema.statics = {
     /**
      * Find route by id
      *
-     * @param {ObjectId} id
+     * @param {ObjectId} _id the id
+     * @param cb callback
      * @api private
      */
 
-    load: function (_id, next) {
-        return this.load_options({criteria: {_id: _id}}, next);
+    load: function (_id, cb) {
+        return this.load_options({criteria: {_id: _id}}, cb);
     },
 
     /**
      * Update user by id
      *
      * @param {ObjectId} id
+     * @param data data to update
+     * @param cb callback
      * @api private
      */
 
-    update_user: function (id, data, next) {
+    update_user: function (id, data, cb) {
         return this.update({_id: ObjectId(id)}, data, function(err) {
             if (err) {
                 Log.error(TAG, err);
             }
-            if (next) {
-                next();
+            if (cb) {
+                cb();
             }
         });
     },

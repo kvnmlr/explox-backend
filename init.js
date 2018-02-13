@@ -3,7 +3,7 @@ const Log = require('./app/utils/logger');
 
 var mongoose;
 var Route;
-var GeoJSON;
+var Geo;
 var User;
 var Role;
 var Activity;
@@ -25,7 +25,7 @@ exports.createSampleData = function () {
     Log.log(TAG, 'Creating sample data');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
-    GeoJSON = mongoose.model('GeoJSON');
+    Geo = mongoose.model('Geo');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
     Activity = mongoose.model('Activity');
@@ -46,10 +46,9 @@ exports.init = function(next) {
     Log.log('Init', 'Initializing database');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
-    GeoJSON = mongoose.model('GeoJSON');
+    Geo = mongoose.model('Geo');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
-
     executeAsynchronously(
         [createRoles, createDefaultAdmins, next], 1000
     );
@@ -70,14 +69,14 @@ const createDefaultGeo = function(name, lat, long, next) {
         criteria: {'name': name}
     };
 
-    GeoJSON.load_options(options, function (err, geo) {
+    Geo.load_options(options, function (err, geo) {
         if (err) Log.error("Init", err);
         if (!geo) {
             const coords = [];
             coords[1] = lat;
             coords[0] = long;
 
-            const geo = new GeoJSON({
+            const geo = new Geo({
                 name: name,
                 location: {
                     type: 'Point',

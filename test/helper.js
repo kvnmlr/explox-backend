@@ -8,7 +8,7 @@ const mongoose = require('mongoose');
 const Route = mongoose.model('Route');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
-const GeoJSON = mongoose.model('GeoJSON');
+const GeoJSON = mongoose.model('Geo');
 
 const co = require('co');
 

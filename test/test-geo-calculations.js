@@ -7,7 +7,7 @@
 const mongoose = require('mongoose');
 const test = require('tape');
 const {cleanup} = require('./helper');
-const GeoJSON = mongoose.model('GeoJSON');
+const GeoJSON = mongoose.model('Geo');
 
 var geos = [];
 var coordinates = [];
