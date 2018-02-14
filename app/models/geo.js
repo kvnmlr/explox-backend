@@ -13,9 +13,10 @@ const GeoJSON = require('mongoose-geojson-schema');
  */
 
 const GeoSchema = new Schema({
-    // TODO extend schema with a list of routes/activities that contain this point
     name: {type: String, default: '', trim: true},              // Optional name for this coordinate (e.g. "DFKI")
     location: {type: Schema.Types.Point, index: '2dsphere'},    // The coordinate with 2dsphere index for spatial queries
+    routes: [{type: Schema.ObjectId, ref: 'Route'}],            // Routes that contain this point
+    activities: [{type: Schema.ObjectId, ref: 'Activity'}],     // Activities that contain this point
 });
 
 /**

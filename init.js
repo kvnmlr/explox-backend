@@ -218,6 +218,8 @@ const createSampleRoute = function(next) {
                 });
                 route.save(function (err) {
                     if (err) Log.error("Init", err);
+                    geos[0].routes.push(route);
+                    geos[0].save();
                     if (next) {
                         next();
                     }

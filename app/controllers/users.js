@@ -37,7 +37,6 @@ exports.load_options = async(function* (req, res, next, _id) {
  */
 
 exports.create = async(function* (req, res) {
-    Log.log(TAG, "here");
     const user = new User(req.body);
     user.provider = 'local';
     user.role = 'user';
@@ -67,9 +66,6 @@ exports.create = async(function* (req, res) {
 
 exports.show = async(function* (req, res) {
     const user = req.profile;
-    var options = {
-        criteria: { '_id': req.profile.role }
-    };
     if (req.profile.role === 'admin') {
         User.list({}, function (err, users) {
             Route.list({criteria: {isRoute: true}}, function (err, routes) {
