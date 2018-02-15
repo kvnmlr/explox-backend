@@ -10,22 +10,37 @@ log4js.configure({
     }});
 
 module.exports.log = function(tag, message, data) {
-    var info = '';
+    let info = '';
     if (data !== undefined && data != null)
-        info = '\n' + JSON.stringify(data);
-    log4js.getLogger(tag).info(message + info);
+        info = JSON.stringify(data);
+
+    let sep = '';
+    if (message !== undefined && message != null && message !== '' && info !== '')
+        sep = ': ';
+
+    log4js.getLogger(tag).info(message + sep + info);
 };
 
 module.exports.error = function(tag, message, data) {
-    var info = '';
+    let info = '';
     if (data !== undefined && data != null)
-        info = '\n' + JSON.stringify(data);
-    log4js.getLogger(tag).error(JSON.stringify(message) + info);
+        info = JSON.stringify(data);
+
+    let sep = '';
+    if (message !== undefined && message != null && message !== '' && info !== '')
+        sep = ': ';
+
+    log4js.getLogger(tag).error(message + sep + info);
 };
 
 module.exports.debug = function(tag, message, data) {
-    var info = '';
+    let info = '';
     if (data !== undefined && data != null)
-        info = '\n' + JSON.stringify(data);
-    log4js.getLogger(tag).debug(message + info);
+        info = JSON.stringify(data);
+
+    let sep = '';
+    if (message !== undefined && message != null && message !== '' && info !== '')
+        sep = ': ';
+
+    log4js.getLogger(tag).debug(message + sep + info);
 };

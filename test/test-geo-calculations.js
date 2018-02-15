@@ -8,15 +8,18 @@ const mongoose = require('mongoose');
 const test = require('tape');
 const {cleanup} = require('./helper');
 const GeoJSON = mongoose.model('Geo');
+const Log = require('../app/utils/logger');
 
-var geos = [];
-var coordinates = [];
+const TAG = 'test-geo-calculations';
+
+const geos = [];
+const coordinates = [];
 const specialPlace1 = 'dfki';
 const specialPlace2 = 'mpii';
 const specialPlace3 = 'cispa';
 
 var createGeos = function(t) {
-    var coords1 = [];
+    const coords1 = [];
     coords1[1] = 49.256807;
     coords1[0] = 7.04217;
 
@@ -33,7 +36,7 @@ var createGeos = function(t) {
         coordinates[geos.length] = coords1;
     });
 
-    var coords2 = [];
+    const coords2 = [];
     coords2[1] = 49.2578580;
     coords2[0] = 7.045801;
 
@@ -50,7 +53,7 @@ var createGeos = function(t) {
         coordinates[geos.length] = coords2;
     });
 
-    var coords3 = [];
+    const coords3 = [];
     coords3[1] = 49.259377;
     coords3[0] = 7.051695;
 
@@ -93,6 +96,7 @@ test('Geodata find close - should retrieve all points within radius', t => {
         t.same(geos.length, 1, 'should return only one coordinate');        // should not return dfki itself
         t.same(geos[0].name, specialPlace2, 'should return mpii');
         t.same(Number((geos[0].distance).toFixed(1)), 288.6, 'distance between dfki and mpii should be 288.6m');
+        Log.debug(TAG, 'restult of geo', geos);
         t.end();
     });
 });
@@ -123,3 +127,11 @@ test('Geodata find closest - should retrieve the closest coordinate', t => {
     });
 });
 
+test('Geodata pruning - should retrieve the closest coordinate', t => {
+    GeoJSON.prune({}, function(err, geos) {
+        t.same(err, null, 'should not return an error');
+        t.same(geos.length, 3, 'should return only one entry');
+        t.same(geos[0].name, 'changed name', 'should return dfki');
+        t.end();
+    });
+});
