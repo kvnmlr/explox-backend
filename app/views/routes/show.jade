@@ -1,8 +1,4 @@
 extends ../layouts/default
-div.card.box.shadow(style="width:100%; margin-bottom:50px;")
-block main
-  h1= article.title
-
 block content
   //h3= 'Map Config:'
   //p= JSON.stringify(map.config)
@@ -12,8 +8,9 @@ block content
   //p= JSON.stringify(article.geo.length) + " coordinates in the route"
 
   .row
-
     .col-md-5.card.shadow
+      h1(align="center")= article.title
+      br
       p=article.body
       .meta
         - if (article.user)
@@ -35,6 +32,8 @@ block content
           input(type='hidden', name='_csrf', value="#{csrf_token}")
           a.btn.btn-outline-secondary(href='/routes/'+article._id+'/edit', title="edit") Edit
           | &nbsp;
+          a.btn.btn-outline-secondary(href='/' + article._id + '/export', title="export") Export GPX
+            | &nbsp;
           input(type="hidden", name="_method", value="DELETE")
           button.btn.btn-danger.float-right(type="submit") Delete
         br
@@ -44,4 +43,5 @@ block content
           include ../comments/comment
         include ../comments/form
     .col-md-7
-      include ../includes/map.jade
+      div.map(id='map', style="width:100%; max-height: 550px; height:100%;")
+        include ../includes/map.jade

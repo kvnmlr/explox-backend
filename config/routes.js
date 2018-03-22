@@ -11,6 +11,7 @@ const strava = require('../app/controllers/strava')
 const tags = require('../app/controllers/tags');
 const crawler = require('../app/controllers/crawler');
 const optimization = require('../app/controllers/optimization');
+const generate = require('../app/controllers/generate');
 
 const auth = require('./middlewares/authorization');
 
@@ -47,6 +48,8 @@ module.exports = function (app, passport) {
     app.get('/login', users.login);
     app.get('/signup', users.signup);
     app.get('/logout', users.logout);
+
+    app.get('/generate', generate.generate);
     app.post('/users', users.create);
     app.post('/users/session',
         pauth('local', {

@@ -1,7 +1,7 @@
 .sidebar {
     position: absolute;
     bottom: 0;
-    height: 90%;
+    height: 98%;
     width: 100%;
     overflow: hidden;
     z-index: 2000; }
@@ -9,8 +9,8 @@
     width: 40px; }
 @media (min-width: 768px) {
     .sidebar {
-        top: 10px;
-        bottom: 10px;
+        top: 5px;
+        bottom: -5px;
         transition: width 500ms; } }
 @media (min-width: 768px) and (max-width: 991px) {
     .sidebar {

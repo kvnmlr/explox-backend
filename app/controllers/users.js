@@ -69,7 +69,13 @@ exports.show = async(function* (req, res) {
     Log.debug(TAG,  "Profile: " + req.profile);
     Log.debug(TAG,  "User: " + req.user);
 
-    if (req.profile.role === 'admin') {
+    if (req.user === undefined) {
+        res.render('users/login', {
+            title: 'Login'
+        });
+    }
+
+    if (req.user.role === 'admin' && req.profile.role === 'admin') {
         User.list({}, function (err, users) {
             Log.debug(TAG, "Admin: " + users);
             Route.list({criteria: {isRoute: true}}, function (err, routes) {
@@ -97,8 +103,8 @@ exports.show = async(function* (req, res) {
     else {
         // Show user profile
         Log.debug(TAG,  "Load full: " + req.user._id);
-
-        User.load_full(req.user._id, {}, function (err, user) {
+        Log.debug(TAG, req.params.userId)
+        User.load_full(req.params.userId, {}, function (err, user) {
             Log.debug(TAG, "User: " + user);
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);

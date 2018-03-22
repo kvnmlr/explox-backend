@@ -1,39 +1,89 @@
 extends ../layouts/default
 block main
     - var name = user.name ? user.name : user.username;
-            div.row
-                div.col-sm-6
-                    h1(style="margin-top: -20px")= name
-                div.col-sm-6
-                    a.btn.btn-outline-primary.float-right(style="margin-left: 10px;", href='/users/' + user._id + '/update', title="update")
-                        | Update Profile
-                    a.btn.btn-outline-primary.float-right(style="margin-left: 10px;", href='/users/', title="generate")
-                        | Generate New Route
-
+        h1= name
         //p= JSON.stringify(map.config)
             //p= JSON.stringify(map.maskConfig)
             //p= JSON.stringify(map.heatmapData)
             //p= JSON.stringify(user.activities.length) + " activities"
 block map
     script.
-        alert("fuck");
-        $('#coordinate-form').submit(function (e) {
-            alert("koordinatedn abgesendet");
-            e.preventDefault();
-            //sendContactForm();
-            return false;
+        $(document).ready(function () {
+            setTimeout(
+                function () {
+                    $("#sidebar").toggleClass("collapsed");
+                    $("#sidebar-overview").toggleClass("active");
+                    $("#overview").toggleClass("active");
+                }, 2000);
+
+            $('#coordinate-form').submit(function (e) {
+                $("#sidebar-start").toggleClass("active");
+                $("#start").toggleClass("active");
+                $("#sidebar-settings").toggleClass("active");
+                $("#settings").toggleClass("active");
+
+                e.preventDefault();
+                sendContactForm();
+                return false;
+            });
+            $('#settings-form').submit(function (e) {
+                setTimeout(
+                    function () {
+                        $("#sidebar").toggleClass("collapsed");
+                        $("#sidebar-settings").toggleClass("active");
+                        $("#settings").toggleClass("active");
+                    }, 1000);
+                var lat = $('#input-lat').val();
+                var lng = $('#input-lng').val();
+
+                var inputLat = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", "lat").val(lat);
+                var inputLng = $("<input>")
+                    .attr("type", "hidden")
+                    .attr("name", "lng").val(lng);
+                $('#settings-form').append($(inputLat));
+                $('#settings-form').append($(inputLng));
+
+                sendContactForm();
+                return false;
+            });
+            $("#generate").on("click", function () {
+                $("#sidebar-overview").toggleClass( "active" );
+                $("#overview").toggleClass( "active" );
+                $("#sidebar-start").toggleClass("active");
+                $("#start").toggleClass("active");
+            });
+            $("#position-next").on("click", function () {
+            });
+            $("#sidebar-start").on("click", function () {
+            });
         });
 
-    div.sidebar.collapsed(id="sidebar")
+
+
+    div.sidebar.collapsed.box.shadow(id="sidebar")
         div.sidebar-tabs
             ul(role="tablist")
-                li
-                    a(id="sidebar-start", href="#start" role="tab")
-                        i.fa.fa-bars
-                li
-                    a(id="sidebar-settings", href="#settings" role="tab")
-                        i.fa.fa-bars
+                li(id='sidebar-overview')
+                    a(href="#overview" role="tab")
+                        i.fa.fa-user
+                li(id='sidebar-start')
+                    a(href="#start" role="tab")
+                        i.fa.fa-map-marker
+                li(id='sidebar-settings')
+                    a(href="#settings" role="tab")
+                        i.fa.fa-sliders
         div.sidebar-content
+            #overview.div.sidebar-pane
+                h1.sidebar-header
+                    | Overview
+                p= userData
+                div.row
+                    button.btn.btn-outline-primary.float-right(style="margin-left: 10px;", href='/users/' + user._id + '/update', title="update")
+                        | Update Profile
+                    button.btn.btn-outline-primary.float-right(id="generate", style="margin-left: 10px;", title="generate")
+                        | Generate New Route
             #start.sidebar-pane
                 h1.sidebar-header
                     | Starting Point
@@ -41,15 +91,16 @@ block map
                 p Klicke an die Position an der du deine Tour beginnen möchtest.
                 form(id="coordinate-form")
                     h3 Ausgwählte Position
-                    input.form-control.form-control-lg(type='text', placeholder="23,5246W")
-                    input.form-control.form-control-lg(type='text', placeholder="130,5246N")
+                    input.form-control.form-control-lg(id="input-lat", type='text', placeholder="23,5246W")
+                    input.form-control.form-control-lg(id="input-lng", type='text', placeholder="130,5246N")
+                    -
                     br
-                    input(type='submit')
+                    button.btn.btn-outline-primary(type='submit') Next
 
             #settings.sidebar-pane
                 h1.sidebar-header
                     | Settings
-                form(id="settings-form")
+                form(action="/generate/", id="settings-form")
                     h3 Distanz:
                     input#number(type='number' value="1")
                     br
@@ -78,8 +129,7 @@ block map
                                 input(type='radio', value='pro', name='difficulty', checked='')
                                 | Profi
                     br
-                    input(type='submit')
+                    input.btn.btn-primary(type='submit')
 
-
-    include ../includes/map.jade
-    p= userData
+    div.sidebar-map(id='map', style="width:100%;")
+        include ../includes/map.jade

@@ -1,6 +1,7 @@
 
 /* Sticky footer styles
 -------------------------------------------------- */
+@import  url(https://fonts.googleapis.com/css?family=Montserrat);
 
 html,
 body {
@@ -72,7 +73,6 @@ body {
 }
 
 .article, .comment {
-  padding: 15px 0;
   border-bottom: 1px solid #e8e8e8;
 }
 
@@ -184,3 +184,52 @@ button.error:focus {
    border: 1rem solid transparent;
    border-right: 1.25rem solid #212121;
  }
+
+.wrap {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.text {
+    color: #ff7100;
+    font-size: 24pt;
+    display: inline-block;
+    margin-left: 10px;
+}
+.bounceball {
+    position: relative;
+    display: inline-block;
+    height: 74px;
+    width: 30px;
+}
+.bounceball:before {
+     position: absolute;
+     content: '';
+     display: block;
+     top: 0;
+     width: 30px;
+     height: 30px;
+     border-radius: 50%;
+     background-color: #ff7100;
+     transform-origin: 50%;
+     animation: bounce 500ms alternate infinite ease;
+ }
+
+@keyframes bounce {
+    0% {
+        top: 60px;
+        height: 10px;
+        border-radius: 60px 60px 20px 20px;
+        transform: scaleX(2);
+    }
+    35% {
+        height: 30px;
+        border-radius: 50%;
+        transform: scaleX(1);
+    }
+    100% {
+        top: 0;
+    }
+}

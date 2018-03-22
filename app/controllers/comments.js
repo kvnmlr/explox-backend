@@ -6,6 +6,7 @@
 
 const {wrap: async} = require('co');
 const {respondOrRedirect} = require('../utils');
+const Log = require('../utils/logger');
 
 /**
  * Load comment
@@ -24,6 +25,7 @@ exports.load_options = function (req, res, next, id) {
  */
 
 exports.create = async(function* (req, res) {
+    Log.debug("Comments", "hi");
     const article = req.article;
     yield article.addComment(req.user, req.body);
     respondOrRedirect({res}, `/routes/${article._id}`, article.comments[0]);
