@@ -1,0 +1,116 @@
+extends ../layouts/default
+
+block main
+    - var name = user.name ? user.name : user.username;
+
+        h1= name
+        h3= 'API Limits'
+        b= "Short term: "
+        p= limits.shortTermUsage + " out of " + limits.shortTermLimit + " requests used (per 15 minutes)"
+        div.progress
+            div.progress-bar(role="progressbar" style="width: " + (limits.shortTermUsage / limits.shortTermLimit) + "%;" aria-valuenow=limits.shortTermUsage aria-valuemin="0" aria-valuemax=limits.shortTermLimit)
+        b= "Long term: "
+        p= limits.longTermUsage + " out of " + limits.longTermLimit + " requests used (per day)"
+        div.progress
+            div.progress-bar(role="progressbar" style="width: " + (limits.longTermUsage / limits.longTermLimit) + "%;" aria-valuenow=limits.longTermUsage aria-valuemin="0" aria-valuemax=limits.longTermLimit)
+
+        h3= 'Registered Users (' + all.length + ')'
+        div
+            table
+                thead
+                    tr: th Username
+                        th Name
+                        th E-Mail
+                        th Provider
+                        th Role
+                        th Activities
+                        th Registered
+                        th Last Login
+
+                tbody
+                    each su in all
+                        tr
+                            td
+                                a(href='/users/' + su._id) #{su.username}
+                            td
+                                p= su.name
+                            td
+                                p= su.email
+                            td
+                                p= su.provider
+                            td
+                                p= su.role
+                            td
+                                p= su.activities.length
+                            td
+                                p= su.createdAt.toString().substring(0, 24)
+                            td
+                                p= su.lastLogin.toString().substring(0, 24)
+
+
+        h3= 'Routes (' + routes.length + ')'
+        div
+            table
+                thead
+                    tr: th Title
+                        th Location
+                        th User
+                        th Created
+                        th GPS Points
+                        th Distance
+                tbody
+                    each route in routes
+                        tr
+                            td
+                                a(href='/routes/' + route._id) #{route.title}
+                            td
+                                p= route.location
+                            td
+                                p= route.user.username
+                            td
+                                p= route.createdAt.toString().substring(0, 24)
+                            td
+                                p= route.geo.length
+                            td
+                                p= (route.distance.toString().split('.', 1)) / 1000 + ' km'
+
+        h3= 'Segments (' + segments.length + ')'
+        div
+            table
+                thead
+                    tr: th Title
+                        th Location
+                        th Created
+                        th GPS Points
+                        th Distance
+                tbody
+                    each segment in segments
+                        tr
+                            td
+                                a(href='/routes/' + segment._id) #{segment.title}
+                            td
+                                p= segment.location
+                            td
+                                p= segment.createdAt.toString().substring(0, 24)
+                            td
+                                p= segment.geo.length
+                            td
+                                p= (segment.distance.toString().split('.', 1)) / 1000 + ' km'
+
+        h3= 'Activities (' + activities.length + ')'
+        div
+            table
+                thead
+                    tr: th Strava ID
+                        th GPS Points
+                        th Created
+
+                tbody
+                    each activity in activities
+                        tr
+                            td
+                                p= activity.activityId
+                            td
+                                //p= activity.geo.length
+                            td
+                                p= activity.createdAt.toString().substring(0, 24)

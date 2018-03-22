@@ -1,21 +1,28 @@
-nav.navbar.navbar-default.navbar-fixed-top(role='navigation')
-  .container
-    .navbar-header
-      button.navbar-toggle(type='button', data-toggle='collapse', data-target='.navbar-collapse')
-        span.sr-only Toggle navigation
-        span.icon-bar
-        span.icon-bar
-        span.icon-bar
-      a.navbar-brand(href='/') ExploX
-    .collapse.navbar-collapse
-      ul.nav.navbar-nav
-        //-li(class=isActive('/routes/new') ? 'active' : '')
-        //-  a(href="/routes/new", title="new article") New
-        - if (req.isAuthenticated())
-          li
-            a(href="/users/"+req.user.id, title="Profile") Profile
-          li
-            a(href="/logout", title="logout") Logout
-        - else
-          li(class=isActive('/login') ? 'active' : '')
-            a(href="/login", title="Login") Login
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.shadow
+    .navbar-collapse.collapse.w-100.dual-collapse2.order-1.order-md-0
+        ul.navbar-nav.ml-auto.text-center(style="margin-right: 30px")
+            - if (req.isAuthenticated())
+                li.nav-item
+                    a.nav-link(href="/", title="Routes", style="color:#ff7100;") Routes
+                li.nav-item
+                    a.nav-link(href="/users/" + req.user.id, title="Routes") Generate
+            - else
+                li.nav-item
+                    a.nav-link(href="/", title="Routes") Routes
+
+    .mx-auto.my-2.order-0.order-md-1.position-relative
+        a.navbar-brand.mx-auto(href='/', style="color:white;") Explox
+        button.navbar-toggler(type='button', data-toggle='collapse', data-target='.dual-collapse2')
+            span.navbar-toggler-icon
+    .navbar-collapse.collapse.w-100.dual-collapse2.order-2.order-md-2
+        ul.navbar-nav.mr-auto.text-center(style="margin-left: 30px")
+            - if (req.isAuthenticated())
+                li(class=isActive('/login') ? 'active' : '')
+                    a.nav-link(href="/users/" + req.user.id, title="Login") Profile
+                li.nav-item
+                    a.nav-link(href="/logout", title="logout") Logout
+            - else
+                li(class=isActive('/login') ? 'active' : '')
+                    a.nav-link(href="/login", title="Login") Login
+
+

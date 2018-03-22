@@ -127,7 +127,7 @@ exports.update = async(function* (req, res) {
 
 exports.show = function (req, res) {
     if (req.user) {
-        User.load_full({criteria: {_id: req.user._id}}, function(err, user) {
+        User.load_full(req.user._id, {}, function(err, user) {
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);
                 const map = Map.generateRouteMap(req.article.geo, geos);

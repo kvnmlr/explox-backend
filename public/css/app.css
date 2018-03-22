@@ -13,9 +13,21 @@ table, th, td {
     text-align: left;
 }
 
+a {
+  color: #ff7100;
+}
+
+a:hover {
+  color: #ff7100;
+}
+
+input {
+    margin-top: 15px;
+}
+
 tr:nth-child(even) {background-color: #f2f2f2;}
 th {
-    background-color: #006dcc;
+    background-color: #ff7100;
     color: white;
 }
 
@@ -55,7 +67,8 @@ th {
   ------------------------------------------------ */
 
 body {
-  padding-top: 60px;
+  padding-top: 0px;
+  margin-left: 0px;
 }
 
 .article, .comment {
@@ -98,8 +111,8 @@ button.error:focus {
 }
 
 .navbar-brand {
-  font-size: 14px;
-  color: #000 !important;
+  font-size: 26px;
+  color: #FFFFFF !important;
 }
 
 .navbar-right > li > a {
@@ -130,3 +143,44 @@ button.error:focus {
 .leaflet-control-container .leaflet-routing-container-hide {
     display: none;
 }
+
+.row {
+  margin: 0.5rem;
+}
+
+.shadow {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.shadow:hover {
+   box-shadow: 0px 5px 7px -3px rgba(0, 0, 0, 0.2), 0px 12px 20px 1px rgba(0, 0, 0, 0.14), 0px 4px 23px 4px rgba(0, 0, 0, 0.12);
+ }
+
+.shadow-nohover {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.box {
+  border-radius: 0.3rem;
+  height: 10rem;
+  width: 10rem;
+}
+
+.card {
+  padding: 10px;
+  border: 0px;
+  border-radius: 0.3rem;
+  width: 100%;
+}
+
+.card-header {
+  background: #212121;
+}
+.card-header::before {
+   content: '';
+   position: absolute;
+   right: 100%;
+   border: 1rem solid transparent;
+   border-right: 1.25rem solid #212121;
+ }

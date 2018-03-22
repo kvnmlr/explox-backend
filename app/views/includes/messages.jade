@@ -1,27 +1,23 @@
 - if (typeof info != 'undefined' && info.length)
-  .fade.in.alert.alert-info
-    button.close(type='button', data-dismiss='alert') ×
+  .fade.show.alert.alert-info
     ul
       - each inf in info
-        li!= inf
+        li= inf
 
 - if (typeof errors != 'undefined' && errors.length)
-  .fade.in.alert.alert-danger
-    button.close(type='button', data-dismiss='alert') ×
+  .fade.show.alert.alert-danger
     ul
       - each error in errors
-        li!= error
+        li= error
 
 - if (typeof success != 'undefined' && success.length)
-  .fade.in.alert.alert-success
-    button.close(type='button', data-dismiss='alert') ×
+  .fade.show.alert.alert-success
     ul
       - each succ in success
-        li!= succ
+        li= succ
 
 - if (typeof warning != 'undefined' && warning.length)
-  .fade.in.alert.alert-warning
-    button.close(type='button', data-dismiss='alert') ×
+  .fade.show.alert.alert-warning
     ul
       - each warn in warning
-        li!= warn
+        li= warn

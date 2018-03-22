@@ -14,7 +14,7 @@ exports.crawlSegments = function (req, res) {
     Log.log(TAG, 'Crawling segments at ' + new Date().toUTCString());
 
     req.params.start = [49.25329, 7.04142];
-    req.params.iterations = 15;
+    req.params.iterations = 5;
 
     const horizontal = 0.009009;    // one horizontal kilometer
     const vertical = 0.013808;    // one vertical kilometer

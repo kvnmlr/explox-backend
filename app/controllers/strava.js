@@ -34,7 +34,7 @@ exports.updateUser = function (req, res, next) {
             exports.getFriends(id, token);
             exports.getStats(id, token);
             exports.getRoutes(id, token);
-            //exports.getActivities(id, token);
+            exports.getActivities(id, token);
             next(null, user);
         }
     });

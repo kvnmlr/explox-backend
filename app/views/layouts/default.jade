@@ -3,11 +3,13 @@ html(lang="en")
   include ../includes/head.jade
   body
     include ../includes/header.jade
-    .container
+    .container(style="margin-top:40px;")
       .page-header
         block main
-    .container
-      //block map
+    .container-fluid(style="width:100%; position:absolute")
+      .row
+        block map
+    .container(style="margin-top:40px;")
       .messages
         include ../includes/messages.jade
       .content

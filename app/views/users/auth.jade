@@ -5,19 +5,19 @@ block main
         h1= title
 
 block content
-    .text-center
-        a.btn.btn-primary(href="/auth/strava") Strava Login
-        | &nbsp;&nbsp;
-        //- a(href="/auth/facebook") i.fa.fa-facebook.fa-3x.fa-border | &nbsp;&nbsp;
-        //-a(href="/auth/github") i.fa.fa-github.fa-3x.fa-border | &nbsp;&nbsp;
-        //-a(href="/auth/twitter") i.fa.fa-twitter.fa-3x.fa-border | &nbsp;&nbsp;
-        //-a(href="/auth/google") i.fa.fa-google.fa-3x.fa-border | &nbsp;&nbsp;
-        //-a(href="/auth/linkedin") i.fa.fa-linkedin.fa-3x.fa-border | &nbsp;&nbsp;
+    form.form-horizontal.form-signin
+        .text-center
+            a.btn.btn-primary.btn-block(href="/auth/strava") Strava Login
+            | &nbsp;&nbsp;
+            //- a(href="/auth/facebook") i.fa.fa-facebook.fa-3x.fa-border | &nbsp;&nbsp;
+            //-a(href="/auth/github") i.fa.fa-github.fa-3x.fa-border | &nbsp;&nbsp;
+            //-a(href="/auth/twitter") i.fa.fa-twitter.fa-3x.fa-border | &nbsp;&nbsp;
+            //-a(href="/auth/google") i.fa.fa-google.fa-3x.fa-border | &nbsp;&nbsp;
+            //-a(href="/auth/linkedin") i.fa.fa-linkedin.fa-3x.fa-border | &nbsp;&nbsp;
 
     .text-center
         br
-        h2 OR
-        br
+        h4 or
 
     .login
         block auth

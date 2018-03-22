@@ -1,4 +1,4 @@
-div(id='map')
+div.sidebar-map(id='map', style="width:100%;")
 script.
     window.onload = function () {
         var baseLayer = L.tileLayer(
@@ -102,5 +102,5 @@ script.
         map.addLayer(coverageLayer);
 
         L.control.scale().addTo(map);
-
+        var sidebar = L.control.sidebar('sidebar').addTo(map);
     };

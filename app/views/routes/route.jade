@@ -1,25 +1,24 @@
-article.article
-  h3
-    a(href='/routes/'+article._id, title=article.title) #{article.title}
-  p= article.body
 
-  .meta
-    span.muted= formatDate(article.createdAt)
+div.card.box.shadow(style="width:100%; margin-bottom:50px;")
+    div.card-body
+      h3.card-title
+        a(href='/routes/'+article._id, title=article.title) #{article.title}
+      p.card-text= article.body
 
+      .meta
+        span.muted= formatDate(article.createdAt)
+        - if (article.user)
+          | &nbsp; by &nbsp;
+          span
 
+          - var name = article.user.name ? article.user.name : article.user.username
 
-    - if (article.user)
-      | &nbsp; by &nbsp;
-      span
+          a(href="/users/"+article.user._id)= name
 
-      - var name = article.user.name ? article.user.name : article.user.username
-
-      a(href="/users/"+article.user._id)= name
-
-    - if (article.tags)
-      | &nbsp; - &nbsp;
-      span Tags &nbsp;
-      - each tag in article.tags.split(',')
-        i.muted.fa.fa-tag &nbsp;
-        a.tag(href="/tags/"+tag)= tag
-        | &nbsp;&nbsp;
+        - if (article.tags)
+          | &nbsp; - &nbsp;
+          span Tags &nbsp;
+          - each tag in article.tags.split(',')
+            i.muted.fa.fa-tag &nbsp;
+            a.tag(href="/tags/"+tag)= tag
+            | &nbsp;&nbsp;

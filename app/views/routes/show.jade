@@ -1,5 +1,5 @@
 extends ../layouts/default
-
+div.card.box.shadow(style="width:100%; margin-bottom:50px;")
 block main
   h1= article.title
 
@@ -12,9 +12,8 @@ block content
   //p= JSON.stringify(article.geo.length) + " coordinates in the route"
 
   .row
-    .col-md-6
-        include ../includes/map.jade
-    .col-md-6
+
+    .col-md-5.card.shadow
       p=article.body
       .meta
         - if (article.user)
@@ -33,13 +32,16 @@ block content
 
         p.muted= formatDate(article.createdAt, "%b %d, %Y at %I:%M %p")
         form(action="/routes/"+article.id, method="post", onsubmit="return confirm('Are you sure?')")
-        input(type='hidden', name='_csrf', value="#{csrf_token}")
-        a.btn.btn-default(href='/routes/'+article._id+'/edit', title="edit") Edit
-        | &nbsp;
-        input(type="hidden", name="_method", value="DELETE")
-        button.btn.btn-danger(type="submit") Delete
+          input(type='hidden', name='_csrf', value="#{csrf_token}")
+          a.btn.btn-outline-secondary(href='/routes/'+article._id+'/edit', title="edit") Edit
+          | &nbsp;
+          input(type="hidden", name="_method", value="DELETE")
+          button.btn.btn-danger.float-right(type="submit") Delete
+        br
         br
         h3 Comments
         - each comment in article.comments
           include ../comments/comment
         include ../comments/form
+    .col-md-7
+      include ../includes/map.jade
