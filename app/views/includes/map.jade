@@ -1,5 +1,32 @@
 div
     script.
+        // This function returns the coordinate
+        // conversion string in DD to DMS.
+        function ddToDms (lat, lng) {
+            var latResult = getDms(parseFloat(lat));
+            latResult += (lat >= 0) ? ' N' : ' S';
+
+            var lngResult = getDms(parseFloat(lng));
+            lngResult += (lng >= 0) ? ' E' : ' W';
+            return latResult + ' ' + lngResult;
+        }
+
+        function getDms (val) {
+            var valDeg, valMin, valSec, result;
+            val = Math.abs(val);
+
+            valDeg = Math.floor(val);
+            result = valDeg + "º";
+
+            valMin = Math.floor((val - valDeg) * 60);
+            result += valMin + "'";
+
+            valSec = Math.round((val - valDeg - valMin / 60) * 3600 * 1000) / 1000;
+            result += valSec + '"';
+
+            return result;
+        }
+
         window.onload = function () {
             var baseLayer = L.tileLayer(
                 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -17,7 +44,9 @@ div
                 maxZoom: 100
             });
 
+
             if ((!{map.hasRoute})) {
+                // Display the route
                 var control = L.Routing.control({
                     waypoints: [!{map.routeData}],
                     routeWhileDragging: true,
@@ -32,14 +61,15 @@ div
                     }
                 });
                 //control.hide();
-                control.addTo(map)
+                control.addTo(map);
 
 
+                // Markers
                 function onEachFeature(feature, layer) {
                     if (feature.properties && feature.properties.popupContent) {
                         layer.bindPopup(feature.properties.popupContent);
                     }
-                }
+                };
 
                 var states = [
                     {
@@ -50,7 +80,7 @@ div
                         },
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-80.270, 25.7]
+                            "coordinates": [!{map.routeData[0].split(",")[1].substring(0,6)}, !{map.routeData[0].split(",")[0].substring(9,15)}]
                         }
                     },
                     {
@@ -61,9 +91,10 @@ div
                         },
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [-80.3, 25.8]
+                            "coordinates": [!{map.routeData[map.routeData.length-1].split(",")[1].substring(0,6)}, !{map.routeData[map.routeData.length-1].split(",")[0].substring(9,15)}]
                         }
-                    }];
+                    }
+                ];
 
                 var geojsonMarkerOptions = {
                     radius: 8,
@@ -82,7 +113,7 @@ div
                                 geojsonMarkerOptions.color = "#007bff"
                                 return geojsonMarkerOptions;
                             case 'start':
-                                geojsonMarkerOptions.color = "#000000"
+                                geojsonMarkerOptions.color = "#ffffff"
                                 return geojsonMarkerOptions;
                             case 'end':
                                 geojsonMarkerOptions.color = "#00ff5e"
@@ -101,6 +132,59 @@ div
             //map.fitBounds(coverageLayer.bounds);
             map.addLayer(coverageLayer);
 
-            L.control.scale().addTo(map);
-            var sidebar = L.control.sidebar('sidebar').addTo(map);
+            // Sidebar
+            if (!(!{map.hasRoute})) {
+                L.control.scale().addTo(map);
+                L.control.sidebar('sidebar').addTo(map);
+            }
+
+            // Mouse coordinate capture
+            var startPointLayer
+            map.on('click', function (obj) {
+                 if (obj.latlng && !(!{map.hasRoute})) {
+                    var states = [
+                        {
+                            "type": "Feature",
+                            "properties": {
+                                "type": "start",
+                                "popupContent": "This is the start point!"
+                            },
+                            "geometry": {
+                                "type": "Point",
+                                "coordinates": [obj.latlng.lng.toFixed(4).toString(), obj.latlng.lat.toFixed(4).toString()]
+                            }
+                        }];
+
+                    var geojsonMarkerOptions = {
+                        radius: 8,
+                        fillColor: "#ff780000",
+                        color: "#000",
+                        weight: 5,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    };
+                    if (startPointLayer) {
+                        map.removeLayer(startPointLayer)
+
+                    }
+                    startPointLayer = L.geoJSON(states, {
+                        onEachFeature: onEachFeature,
+                        style: function (feature) {
+                            geojsonMarkerOptions.color = "#ff7100"
+                            return geojsonMarkerOptions;
+                        },
+                        pointToLayer: function (feature, latlng) {
+                            return L.circleMarker(latlng, geojsonMarkerOptions);
+                        }
+                    });
+                    startPointLayer.addTo(map);
+
+
+                    document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString();
+                    document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString();
+                    document.getElementById('gps-calculated').innerText =
+                        ddToDms(document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString(),
+                            document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString());
+                }
+            })
         };

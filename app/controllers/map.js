@@ -45,6 +45,7 @@ exports.generateExploredMapData = function(exploredGeos) {
         config: mapConfig,
         heatmapData: data,
         hasRoute: false,
+        routeData: ["L.latLng(0.0000000,0.00000001)"]
     };
 };
 

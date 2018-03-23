@@ -23,7 +23,6 @@ block map
                 $("#settings").toggleClass("active");
 
                 e.preventDefault();
-                sendContactForm();
                 return false;
             });
             $('#settings-form').submit(function (e) {
@@ -44,9 +43,6 @@ block map
                     .attr("name", "lng").val(lng);
                 $('#settings-form').append($(inputLat));
                 $('#settings-form').append($(inputLng));
-
-                sendContactForm();
-                return false;
             });
             $("#generate").on("click", function () {
                 $("#sidebar-overview").toggleClass( "active" );
@@ -80,9 +76,9 @@ block map
                     | Overview
                 p= userData
                 div.row
-                    button.btn.btn-outline-primary.float-right(style="margin-left: 10px;", href='/users/' + user._id + '/update', title="update")
+                    button.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update")
                         | Update Profile
-                    button.btn.btn-outline-primary.float-right(id="generate", style="margin-left: 10px;", title="generate")
+                    button.btn.btn-outline-primary.btn-block(id="generate", title="generate")
                         | Generate New Route
             #start.sidebar-pane
                 h1.sidebar-header
@@ -90,21 +86,31 @@ block map
                 br
                 p Klicke an die Position an der du deine Tour beginnen möchtest.
                 form(id="coordinate-form")
-                    h3 Ausgwählte Position
-                    input.form-control.form-control-lg(id="input-lat", type='text', placeholder="23,5246W")
-                    input.form-control.form-control-lg(id="input-lng", type='text', placeholder="130,5246N")
-                    -
+                    h5 Ausgwählte Position
+                    div.row
+                        p Latitude:
+                        input.form-control.form-control-lg(id="input-lat", type='text', placeholder="23,5246", style="margin-top: -10px", required)
+                        br
+                    div.row
+                        p Latitude:
+                        input.form-control.form-control-lg.float-left(id="input-lng", type='text', placeholder="130,5246", style="margin-top: -10px", required)
+                        br
+                    div.row
+                        b(id="gps-calculated")
+                        br
                     br
-                    button.btn.btn-outline-primary(type='submit') Next
+                    button.btn.btn-outline-primary.btn-block(type='submit') Next
 
             #settings.sidebar-pane
                 h1.sidebar-header
                     | Settings
+                br
+                p Gebe gewünschte Eigenschaften deiner Route ein.
                 form(action="/generate/", id="settings-form")
-                    h3 Distanz:
-                    input#number(type='number' value="1")
+                    h5 Distanz:
+                    input#number(type='number' value="1", style="margin-top:-10px; margin-bottom: 10px;")
                     br
-                    h3 Sportart:
+                    h5 Sportart:
                     fieldset#group1
                         .btn-group.btn-group-toggle(data-toggle='buttons')
                             label.btn.btn-secondary.active
@@ -115,7 +121,7 @@ block map
                                 | Laufen
 
                     br
-                    h3 Schwierigkeit:
+                    h5 Schwierigkeit:
 
                     fieldset#group2
                         .btn-group.btn-group-toggle(data-toggle='buttons')
@@ -129,7 +135,7 @@ block map
                                 input(type='radio', value='pro', name='difficulty', checked='')
                                 | Profi
                     br
-                    input.btn.btn-primary(type='submit')
+                    input.btn.btn-outline-primary.btn-block(type='submit')
 
     div.sidebar-map(id='map', style="width:100%;")
         include ../includes/map.jade
