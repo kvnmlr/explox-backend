@@ -16,6 +16,36 @@ block map
                     $("#overview").toggleClass("active");
                 }, 2000);
 
+            $("#toggle-button-beginner").on("click", function () {
+                $("#toggle-button-beginner").addClass("active");
+                $("#toggle-button-advanced").removeClass("active");
+                $("#toggle-button-pro").removeClass("active");
+                }
+            );
+            $("#toggle-button-advanced").on("click", function () {
+                    $("#toggle-button-beginner").removeClass("active");
+                    $("#toggle-button-advanced").addClass("active");
+                    $("#toggle-button-pro").removeClass("active");
+                }
+            );
+            $("#toggle-button-pro").on("click", function () {
+                    $("#toggle-button-beginner").removeClass("active");
+                    $("#toggle-button-advanced").removeClass("active");
+                    $("#toggle-button-pro").addClass("active");
+                }
+            );
+
+            $("#toggle-button-running").on("click", function () {
+                    $("#toggle-button-cycling").removeClass("active");
+                    $("#toggle-button-running").addClass("active");
+                }
+            );
+            $("#toggle-button-cycling").on("click", function () {
+                    $("#toggle-button-cycling").addClass("active");
+                    $("#toggle-button-running").removeClass("active");
+                }
+            );
+
             $('#coordinate-form').submit(function (e) {
                 $("#sidebar-start").toggleClass("active");
                 $("#start").toggleClass("active");
@@ -89,11 +119,11 @@ block map
                     h5 Ausgwählte Position
                     div.row
                         p Latitude:
-                        input.form-control.form-control-lg(id="input-lat", type='text', placeholder="23,5246", style="margin-top: -10px", required)
+                        input.form-control(id="input-lat", type='text', placeholder="23,5246", style="margin-top: -10px", required)
                         br
                     div.row
                         p Latitude:
-                        input.form-control.form-control-lg.float-left(id="input-lng", type='text', placeholder="130,5246", style="margin-top: -10px", required)
+                        input.form-control(id="input-lng", type='text', placeholder="130,5246", style="margin-top: -10px", required)
                         br
                     div.row
                         b(id="gps-calculated")
@@ -108,15 +138,19 @@ block map
                 p Gebe gewünschte Eigenschaften deiner Route ein.
                 form(action="/generate/", id="settings-form")
                     h5 Distanz:
-                    input#number(type='number' value="1", style="margin-top:-10px; margin-bottom: 10px;")
+                    div.row
+                        div.col-xs-2
+                            input(id="distance-input", onchange="this.value = parseFloat(this.value).toFixed(1);", type='number', name='distance', value="5.0", style="margin-top:-10px; margin-bottom: 10px;", max="99", min="1", size="2", step="0.5")
+                            span(style="margin-left:10px") km
+                        div.col-xs-5
                     br
                     h5 Sportart:
                     fieldset#group1
                         .btn-group.btn-group-toggle(data-toggle='buttons')
-                            label.btn.btn-secondary.active
+                            label.btn.btn-secondary.active(id="toggle-button-cycling")
                                 input(type='radio', value='cycling', name='sport', checked='')
                                 | Radfahren
-                            label.btn.btn-secondary
+                            label.btn.btn-secondary(id="toggle-button-running")
                                 input(type='radio', value='running', name='sport')
                                 | Laufen
 
@@ -125,13 +159,13 @@ block map
 
                     fieldset#group2
                         .btn-group.btn-group-toggle(data-toggle='buttons')
-                            label.btn.btn-secondary.active
+                            label.btn.btn-secondary.active(id="toggle-button-beginner")
                                 input(type='radio', value='beginner', name='difficulty')
                                 | Anfänger
-                            label.btn.btn-secondary
+                            label.btn.btn-secondary(id="toggle-button-advanced")
                                 input(type='radio', value='advanced', name='difficulty')
                                 | Fortgeschritten
-                            label.btn.btn-secondary
+                            label.btn.btn-secondary(id="toggle-button-pro")
                                 input(type='radio', value='pro', name='difficulty', checked='')
                                 | Profi
                     br
