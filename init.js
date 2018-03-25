@@ -3,7 +3,7 @@ const Log = require('./app/utils/logger');
 const TAG = 'Init';
 
 let mongoose;
-let Route, Geo, User, Role, Activity;
+let Route, Geo, User, Role, Activity, Settings;
 let geos = [];
 let adminRole, userRole;
 
@@ -29,8 +29,9 @@ exports.createSampleData = function (callbacks) {
     User = mongoose.model('User');
     Role = mongoose.model('Role');
     Activity = mongoose.model('Activity');
+    Settings = mongoose.model('Settings');
 
-    apply([createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, finished]);
+    apply([createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, createDefaultSettings, finished]);
 };
 
 exports.init = function() {
@@ -130,6 +131,29 @@ const createDefaultUsers = function(callbacks) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
+                if (err) Log.error("Init", err);;
+                checkAndCallback(callbacks)
+            });
+        } else {
+            checkAndCallback(callbacks)
+        }
+    });
+};
+
+const createDefaultSettings = function(callbacks) {
+    Settings.loadValue("api", function (err, setting) {
+        if (err) {
+            return done(err);
+        }
+        if (!setting) {
+            setting = new Settings({
+                key: 'api',
+                value: {
+                    shortTerm: 0,
+                    longTerm: 0
+                }
+            });
+            setting.save(function (err) {
                 if (err) Log.error("Init", err);;
                 checkAndCallback(callbacks)
             });

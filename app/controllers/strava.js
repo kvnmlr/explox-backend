@@ -8,15 +8,30 @@ const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
+const Settings = mongoose.model('Settings');
+
 const Log = require('../utils/logger');
 
 const TAG = 'strava';
 
-let apiLimits = { 'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000 };
+exports.getLimits = function (cb) {
+    Settings.loadValue("api", function(err, setting) {
+        let apiLimits = { 'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000 };
+        Log.debug(TAG, "api", setting);
+        if (setting) {
+            apiLimits.shortTermUsage = setting.value.shortTerm;
+            apiLimits.longTermUsage = setting.value.longTerm;
+        }
+        cb(err, apiLimits);
+    });
+};
 
-// TODO this must come from the DB, otherwise every worker will have different data
-exports.getLimits = function () {
-    return apiLimits;
+const updateLimits = function(limit) {
+    const apiUsage = {
+        shortTerm: limit.shortTermUsage,
+        longTerm: limit.longTermUsage
+    };
+    Settings.updateValue({key: "api", value: apiUsage}, function(){})
 };
 
 /**
@@ -50,7 +65,7 @@ exports.getFriends = function (id, token, next) {
         page: 1,
         per_page: 100
     }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -67,7 +82,7 @@ exports.getFriends = function (id, token, next) {
  */
 exports.getAthlete = function (id, token, next) {
     strava.athletes.get({ id: id, access_token: token }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -84,7 +99,7 @@ exports.getAthlete = function (id, token, next) {
  */
 exports.getStats = function (id, token, next) {
     strava.athletes.stats({ id: id, access_token: token, page: 1, per_page: 100 }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -102,7 +117,7 @@ exports.getStats = function (id, token, next) {
  */
 exports.getRoutes = function (id, token, next) {
     strava.athlete.listRoutes({ id: id, access_token: token, page: 1, per_page: 100 }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -129,7 +144,7 @@ exports.getActivities = function (id, token, next) {
         page: 1,
         per_page: 100
     }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
             return;
@@ -161,7 +176,7 @@ exports.segmentsExplorer = function (token, options, next) {
         min_cat: options.min_cat,
         max_cat: options.max_cat
     }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         } else {
@@ -284,7 +299,7 @@ const getActivity = function (id, token, userID, next) {
  */
 const getRoute = function (id, token, userID, next) {
     strava.routes.get({ id: id, access_token: token }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -365,7 +380,7 @@ const getRoute = function (id, token, userID, next) {
  */
 const getRouteStream = function (id, token, route, next) {
     strava.streams.route({ id: id, types: '', access_token: token }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
             return;
@@ -376,7 +391,7 @@ const getRouteStream = function (id, token, route, next) {
 
 const getActivityStream = function (id, token, activity, next) {
     strava.streams.activity({ id: id, types: 'latlng', access_token: token }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -387,7 +402,7 @@ const getActivityStream = function (id, token, activity, next) {
 
 const getSegmentStream = function (id, token, segment, next) {
     strava.streams.segment({ id: id, types: '', access_token: token }, function (err, payload, limits) {
-        apiLimits = limits;
+        updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }

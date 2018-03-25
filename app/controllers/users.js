@@ -11,6 +11,8 @@ const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
+const Settings = mongoose.model('Settings');
+
 const mailer = require('../mailer/index');
 
 const Strava = require('./strava');
@@ -85,16 +87,18 @@ exports.show = async(function* (req, res) {
                     Log.debug(TAG, "Activities: " + activities);
                     Route.list({criteria: {isRoute: false}}, function(err, segments) {
                         Log.debug(TAG, "Segments: " + segments);
-                        respond(res, 'users/show_admin', {
-                            title: user.name,
-                            user: user,
-                            data: 'Admin data goes here',
-                            all: users,
-                            routes: routes,
-                            segments: segments,
-                            activities: activities,
-                            limits: Strava.getLimits()
-                    });
+                        Strava.getLimits(function (err, apiLimits) {
+                            respond(res, 'users/show_admin', {
+                                title: user.name,
+                                user: user,
+                                data: 'Admin data goes here',
+                                all: users,
+                                routes: routes,
+                                segments: segments,
+                                activities: activities,
+                                limits: apiLimits
+                            });
+                        });
                     });
                 });
             });

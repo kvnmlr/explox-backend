@@ -10,7 +10,7 @@ const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
 
 let sport, distance, radius, difficulty, start;
-let goodRoutes  = [], goodSegments  = [], combos = [], finalRoutes = [];
+let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [];
 let request, response;
 
 /**
@@ -38,7 +38,7 @@ exports.generate = function (req, res) {
 /**
  * Generates routes based on the existing and suitable routes and segments
  */
-const find = function() {
+const find = function () {
     Log.log(TAG, goodRoutes.length + ' possible routes after all filters: ', goodRoutes.map(r => r.title));
     Log.log(TAG, goodSegments.length + ' possible segments after all filters: ', goodSegments.map(s => s.title));
 
@@ -48,51 +48,51 @@ const find = function() {
 };
 
 // Utility functions
-const apply = function(callbacks) {
+const apply = function (callbacks) {
     checkAndCallback(callbacks);
 };
-const checkAndCallback = function(callbacks) {
+const checkAndCallback = function (callbacks) {
     if (callbacks.length > 0) {
         const cb = callbacks[0];
         callbacks.shift();
         return cb(callbacks);
     }
 };
-const logAll = function(callbacks) {
+const logAll = function (callbacks) {
     if (combos.length === 0) {
         let tempRoutes = goodRoutes;
         let tempSegments = goodSegments;
 
-        tempRoutes.forEach(function(route) {
+        tempRoutes.forEach(function (route) {
             route.geo = [];
         });
-        tempSegments.forEach(function(segment) {
+        tempSegments.forEach(function (segment) {
             segment.geo = [];
         });
 
         Log.log(TAG, goodRoutes.length + ' routes: ', tempRoutes);
         Log.log(TAG, goodSegments.length + ' segments: ', tempSegments);
-    } else if (finalRoutes.length == 0) {
+    } else if (finalRoutes.length === 0) {
         let tempCombos = combos;
         tempCombos.forEach(function (combo) {
             combo.parts.forEach(function (part) {
                 part.geo = [];
             });
         });
-        Log.log(TAG, goodRoutes.length + ' combos: ', tempCombos);
+        Log.log(TAG, tempCombos.length + ' combos: ', tempCombos);
     } else {
         let tempRoutes = finalRoutes;
 
-        tempRoutes.forEach(function(route) {
+        tempRoutes.forEach(function (route) {
             route.geo = [];
         });
 
-        Log.log(TAG, goodRoutes.length + ' final routes: ', tempRoutes);
+        Log.log(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
     }
     checkAndCallback(callbacks);
 };
-const respond = function(callbacks) {
-    response.render('loading', {text: "Routen werden gesucht"});
+const respond = function (callbacks) {
+    //response.render('loading', {text: "Routen werden gesucht"});
 
     checkAndCallback(callbacks);
 };
@@ -101,7 +101,7 @@ const respond = function(callbacks) {
  * Keep routes and segments that are shorter than the route distance.
  * @param callbacks array of callback functions
  */
-const distanceFilter = function(callbacks) {
+const distanceFilter = function (callbacks) {
     let criteria = {
         distance: { $lt: distance },
         isRoute: true
@@ -141,9 +141,15 @@ const radiusFilter = function (callbacks) {
 
         // filter such that only the routes that are completely within the radius remain
         goodRoutes = goodRoutes.filter(function (route) {
+            const takeEvery = route.geo.length * 0.1;    // parameter for performance, only take every xth route point, 1 = every
+            let count = 0;
+
             // return whether there is no geo that is not in the radius
             return !(route.geo.some(function (routeGeo) {
-
+                count++;
+                if (count % takeEvery !== 0) {
+                    return false;
+                }
                 // return whether the element is not in the radius geos
                 return !(radiusGeos.some(function (radiusGeo) {
 
@@ -154,9 +160,15 @@ const radiusFilter = function (callbacks) {
 
         // filter such that only the segments that are completely not outside remain
         goodSegments = goodSegments.filter(function (segment) {
+            const takeEvery = segment.geo.length * 0.1;    // parameter for performance, only take every xth route point, 1 = every
+            let count = 0;
+
             // if there is no geo that is not in the radius, return true
             return !(segment.geo.some(function (segmentGeo) {
-
+                count++;
+                if (count % takeEvery !== 0) {
+                    return false;
+                }
                 // if the element is not in the radius geos, then return true
                 return !(radiusGeos.some(function (radiusGeo) {
 
@@ -178,30 +190,32 @@ const radiusFilter = function (callbacks) {
  * @param callbacks array of callback functions
  */
 const lowerBoundsFilter = function (callbacks) {
-    const printAndCallback = function() {
+    let newGoodRoutes = [];
+    let newGoodSegments = [];
+
+    const printAndCallback = function () {
         Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.title));
         Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.title));
+        goodRoutes = newGoodRoutes;
+        goodSegments = newGoodSegments;
         checkAndCallback(callbacks);
     };
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
     let lists = [];
     if (goodRoutes.length > 0) {
-        lists.push(goodRoutes)
+        lists.push({ isRoute: true, routes: goodRoutes });
     }
     if (goodSegments.length > 0) {
-        lists.push(goodSegments)
+        lists.push({ isRoute: false, routes: goodSegments });
     }
 
     if (lists.length === 0) {
         checkAndCallback(callbacks);
     }
 
-    lists.forEach(function(routes, listIndex) {
-        let newIndex = 0;
-        routes.forEach(function (route, index, object) {
-            newIndex++;
-
+    lists.forEach(function (routes, listIndex) {
+        routes.routes.forEach(function (route, index) {
             const startPoint = route.geo[0];
             const endPoint = route.geo[route.geo.length - 1];
 
@@ -216,8 +230,7 @@ const lowerBoundsFilter = function (callbacks) {
             };
             Geo.findDistance(options, function (err, distanceToStart) {
                 if (distanceToStart.length === 0) {
-                    if (newIndex === routes.length && listIndex === (lists.length - 1)) {
-                        object.splice(index, 1);
+                    if (index >= (routes.routes.length - 1) && listIndex >= (lists.length - 1)) {
                         return printAndCallback();
                     }
                     return;
@@ -227,8 +240,7 @@ const lowerBoundsFilter = function (callbacks) {
                 options.criteria._id = endPoint._id;
                 Geo.findDistance(options, function (err, distanceToEnd) {
                     if (distanceToEnd.length === 0) {
-                        if (newIndex === routes.length && listIndex === (lists.length - 1)) {
-                            object.splice(index, 1);
+                        if (index >= (routes.routes.length - 1) && listIndex >= (lists.length - 1)) {
                             return printAndCallback();
                         }
                         return;
@@ -240,16 +252,19 @@ const lowerBoundsFilter = function (callbacks) {
 
                     // add the distance attribute to the object for later sorting
                     route.lowerBoundDistance = totalDistance;
-                    //Log.debug(TAG, 'distance : ' + route.distance + " + " + distanceToStart + " + " +  distanceToEnd + " = " + totalDistance);
 
                     if (totalDistance - distance * 0.1 > distance) {
                         Log.debug(TAG, 'route with this route/segment is too long: ' + totalDistance);
-                        object.splice(index, 1);
-                        newIndex--;
-                    }
 
-                    if (newIndex === routes.length && listIndex === (lists.length - 1)) {
-                        printAndCallback();
+                    } else {
+                        if (routes.isRoute) {
+                            newGoodRoutes.push(route);
+                        } else {
+                            newGoodSegments.push(route);
+                        }
+                        if (index >= (routes.routes.length - 1) && listIndex >= (lists.length - 1)) {
+                            return printAndCallback();
+                        }
                     }
                 });
             });
@@ -261,11 +276,11 @@ const lowerBoundsFilter = function (callbacks) {
  * Sort combos on the lower bound total distance in descending order
  * @param callbacks array of callback functions
  */
-const sort = function(callbacks) {
-    combos.sort(function(a, b) {
+const sort = function (callbacks) {
+    combos.sort(function (a, b) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
-    checkAndCallback(callbacks)
+    checkAndCallback(callbacks);
 };
 
 /**
@@ -273,8 +288,8 @@ const sort = function(callbacks) {
  * in a route, still shorter in the lower bound than the max distance
  * @param callbacks array of callback functions
  */
-const combine = function(callbacks) {
-    Log.debug(TAG, "Combine");
+const combine = function (callbacks) {
+    Log.debug(TAG, 'Combine');
 
     // TODO combine segments and gereate routes that have multiple segments
     goodRoutes.forEach(function (route) {
@@ -303,8 +318,8 @@ const combine = function(callbacks) {
  * Generate candidates from a 3rd party routing service using combos
  * @param callbacks array of callback functions
  */
-const generateCandidates = function(callbacks) {
-    Log.debug(TAG, "Generate Candidates");
+const generateCandidates = function (callbacks) {
+    Log.debug(TAG, 'Generate Candidates');
 
     // TODO generate route using the waypoints of the remaining routes and regments starting with the longest
     finalRoutes = goodRoutes;
