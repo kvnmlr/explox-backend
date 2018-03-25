@@ -194,8 +194,7 @@ button.error:focus {
 
 .text {
     color: #ff7100;
-    font-size: 24pt;
-    display: inline-block;
+    font-size: 16pt;
     margin-left: 10px;
 }
 .bounceball {

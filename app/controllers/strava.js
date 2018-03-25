@@ -34,7 +34,7 @@ exports.updateUser = function (req, res, next) {
             exports.getFriends(id, token);
             exports.getStats(id, token);
             exports.getRoutes(id, token);
-            exports.getActivities(id, token);
+            //exports.getActivities(id, token);
             next(null, user);
         }
     });
@@ -368,6 +368,7 @@ const getRouteStream = function (id, token, route, next) {
         apiLimits = limits;
         if (err) {
             Log.error(TAG, err);
+            return;
         }
         extractGeosFromPayload(id, { payload: payload, route: route }, next);
     });
@@ -426,26 +427,40 @@ const extractGeosFromPayload = function (id, payload, next) {
         if (activity != null) {
             if (activity._id != null) {
                 geo.activities.push(activity);
+            } else {
+                Log.error(TAG, "Activity of the stream was not null but had no _id");
+                return;
             }
         }
 
         // let the geo know that it belongs to this route
-        if (route != null) {
+        else if (route != null) {
             if (route._id != null) {
                 geo.routes.push(route);
+            } else {
+                Log.error(TAG, "Route of the stream was not null but had no _id");
+                return;
             }
         }
+
+        // if for some reason something went wrong and we did have
+        // neither an activity nor a route, cancel and don't save the geo
+        else {
+            Log.error(TAG, "Stream had neither activity nor route fields");
+            return;
+        }
+
+        geos.push(geo);
 
         // save the new geo
         geo.save(function (err) {
             if (err) {
-                Log.error(TAG, err);
-                return
+                return;
             }
-            geos.push(geo);
 
             // if this was the last one, call the callback
             if (i === data.length - 1) {
+                Log.debug(TAG, i);
                 if (next) {
                     next(null, geos);
                 }

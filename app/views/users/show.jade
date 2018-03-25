@@ -14,7 +14,7 @@ block map
                     $("#sidebar").toggleClass("collapsed");
                     $("#sidebar-overview").toggleClass("active");
                     $("#overview").toggleClass("active");
-                }, 2000);
+                }, 500);
 
             $("#toggle-button-beginner").on("click", function () {
                 $("#toggle-button-beginner").addClass("active");
@@ -53,15 +53,9 @@ block map
                 $("#settings").toggleClass("active");
 
                 e.preventDefault();
-                return false;
+                return true;
             });
             $('#settings-form').submit(function (e) {
-                setTimeout(
-                    function () {
-                        $("#sidebar").toggleClass("collapsed");
-                        $("#sidebar-settings").toggleClass("active");
-                        $("#settings").toggleClass("active");
-                    }, 1000);
                 var lat = $('#input-lat').val();
                 var lng = $('#input-lng').val();
 
@@ -71,14 +65,20 @@ block map
                 var inputLng = $("<input>")
                     .attr("type", "hidden")
                     .attr("name", "lng").val(lng);
+                $("#sidebar-settings").toggleClass("active");
+                $("#settings").toggleClass("active");
                 $('#settings-form').append($(inputLat));
                 $('#settings-form').append($(inputLng));
+
+                $("#sidebar-loading").toggleClass("active");
+                $("#loading").toggleClass("active");
             });
             $("#generate").on("click", function () {
                 $("#sidebar-overview").toggleClass( "active" );
                 $("#overview").toggleClass( "active" );
                 $("#sidebar-start").toggleClass("active");
                 $("#start").toggleClass("active");
+
             });
             $("#position-next").on("click", function () {
             });
@@ -88,7 +88,7 @@ block map
 
 
 
-    div.sidebar.collapsed.box.shadow(id="sidebar")
+    div.sidebar.collapsed(id="sidebar")
         div.sidebar-tabs
             ul(role="tablist")
                 li(id='sidebar-overview')
@@ -98,15 +98,22 @@ block map
                     a(href="#start" role="tab")
                         i.fa.fa-map-marker
                 li(id='sidebar-settings')
-                    a(href="#settings" role="tab")
+                    a(role="tab")
                         i.fa.fa-sliders
+                br
+                li(id='sidebar-loading')
+                    a(role="tab")
+                        i.fa.fa-search
+                li(id='sidebar-routes')
+                    a(role="tab")
+                        i.fa.fa-star
         div.sidebar-content
             #overview.div.sidebar-pane
                 h1.sidebar-header
                     | Overview
                 p= userData
                 div.row
-                    button.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update")
+                    a.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update")
                         | Update Profile
                     button.btn.btn-outline-primary.btn-block(id="generate", title="generate")
                         | Generate New Route
@@ -140,7 +147,7 @@ block map
                     h5 Distanz:
                     div.row
                         div.col-xs-2
-                            input(id="distance-input", onchange="this.value = parseFloat(this.value).toFixed(1);", type='number', name='distance', value="5.0", style="margin-top:-10px; margin-bottom: 10px;", max="99", min="1", size="2", step="0.5")
+                            input(id="distance-input", onchange="this.value = parseFloat(this.value).toFixed(1);", type='number', name='distance', value="20.0", style="margin-top:-10px; margin-bottom: 10px;", max="99", min="1", size="2", step="0.5")
                             span(style="margin-left:10px") km
                         div.col-xs-5
                     br
@@ -170,6 +177,21 @@ block map
                                 | Profi
                     br
                     input.btn.btn-outline-primary.btn-block(type='submit')
+
+            #loading.div.sidebar-pane
+                h1.sidebar-header
+                    | Suche
+                div.row
+                    .wrap
+                        .loading
+                            div.col-xs-2
+                                .bounceball
+                            div.col-xs-2
+                                .text Routen werden gesucht ...
+
+            #routes.div.sidebar-pane
+                h1.sidebar-header
+                    | Routen
 
     div.sidebar-map(id='map', style="width:100%;")
         include ../includes/map.jade

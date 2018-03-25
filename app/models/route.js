@@ -22,7 +22,7 @@ const RouteSchema = new Schema({
     body: {type: String, default: '', trim: true},                          // Optional description
     user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of references to geo points
-    distance: {type: String, default: '', trim: true},      // Distance in meters
+    distance: {type: Number , default: '', trim: true},      // Distance in meters
     comments: [{                                            // Comments, currently not used
         body: {type: String, default: ''},
         user: {type: Schema.ObjectId, ref: 'User'},

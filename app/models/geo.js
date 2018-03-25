@@ -102,10 +102,12 @@ GeoSchema.statics = {
      * @param cb
      */
     findWithinRadius: function (options, cb) {
-        const limit = options.limit || 100;
-        const latitude = options.latitude;
-        const longitude = options.longitude;
-        let distance = (options.distance || 10000);
+        const select = options.select || "";
+        const limit = options.limit || 1000000;
+        const latitude = parseFloat(options.latitude);
+        const longitude = parseFloat(options.longitude);
+        let distance = options.distance || 10000;
+
         return this.aggregate([
             {
                 $geoNear: {
@@ -114,12 +116,14 @@ GeoSchema.statics = {
                         coordinates: [longitude, latitude]
                     },
                     maxDistance: distance,
-                    minDistance: 0.001,            // do not retrieve the point itself
+                    minDistance: 0.00001,            // do not retrieve the point itself
                     spherical: true,
                     distanceField: 'distance',
+                    limit: limit
                 }
-            }
-        ]).limit(limit).sort('distance').exec(cb);
+            },
+            { $project: select}]
+        ).sort('distance').exec(cb);
     },
 
     /**
