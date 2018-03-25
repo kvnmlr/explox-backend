@@ -9,6 +9,7 @@ const Schema = mongoose.Schema;
 const GeoJSON = require('mongoose-geojson-schema');
 const Log = require('../utils/logger');
 const TAG = 'geo';
+const ObjectId = require('mongoose').Types.ObjectId;
 
 /**
  * Route Schema
@@ -106,6 +107,7 @@ GeoSchema.statics = {
         const limit = options.limit || 1000000;
         const latitude = parseFloat(options.latitude);
         const longitude = parseFloat(options.longitude);
+        const criteria = options.criteria || {};
         let distance = options.distance || 10000;
 
         return this.aggregate([
@@ -122,8 +124,16 @@ GeoSchema.statics = {
                     limit: limit
                 }
             },
-            { $project: select}]
-        ).sort('distance').exec(cb);
+            { $project: select},
+            { $sort: { distance: -1 }},
+            { $match: criteria},
+            ]).exec(cb);
+    },
+
+    findDistance(options, cb) {
+        options.criteria._id = ObjectId(options.criteria._id);
+        //options.criteria =
+        return this.findWithinRadius(options, cb)
     },
 
     /**
