@@ -10,28 +10,17 @@ const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
 
 let sport, distance, radius, difficulty, start;
-
-let goodRoutes, goodSegments, combos = [];
+let goodRoutes  = [], goodSegments  = [], combos = [], finalRoutes = [];
+let request, response;
 
 /**
  * Generates a new route by doing the following calculations in sequence:
  *      1. Distance filter:
- *              Keep routes and segments that are shorter than the route distance.
  *      2. Lower Bound filer:
- *              Keep routes and segments where, when incorporating them into the route,
- *              the lower bound on the total distance would still be less than the route distance.
  *      3. Radius filter:
- *              Keep routes and segments where each geo is within the radius of half the
- *              route distance around the starting point (i.e. it must not leave the radius).
- *      4. Familiarity filter:
- *              Keep routes and segments where a certain percentage of it is at most a certain distance
- *              from the closest familiar point.
- * @param req
- * @param res
  */
 exports.generate = function (req, res) {
     Log.log(TAG, 'Used parameters: ' + JSON.stringify(req.query));
-    res.render('loading', {text: "Routen werden gesucht"});
     sport = req.query.sport || 'cycling';
     distance = req.query.distance * 1000 || '5000';
     radius = distance / 2.0;
@@ -40,6 +29,8 @@ exports.generate = function (req, res) {
         lat: req.query.lat,
         lng: req.query.lng
     };
+    request = req;
+    response = res;
 
     apply([distanceFilter, lowerBoundsFilter, radiusFilter, find]);
 };
@@ -51,7 +42,7 @@ const find = function() {
     Log.log(TAG, goodRoutes.length + ' possible routes after all filters: ', goodRoutes.map(r => r.title));
     Log.log(TAG, goodSegments.length + ' possible segments after all filters: ', goodSegments.map(s => s.title));
 
-    apply([combine, sort, logAll, generateCandidates, logAll]);
+    apply([combine, sort, generateCandidates, logAll, respond]);
 
     //res.redirect("/");
 };
@@ -81,7 +72,7 @@ const logAll = function(callbacks) {
 
         Log.log(TAG, goodRoutes.length + ' routes: ', tempRoutes);
         Log.log(TAG, goodSegments.length + ' segments: ', tempSegments);
-    } else {
+    } else if (finalRoutes.length == 0) {
         let tempCombos = combos;
         tempCombos.forEach(function (combo) {
             combo.parts.forEach(function (part) {
@@ -89,7 +80,20 @@ const logAll = function(callbacks) {
             });
         });
         Log.log(TAG, goodRoutes.length + ' combos: ', tempCombos);
+    } else {
+        let tempRoutes = finalRoutes;
+
+        tempRoutes.forEach(function(route) {
+            route.geo = [];
+        });
+
+        Log.log(TAG, goodRoutes.length + ' final routes: ', tempRoutes);
     }
+    checkAndCallback(callbacks);
+};
+const respond = function(callbacks) {
+    response.render('loading', {text: "Routen werden gesucht"});
+
     checkAndCallback(callbacks);
 };
 
@@ -264,14 +268,11 @@ const sort = function(callbacks) {
     checkAndCallback(callbacks)
 };
 
-const generateCandidates = function(callbacks) {
-    Log.debug(TAG, "Generate Candidates");
-
-    // TODO generate route using the waypoints of the remaining routes and regments starting with the longest
-
-    checkAndCallback(callbacks);
-};
-
+/**
+ * Combine routes and segments into combos (combinations that are, when combined
+ * in a route, still shorter in the lower bound than the max distance
+ * @param callbacks array of callback functions
+ */
 const combine = function(callbacks) {
     Log.debug(TAG, "Combine");
 
@@ -298,3 +299,15 @@ const combine = function(callbacks) {
     checkAndCallback(callbacks);
 };
 
+/**
+ * Generate candidates from a 3rd party routing service using combos
+ * @param callbacks array of callback functions
+ */
+const generateCandidates = function(callbacks) {
+    Log.debug(TAG, "Generate Candidates");
+
+    // TODO generate route using the waypoints of the remaining routes and regments starting with the longest
+    finalRoutes = goodRoutes;
+
+    checkAndCallback(callbacks);
+};

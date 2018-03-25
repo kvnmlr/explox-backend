@@ -45,7 +45,7 @@ const Log = require('./app/utils/logger');
 fs.writeFile('application.log', '');        // Reset the log file
 
 if (cluster.isMaster) {
-    Log.log("Server", "\n\nStarting Server\n---------------\n");
+    Log.log("Server", "_____Starting Server_____");
     Log.log('Server', 'Starting ' + numCPUs + ' workers on port ' + port);
 
     connect()
@@ -81,7 +81,7 @@ function listen() {
 }
 
 function initialize() {
-    init.init(init.createSampleData);
+    init.init();
 
 }
 

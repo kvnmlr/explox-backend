@@ -34,7 +34,7 @@ exports.updateUser = function (req, res, next) {
             exports.getFriends(id, token);
             exports.getStats(id, token);
             exports.getRoutes(id, token);
-            //exports.getActivities(id, token);
+            exports.getActivities(id, token);
             next(null, user);
         }
     });
@@ -460,7 +460,6 @@ const extractGeosFromPayload = function (id, payload, next) {
 
             // if this was the last one, call the callback
             if (i === data.length - 1) {
-                Log.debug(TAG, i);
                 if (next) {
                     next(null, geos);
                 }

@@ -1,28 +1,28 @@
 'use strict';
 const Log = require('./app/utils/logger');
-
-var mongoose;
-var Route;
-var Geo;
-var User;
-var Role;
-var Activity;
-
-var geos = [];
-var adminRole;
-var userRole;
-
-var initialized = false;
 const TAG = 'Init';
 
-function executeAsynchronously(functions, timeout) {
-    for(let i = 0; i < functions.length; i++) {
-        setTimeout(functions[i], timeout * i);
-    }
-}
+let mongoose;
+let Route, Geo, User, Role, Activity;
+let geos = [];
+let adminRole, userRole;
 
-exports.createSampleData = function () {
-    Log.log(TAG, 'Creating sample data');
+// Utility functions
+const apply = function(callbacks) {
+    checkAndCallback(callbacks);
+};
+const checkAndCallback = function(callbacks) {
+    if (callbacks.length > 0) {
+        const cb = callbacks[0];
+        callbacks.shift();
+        return cb(callbacks);
+    }
+};
+const finished = function(callbacks) {
+    Log.log('Init', "_______Server Ready________");
+    checkAndCallback(callbacks);
+};
+exports.createSampleData = function (callbacks) {
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
     Geo = mongoose.model('Geo');
@@ -30,41 +30,31 @@ exports.createSampleData = function () {
     Role = mongoose.model('Role');
     Activity = mongoose.model('Activity');
 
-    executeAsynchronously(
-        [createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, function () {
-            Log.log('Init', 'All done, server is ready to be used');
-        }], 500
-    );
-}
+    apply([createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, finished]);
+};
 
-exports.init = function(next) {
-    if (initialized) {
-        next();
-        return;
-    }
-    initialized = true;
+exports.init = function() {
     Log.log('Init', 'Initializing database');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
     Geo = mongoose.model('Geo');
     User = mongoose.model('User');
     Role = mongoose.model('Role');
-    executeAsynchronously(
-        [createRoles, createDefaultAdmins, next], 1000
-    );
+
+    apply([createRoles, createDefaultAdmins, this.createSampleData])
 };
 
-const createDefaultGeo1 = function(next) {
-    createDefaultGeo("init1", 23.600800037384033, 46.76758746952729, next);
+const createDefaultGeo1 = function(callbacks) {
+    createDefaultGeo("init1", 23.600800037384033, 46.76758746952729, callbacks);
 };
-const createDefaultGeo2 = function(next) {
-    createDefaultGeo("init2", 25.600800037384033, 48.76758746952729, next);
+const createDefaultGeo2 = function(callbacks) {
+    createDefaultGeo("init2", 25.600800037384033, 48.76758746952729, callbacks);
 };
-const createDefaultGeo3 = function(next) {
-    createDefaultGeo("init3", 65.600800037384033, 2.76758746952729, next);
+const createDefaultGeo3 = function(callbacks) {
+    createDefaultGeo("init3", 65.600800037384033, 2.76758746952729, callbacks);
 };
 
-const createDefaultGeo = function(name, lat, long, next) {
+const createDefaultGeo = function(name, lat, long, callbacks) {
     const options = {
         criteria: {'name': name}
     };
@@ -86,16 +76,16 @@ const createDefaultGeo = function(name, lat, long, next) {
             geo.save(function (err) {
                 if (err) Log.error("Init", err);
                 geos[geos.length] = geo;
-                if (next) {
-                    next();
-                }
+                checkAndCallback(callbacks);
             });
+        } else {
+            checkAndCallback(callbacks);
         }
     });
 };
 
 
-const createDefaultAdmins = function(next) {
+const createDefaultAdmins = function(callbacks) {
     const options = {
         criteria: {'email': 'system@explox.de'}
     };
@@ -112,15 +102,15 @@ const createDefaultAdmins = function(next) {
             });
             user.save(function (err) {
                 if (err) Log.error("Init", err);
-                if (next) {
-                    next();
-                }
+                checkAndCallback(callbacks);
             });
+        } else {
+            checkAndCallback(callbacks);
         }
     });
 };
 
-const createDefaultUsers = function(next) {
+const createDefaultUsers = function(callbacks) {
     const options = {
         criteria: {'email': 'user@explox.de'}
     };
@@ -141,15 +131,15 @@ const createDefaultUsers = function(next) {
             });
             user.save(function (err) {
                 if (err) Log.error("Init", err);;
-                if (next) {
-                    next();
-                }
+                checkAndCallback(callbacks)
             });
+        } else {
+            checkAndCallback(callbacks)
         }
     });
 };
 
-const createRoles = function(next) {
+const createRoles = function(callbacks) {
     adminRole = 'admin';
     userRole = 'user';
     /*
@@ -189,9 +179,10 @@ const createRoles = function(next) {
         }
     });
     */
+    checkAndCallback(callbacks)
 };
 
-const createSampleRoute = function(next) {
+const createSampleRoute = function(callbacks) {
     const options = {
         criteria: {'name': 'user'}
     };
@@ -220,10 +211,10 @@ const createSampleRoute = function(next) {
                     if (err) Log.error("Init", err);
                     geos[0].routes.push(route);
                     geos[0].save();
-                    if (next) {
-                        next();
-                    }
+                    checkAndCallback(callbacks)
                 });
+            } else {
+                checkAndCallback(callbacks)
             }
         });
     });
