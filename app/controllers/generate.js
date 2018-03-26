@@ -8,6 +8,7 @@ const TAG = 'controllers/generate';
 const mongoose = require('mongoose');
 const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
+const users = require('./users');
 
 let sport, distance, radius, difficulty, start;
 let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [];
@@ -92,8 +93,10 @@ const logAll = function (callbacks) {
     checkAndCallback(callbacks);
 };
 const respond = function (callbacks) {
+    request.generatedRoutes = finalRoutes;
+    request.hasGeneratedRoutes = true;
+    users.show(request, response);
     //response.render('loading', {text: "Routen werden gesucht"});
-
     checkAndCallback(callbacks);
 };
 

@@ -139,7 +139,7 @@ RouteSchema.statics = {
         const criteria = options.criteria || {};
         return this.find(criteria)
             .populate('user', 'name username')
-            .populate('geo')
+            .populate('geo', 'name location')
             .sort({createdAt: -1})
             .exec(cb);
     },

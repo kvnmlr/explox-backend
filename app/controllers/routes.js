@@ -48,7 +48,6 @@ exports.index = async(function* (req, res) {
 
     const routes = yield Route.list(options);
     const count = yield Route.count();
-
     respond(res, 'routes/index', {
         title: 'Routes',
         routes: routes,

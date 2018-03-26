@@ -32,6 +32,46 @@ th {
     color: white;
 }
 
+
+.btn:focus, .btn:active:focus, .btn.active:focus {
+    outline: 0 none;
+}
+
+.btn-outline-primary{
+    border-color: #ff7100;
+    color: #ff7100;
+}
+
+.btn-primary{
+    border-color: #ff7100;
+    background: #ff7100;
+    color: #ffffff;
+}
+
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active {
+    background: #FFFFFF !important;
+    border-color: #ff7100 !important;
+    color: #ff7100;
+    box-shadow: none !important;
+
+}
+
+.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active {
+    border-color: #ff7100 !important;
+    background: #FFFFFF !important;
+    color: #ff7100;
+    box-shadow: none !important;
+}
+
+.btn-primary:active, .btn-primary.active, .btn-outline-primary:active, .btn-outline-primary.active {
+    background: #ff7100 !important;
+    box-shadow: none !important;
+    color: #ffffff;
+
+}
+
+
+
 /* Wrapper for page content to push down footer */
 #wrap {
   min-height: 100%;

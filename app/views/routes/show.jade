@@ -13,8 +13,8 @@ block content
       br
       p=article.body
       .meta
+        p='Distance ' + (article.distance.toString().split('.', 1)) / 1000 + ' km'
         - if (article.user)
-          p='Distance ' + (article.distance.toString().split('.', 1))/1000 + ' km'
           article.user.username
           - var name = article.user.name ? article.user.name : article.user.username
           p Athlete :&nbsp;

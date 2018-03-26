@@ -1,5 +1,6 @@
 extends ../layouts/default
 block main
+
     - var name = user.name ? user.name : user.username;
         h1= name
         //p= JSON.stringify(map.config)
@@ -11,9 +12,15 @@ block map
         $(document).ready(function () {
             setTimeout(
                 function () {
-                    $("#sidebar").toggleClass("collapsed");
-                    $("#sidebar-overview").toggleClass("active");
-                    $("#overview").toggleClass("active");
+                    if (#{hasGeneratedRoutes}) {
+                        $("#sidebar").toggleClass("collapsed");
+                        $("#sidebar-routes").toggleClass("active");
+                        $("#routes").toggleClass("active");
+                    } else {
+                        $("#sidebar").toggleClass("collapsed");
+                        $("#sidebar-overview").toggleClass("active");
+                        $("#overview").toggleClass("active");
+                    }
                 }, 500);
 
             $("#toggle-button-beginner").on("click", function () {
@@ -47,9 +54,7 @@ block map
             );
 
             $('#coordinate-form').submit(function (e) {
-                $("#sidebar-start").toggleClass("active");
                 $("#start").toggleClass("active");
-                $("#sidebar-settings").toggleClass("active");
                 $("#settings").toggleClass("active");
 
                 e.preventDefault();
@@ -65,17 +70,29 @@ block map
                 var inputLng = $("<input>")
                     .attr("type", "hidden")
                     .attr("name", "lng").val(lng);
-                $("#sidebar-settings").toggleClass("active");
                 $("#settings").toggleClass("active");
                 $('#settings-form').append($(inputLat));
                 $('#settings-form').append($(inputLng));
-
-                $("#sidebar-loading").toggleClass("active");
                 $("#loading").toggleClass("active");
             });
+
+            $("#back-button").on("click", function () {
+                $("#settings").toggleClass("active");
+                $("#sidebar-start").toggleClass("active");
+                $("#start").toggleClass("active");
+
+            });
+
             $("#generate").on("click", function () {
                 $("#sidebar-overview").toggleClass( "active" );
                 $("#overview").toggleClass( "active" );
+                $("#sidebar-start").toggleClass("active");
+                $("#start").toggleClass("active");
+
+            });
+            $("#generate2").on("click", function () {
+                $("#sidebar-routes").toggleClass("active");
+                $("#routes").toggleClass("active");
                 $("#sidebar-start").toggleClass("active");
                 $("#start").toggleClass("active");
 
@@ -96,21 +113,15 @@ block map
                         i.fa.fa-user
                 li(id='sidebar-start')
                     a(href="#start" role="tab")
-                        i.fa.fa-map-marker
-                li(id='sidebar-settings')
-                    a(role="tab")
                         i.fa.fa-sliders
-                br
-                li(id='sidebar-loading')
-                    a(role="tab")
-                        i.fa.fa-search
                 li(id='sidebar-routes')
-                    a(role="tab")
+                    a(href="#routes" role="tab")
                         i.fa.fa-star
         div.sidebar-content
             #overview.div.sidebar-pane
                 h1.sidebar-header
                     | Overview
+                br
                 p= userData
                 div.row
                     a.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update")
@@ -142,6 +153,7 @@ block map
                 h1.sidebar-header
                     | Settings
                 br
+                button.btn.btn-outline-primary.btn-block(id= "back-button") Zurück
                 p Gebe gewünschte Eigenschaften deiner Route ein.
                 form(action="/generate/", id="settings-form")
                     h5 Distanz:
@@ -150,7 +162,6 @@ block map
                             input(id="distance-input", onchange="this.value = parseFloat(this.value).toFixed(1);", type='number', name='distance', value="20.0", style="margin-top:-10px; margin-bottom: 10px;", max="99", min="1", size="2", step="0.5")
                             span(style="margin-left:10px") km
                         div.col-xs-5
-                    br
                     h5 Sportart:
                     fieldset#group1
                         .btn-group.btn-group-toggle(data-toggle='buttons')
@@ -176,22 +187,34 @@ block map
                                 input(type='radio', value='pro', name='difficulty', checked='')
                                 | Profi
                     br
-                    input.btn.btn-outline-primary.btn-block(type='submit')
+                    button.btn.btn-outline-primary.btn-block(type='submit') Next
 
             #loading.div.sidebar-pane
                 h1.sidebar-header
                     | Suche
+                br
+                br
+                br
+                p(style="text-align: center;") Routen werden gesucht ...
                 div.row
                     .wrap
                         .loading
-                            div.col-xs-2
-                                .bounceball
-                            div.col-xs-2
-                                .text Routen werden gesucht ...
+                            .bounceball
+
 
             #routes.div.sidebar-pane
                 h1.sidebar-header
                     | Routen
+                br
+                if (hasGeneratedRoutes)
+                    if (generatedRoutes.length > 0)
+                        - each route in generatedRoutes
+                            p= JSON.stringify(route.title)
+                    else
+                        p Keine Routen gefunden
+
+                button.btn.btn-outline-primary.btn-block(id="generate2", title="generate")
+                     | Generate New Routes
 
     div.sidebar-map(id='map', style="width:100%;")
         include ../includes/map.jade

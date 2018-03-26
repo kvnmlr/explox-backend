@@ -106,19 +106,25 @@ exports.show = async(function* (req, res) {
     }
     else {
         // Show user profile
+        if (req.params.userId === undefined) {
+            req.params.userId = req.user._id;
+        }
         Log.debug(TAG,  "Load full: " + req.user._id);
-        Log.debug(TAG, req.params.userId)
+        Log.debug(TAG, req.params.userId);
         User.load_full(req.params.userId, {}, function (err, user) {
             Log.debug(TAG, "User: " + user);
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);
                 const map = Map.generateExploredMapData(geos);
+                const generatedRoutes = req.generatedRoutes || [];
+                const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
                 respond(res, 'users/show', {
                     title: user.name,
                     user: user,
                     map: map,
-                    userData: 'User data goes here'
-
+                    userData: 'User data goes here',
+                    generatedRoutes: generatedRoutes,
+                    hasGeneratedRoutes : hasGeneratedRoutes
                 });
             }
         });
