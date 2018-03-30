@@ -20,27 +20,23 @@ const maxAllowedWaypoints = 250;
 
 
 exports.findRoute = function (options, cb) {
-    let waypoints = options.locations;
-    const numLocations = waypoints.length;
-    Log.debug(TAG, "num before " + waypoints.length);
-    let keepEvery = numLocations / maxAllowedWaypoints;
-    if (keepEvery > 1) {
-        // we have to many waypoints, downsample to something smaller
-        keepEvery = keepEvery.ceil();
-        const waypointsTemp = waypoints;
-        waypoints = [];
-        let counter = 0;
-        Log.debug(TAG, "here1 " + waypoints.length);
+    let waypoints = options.waypoints;
 
+    let keepEvery = waypoints.length / maxAllowedWaypoints;
+    if (keepEvery > 1) {
+        // we have too many waypoints, downsample to something smaller
+        keepEvery = Math.ceil(keepEvery);
+        const waypointsTemp = waypoints;
+        waypoints = [waypointsTemp[0]];     // start point must not be deleted
+        let counter = 0;
         waypointsTemp.forEach(function(wp) {
             if (counter % keepEvery === 0) {
                 waypoints.push(wp);
             }
             ++counter;
         });
+        waypoints.push(waypointsTemp[waypointsTemp.length-1])   // end point must also definitely be a waypoint
     }
-    Log.debug(TAG, "num after " + waypoints.length);
-
     let coordinates = toOsrmFormat(waypoints);
 
     const service = "route";
@@ -50,9 +46,6 @@ exports.findRoute = function (options, cb) {
     let requestString = protocol + "://" + domain + "/" + service + "/" + version + "/" + profile +"/";
     requestString += coordinates;
     requestString += "?" + query;
-
-    Log.debug(TAG, "request: " + requestString);
-
 
     request(requestString, function (error, response, body) {
         try {
@@ -64,17 +57,18 @@ exports.findRoute = function (options, cb) {
             return false;
         }
 
+        let result = {
+            distance: 0,
+            waypoints: []
+        };
+
         if (!resultOk(body)) {
-            //return cb();
+            return cb(result);
         }
 
         const route = body.routes[0];
         const legs = route.legs;
-
-        let result = {
-            distance: route.distance,
-            waypoints: []
-        };
+        result.distance = route.distance;
 
         legs.forEach(function(leg) {
             const steps = leg.steps;
@@ -85,8 +79,7 @@ exports.findRoute = function (options, cb) {
                 }
             });
         });
-
-        Log.debug(TAG, "Result: ", result);
+        return cb(result);
     });
 };
 
@@ -129,4 +122,5 @@ const resultOk = function(body) {
         Log.error(TAG, "OSRM request did not return any route legs");
         return false;
     }
+    return true;
 };

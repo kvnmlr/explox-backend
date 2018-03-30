@@ -12,7 +12,7 @@ const users = require('./users');
 const osrm = require('./osrm');
 
 let sport, distance, radius, difficulty, start;
-let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [];
+let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [], candidates = [], resultRoutes=[];
 let request, response;
 
 /**
@@ -44,7 +44,7 @@ const find = function () {
     Log.log(TAG, goodRoutes.length + ' possible routes after all filters: ', goodRoutes.map(r => r.title));
     Log.log(TAG, goodSegments.length + ' possible segments after all filters: ', goodSegments.map(s => s.title));
 
-    apply([combine, sort, generateCandidates, logAll, respond]);
+    apply([combine, sort, generateCandidates, createRoutes, logAll, respond]);
 
     //res.redirect("/");
 };
@@ -61,7 +61,13 @@ const checkAndCallback = function (callbacks) {
     }
 };
 const logAll = function (callbacks) {
-    if (combos.length === 0) {
+    if (resultRoutes.length > 0) {
+        Log.debug(TAG, "Created these routes: ", resultRoutes.map(r => r.distance));
+    }
+    else if (candidates.length > 0) {
+        Log.debug(TAG, "Found these candidate routes: ", candidates.map(r => r.distance));
+    }
+    else if (combos.length === 0) {
         let tempRoutes = goodRoutes;
         let tempSegments = goodSegments;
 
@@ -96,7 +102,7 @@ const logAll = function (callbacks) {
     checkAndCallback(callbacks);
 };
 const respond = function (callbacks) {
-    request.generatedRoutes = finalRoutes;
+    request.generatedRoutes = resultRoutes;
     request.hasGeneratedRoutes = true;
     users.show(request, response);
     //response.render('loading', {text: "Routen werden gesucht"});
@@ -223,7 +229,9 @@ const lowerBoundsFilter = function (callbacks) {
     }
 
     lists.forEach(function (routes, listIndex) {
+        listIndex--;
         routes.routes.forEach(function (route, index) {
+            index--;
             const startPoint = route.geo[0];
             const endPoint = route.geo[route.geo.length - 1];
 
@@ -238,6 +246,8 @@ const lowerBoundsFilter = function (callbacks) {
             };
             Geo.findDistance(options, function (err, distanceToStart) {
                 if (distanceToStart.length === 0) {
+                    index++;
+                    listIndex++;
                     if (index >= (routes.routes.length - 1) && listIndex >= (lists.length - 1)) {
                         return printAndCallback();
                     }
@@ -247,6 +257,8 @@ const lowerBoundsFilter = function (callbacks) {
                 distanceToStart = distanceToStart[0].distance;
                 options.criteria._id = endPoint._id;
                 Geo.findDistance(options, function (err, distanceToEnd) {
+                    index++;
+                    listIndex++;
                     if (distanceToEnd.length === 0) {
                         if (index >= (routes.routes.length - 1) && listIndex >= (lists.length - 1)) {
                             return printAndCallback();
@@ -329,18 +341,88 @@ const combine = function (callbacks) {
  */
 const generateCandidates = function (callbacks) {
     Log.debug(TAG, 'Generate Candidates');
+    if (combos.length === 0) {
+        return checkAndCallback(callbacks);
+    }
 
-    // TODO generate route using the waypoints of the remaining routes and regments starting with the longest
-    combos.some(function(combo) {
-        let coordinates = [];
+    let routes = [];
+
+    // for every combo, generate a route
+    let count = 0;
+    combos.forEach(function(combo) {
+        // start with the starting point
+        let coordinates = [{
+            "coordinates": [
+                start.lng,
+                start.lat
+            ],
+            "type": "Point"
+        }];
+
+        // add all waypoints of the segment/route
         combo.parts.forEach(function(part) {
             coordinates = coordinates.concat(part.geo.map(g => g.location))
         });
-        osrm.findRoute({locations: coordinates}, function() {
-            checkAndCallback(callbacks);
+
+        // add the end point last
+        coordinates.push({
+            "coordinates": [
+                start.lng,
+                start.lat
+            ],
+            "type": "Point"
         });
 
-        return true;    // true to stop after the first one
-    });
+        osrm.findRoute({waypoints: coordinates}, function(route) {
+            ++count;
+            if (route.distance > 0) {
+                // save what parts are included in this route
+                route.parts = [];
+                combo.parts.forEach(function(part) {
+                    route.parts.push(part);
+                });
 
+                // add this route to the list of all generated routes
+                routes.push(route);
+            }
+
+            // if this was the last osrm request, go on and sort and filter the list of generated routes
+            if (count === combos.length) {
+                // sort the resulting routes by distance
+                routes.sort(function (a, b) {
+                    return b.distance - a.distance;
+                });
+
+                // only keep the best n routes by removing items form the front and end of the array
+                const keepBest = 5;
+                while (1) {
+                    if (routes.length <= keepBest) {
+                        break;
+                    }
+
+                    let indexFromStart = routes[0];
+                    let indexFromEnd = routes[routes.length-1];
+                    if (indexFromStart.distance - distance > distance - indexFromEnd.distance) {
+                        routes.splice(0, 1);    // remove item form the beginning
+                    } else {
+                        routes.splice(routes.length-1, 1);    // remove item from the end
+                    }
+                }
+
+                candidates = routes;
+                checkAndCallback(callbacks);
+            }
+        });
+    });
+};
+
+/**
+ * Create Route objects from the generated candidates
+ * @param callbacks array of callback functions
+ */
+const createRoutes = function (callbacks) {
+    Log.debug(TAG, "Create route objects");
+    resultRoutes = goodSegments;
+
+    checkAndCallback(callbacks);
 };
