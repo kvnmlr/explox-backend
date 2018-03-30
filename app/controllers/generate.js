@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
 const users = require('./users');
+const osrm = require('./osrm');
 
 let sport, distance, radius, difficulty, start;
 let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [];
@@ -33,7 +34,7 @@ exports.generate = function (req, res) {
     request = req;
     response = res;
 
-    apply([distanceFilter, lowerBoundsFilter, radiusFilter, find]);
+    apply([distanceFilter, radiusFilter, lowerBoundsFilter, find]);
 };
 
 /**
@@ -73,7 +74,7 @@ const logAll = function (callbacks) {
 
         Log.log(TAG, goodRoutes.length + ' routes: ', tempRoutes);
         Log.log(TAG, goodSegments.length + ' segments: ', tempSegments);
-    } else if (finalRoutes.length === 0) {
+    } else  {
         let tempCombos = combos;
         tempCombos.forEach(function (combo) {
             combo.parts.forEach(function (part) {
@@ -81,14 +82,16 @@ const logAll = function (callbacks) {
             });
         });
         Log.log(TAG, tempCombos.length + ' combos: ', tempCombos);
-    } else {
-        let tempRoutes = finalRoutes;
 
-        tempRoutes.forEach(function (route) {
-            route.geo = [];
-        });
+        if (finalRoutes.length > 0) {
+            let tempRoutes = finalRoutes;
 
-        Log.log(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
+            tempRoutes.forEach(function (route) {
+                route.geo = [];
+            });
+
+            Log.log(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
+        }
     }
     checkAndCallback(callbacks);
 };
@@ -197,11 +200,13 @@ const lowerBoundsFilter = function (callbacks) {
     let newGoodSegments = [];
 
     const printAndCallback = function () {
-        Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.title));
-        Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.title));
-        goodRoutes = newGoodRoutes;
-        goodSegments = newGoodSegments;
-        checkAndCallback(callbacks);
+        setTimeout(function(){
+            goodRoutes = newGoodRoutes;
+            goodSegments = newGoodSegments;
+            Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.title));
+            Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.title));
+            checkAndCallback(callbacks);
+        }, 500);
     };
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
@@ -295,6 +300,7 @@ const combine = function (callbacks) {
     Log.debug(TAG, 'Combine');
 
     // TODO combine segments and gereate routes that have multiple segments
+    Log.debug(TAG, goodRoutes.length);
     goodRoutes.forEach(function (route) {
         const comboObject = {
             lowerBoundDistance: route.lowerBoundDistance,
@@ -325,7 +331,16 @@ const generateCandidates = function (callbacks) {
     Log.debug(TAG, 'Generate Candidates');
 
     // TODO generate route using the waypoints of the remaining routes and regments starting with the longest
-    finalRoutes = goodRoutes;
+    combos.some(function(combo) {
+        let coordinates = [];
+        combo.parts.forEach(function(part) {
+            coordinates = coordinates.concat(part.geo.map(g => g.location))
+        });
+        osrm.findRoute({locations: coordinates}, function() {
+            checkAndCallback(callbacks);
+        });
 
-    checkAndCallback(callbacks);
+        return true;    // true to stop after the first one
+    });
+
 };

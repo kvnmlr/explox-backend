@@ -68,9 +68,6 @@ exports.create = async(function* (req, res) {
 
 exports.show = async(function* (req, res) {
     const user = req.profile;
-    Log.debug(TAG,  "Profile: " + req.profile);
-    Log.debug(TAG,  "User: " + req.user);
-
     if (req.user === undefined) {
         res.render('users/login', {
             title: 'Login'
@@ -81,12 +78,12 @@ exports.show = async(function* (req, res) {
         User.list({}, function (err, users) {
             Log.debug(TAG, "Admin: " + users);
             Route.list({criteria: {isRoute: true}}, function (err, routes) {
-                Log.debug(TAG, "Routes: " + users);
+                //Log.debug(TAG, "Routes: " + users);
                 // Show admin dashboard
                 Activity.list({}, function (err, activities) {
-                    Log.debug(TAG, "Activities: " + activities);
+                    //Log.debug(TAG, "Activities: " + activities);
                     Route.list({criteria: {isRoute: false}}, function(err, segments) {
-                        Log.debug(TAG, "Segments: " + segments);
+                        //Log.debug(TAG, "Segments: " + segments);
                         Strava.getLimits(function (err, apiLimits) {
                             respond(res, 'users/show_admin', {
                                 title: user.name,
@@ -109,10 +106,8 @@ exports.show = async(function* (req, res) {
         if (req.params.userId === undefined) {
             req.params.userId = req.user._id;
         }
-        Log.debug(TAG,  "Load full: " + req.user._id);
-        Log.debug(TAG, req.params.userId);
         User.load_full(req.params.userId, {}, function (err, user) {
-            Log.debug(TAG, "User: " + user);
+            //Log.debug(TAG, "User: " + user);
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);
                 const map = Map.generateExploredMapData(geos);

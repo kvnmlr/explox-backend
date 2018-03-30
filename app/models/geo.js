@@ -17,7 +17,7 @@ const ObjectId = require('mongoose').Types.ObjectId;
 
 const GeoSchema = new Schema({
     name: { type: String, default: '', trim: true },              // Optional name for this coordinate (e.g. "DFKI")
-    location: { type: Schema.Types.Point, index: '2dsphere' },    // The coordinate with 2dsphere index for spatial queries
+    location: { type: Schema.Types.Point, index: '2dsphere' },    // The coordinate with 2dsphere index for spatial queries, (lng, lat)
     routes: [{ type: Schema.ObjectId, ref: 'Route' }],            // Routes that contain this point
     activities: [{ type: Schema.ObjectId, ref: 'Activity' }],     // Activities that contain this point
 });
