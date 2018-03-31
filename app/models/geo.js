@@ -113,6 +113,7 @@ GeoSchema.statics = {
         return this.aggregate([
             {
                 $geoNear: {
+                    query: criteria,
                     near: {
                         type: 'Point',
                         coordinates: [longitude, latitude]
@@ -121,18 +122,16 @@ GeoSchema.statics = {
                     minDistance: 0.00001,            // do not retrieve the point itself
                     spherical: true,
                     distanceField: 'distance',
-                    limit: limit
+                    limit: limit,
                 }
             },
             { $project: select},
             { $sort: { distance: -1 }},
-            { $match: criteria},
             ]).exec(cb);
     },
 
     findDistance(options, cb) {
         options.criteria._id = ObjectId(options.criteria._id);
-        //options.criteria =
         return this.findWithinRadius(options, cb)
     },
 

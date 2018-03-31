@@ -250,12 +250,12 @@ block map
                                 - c = c+1
                                 div.card.box.shadow(style="width:90%; margin-bottom:20px; padding-top:-40px; padding-bottom:-80px;")
                                     div.card-body(style="margin-top:-5px; margin-bottom:-20px")
-                                        //p.card-text= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
+                                        p.card-text= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
                                         p.card-text= '80% undiscovered area'
 
                                         .inline-buttons
                                             p
-                                                a.btn.btn-outline-primary.one-half.first(id="showButton"+c)= "View " + c
+                                                button.btn.btn-outline-primary.one-half.first(id="showButton"+c)= "View"
                                                 | &nbsp;
                                                 button.btn.btn-outline-primary.one-half(id="keepButton"+c)= "Merken"
                     else

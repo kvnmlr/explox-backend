@@ -131,6 +131,7 @@ exports.show = function (req, res) {
                 const geos = Strava.activitiesToGeos(user.activities);
                 const exploredMap = Map.generateExploredMapData(geos);
                 const map = Map.generateRouteMap(req.article.geo);
+                map.distance = req.article.distance;
                 respond(res, 'routes/show', {
                     title: req.article.title,
                     article: req.article,

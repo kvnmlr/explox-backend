@@ -125,6 +125,7 @@ exports.show = async(function* (req, res) {
                     if (generatedRoutes.length > 0) {
                         generatedRoutes.forEach(function(route, index){
                             routeMaps[index] = Map.generateRouteMap(route.geo);
+                            routeMaps[index].distance = route.distance;
                         });
                     }
                 }

@@ -26,7 +26,7 @@ exports.findRoute = function (options, cb) {
     if (keepEvery > 1) {
         // we have too many waypoints, downsample to something smaller
         keepEvery = Math.ceil(keepEvery);
-        const waypointsTemp = waypoints;
+        const waypointsTemp = Object.assign([], waypoints);
         waypoints = [waypointsTemp[0]];     // start point must not be deleted
         let counter = 0;
         waypointsTemp.forEach(function(wp) {

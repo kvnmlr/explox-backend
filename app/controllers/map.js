@@ -15,7 +15,7 @@ exports.generateRouteMap = function(geos, exploredGeos) {
     if (keepEvery > 1) {
         // we have too many waypoints, downsample to something smaller
         keepEvery = Math.ceil(keepEvery);
-        const waypointsTemp = geos;
+        const waypointsTemp = Object.assign([], geos);
         geos = [waypointsTemp[0]];     // start point must not be deleted
         let counter = 0;
         waypointsTemp.forEach(function(wp) {
