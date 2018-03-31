@@ -16,8 +16,8 @@ const ObjectId = require('mongoose').Types.ObjectId;
  */
 
 const RouteSchema = new Schema({
-    stravaId: {type: String, default: '', index: {unique: true}},           // The ID this route has in Strava
-    title: {type: String, default: '', trim: true, index: {unique: true}},  // Title of the route
+    stravaId: {type: String, default: '', index: true, unique: true, sparse: true},           // The ID this route has in Strava
+    title: {type: String, default: '', trim: true},                         // Title of the route
     location: {type: String, default: '', trim: true},                      // General location (e.g. "Saarbruecken")
     body: {type: String, default: '', trim: true},                          // Optional description
     user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route

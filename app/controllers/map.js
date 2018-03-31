@@ -9,21 +9,38 @@ const TAG = "map";
  * @param exploredGeos array of explored geos
  */
 exports.generateRouteMap = function(geos, exploredGeos) {
-    const routeGeo = [];
-    Log.debug(TAG, geos.length);
-    const len = geos.length < 200 ? geos.length : 200;
-    for (let i = 0; i < len; ++i) {
-        if (geos[i].location) {
-            const coords = 'L.latLng('+geos[i].location.coordinates[1] + ',' + geos[i].location.coordinates[0]+')';
-            routeGeo.push(coords);        }
+    const routeData = [];
+    const maxAllowedWaypoints = 250;
+    let keepEvery = geos.length / maxAllowedWaypoints;
+    if (keepEvery > 1) {
+        // we have too many waypoints, downsample to something smaller
+        keepEvery = Math.ceil(keepEvery);
+        const waypointsTemp = geos;
+        geos = [waypointsTemp[0]];     // start point must not be deleted
+        let counter = 0;
+        waypointsTemp.forEach(function(wp) {
+            if (counter % keepEvery === 0) {
+                geos.push(wp);
+            }
+            ++counter;
+        });
+        geos.push(waypointsTemp[waypointsTemp.length-1])   // end point must also definitely be a waypoint
     }
-    Log.debug(TAG, "", routeGeo);
+    for (let i = 0; i < geos.length; ++i) {
+        if (geos[i].location) {
+            const coords = 'L.latLng('+(geos[i].location.coordinates[1]+0.0000001) + ',' + (geos[i].location.coordinates[0]+0.0000001)+')';
+            routeData.push(coords);
+        }
+    }
 
-    const exploredData = exports.generateExploredMapData(exploredGeos);
+    let exploredData = {};
+    if (exploredGeos) {
+        exploredData = exports.generateExploredMapData(exploredGeos);
+    }
     exploredData.marker = {text: "A very cool route.<br> 80% undiscovered.", coords: [25.721, -80.270]};
     exploredData.hasRoute = true;
     exploredData.config = getConfig(geos /*union with exploredGeos*/);         // general map configuratio (e.g. zoom)
-    exploredData.routeData = routeGeo;
+    exploredData.routeData = routeData;
     return exploredData;
 };
 
@@ -57,7 +74,7 @@ var getMaskConfiguration = function() {
         radius: 100,              // radius in pixels or in meters (see useAbsoluteRadius)
         useAbsoluteRadius: true,    // true: r in meters, false: r in pixels
         color: '#000',              // the color of the layer
-        opacity: .8,                // opacity of the not covered area
+        opacity: .5,                // opacity of the not covered area
         noMask: false,              // true results in normal (filled) circled, instead masked circles
         lineColor: '#A00',          // color of the circle outline if noMask is true
         blur: .5

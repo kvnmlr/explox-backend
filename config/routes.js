@@ -56,6 +56,8 @@ module.exports = function (app, passport) {
             failureRedirect: '/login',
             failureFlash: 'Invalid email or password.'
         }), users.session);
+
+    app.get('/users/5abe5afac5fd1ef5a9246b6d/generated', routes.userSaveChoice);    // TODO replace with real id
     app.get('/users/:userId', users.show);
     app.get('/users/:userId/update', strava.updateUser, users.show);
 

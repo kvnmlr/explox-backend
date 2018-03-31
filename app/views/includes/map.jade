@@ -1,76 +1,170 @@
-div
-    script.
-        // This function returns the coordinate
-        // conversion string in DD to DMS.
-        function ddToDms (lat, lng) {
-            var latResult = getDms(parseFloat(lat));
-            latResult += (lat >= 0) ? ' N' : ' S';
+script.
+    // This function returns the coordinate
+    // conversion string in DD to DMS.
+    function ddToDms (lat, lng) {
+        var latResult = getDms(parseFloat(lat));
+        latResult += (lat >= 0) ? ' N' : ' S';
 
-            var lngResult = getDms(parseFloat(lng));
-            lngResult += (lng >= 0) ? ' E' : ' W';
-            return latResult + ' ' + lngResult;
+        var lngResult = getDms(parseFloat(lng));
+        lngResult += (lng >= 0) ? ' E' : ' W';
+        return latResult + ' ' + lngResult;
+    }
+
+    function getDms (val) {
+        var valDeg, valMin, valSec, result;
+        val = Math.abs(val);
+
+        valDeg = Math.floor(val);
+        result = valDeg + "º";
+
+        valMin = Math.floor((val - valDeg) * 60);
+        result += valMin + "'";
+
+        valSec = Math.round((val - valDeg - valMin / 60) * 3600 * 1000) / 1000;
+        result += valSec + '"';
+
+        return result;
+    }
+    window.onload = function () {
+        loadMap(0);
+    }
+    function loadMap(routeIndex) {
+        if(document.getElementById('mapcontainer') !== null) {
+            document.getElementById('mapcontainer').innerHTML = "<div class='sidebar-map', id='map' style='width: 100%;'></div>";
         }
-
-        function getDms (val) {
-            var valDeg, valMin, valSec, result;
-            val = Math.abs(val);
-
-            valDeg = Math.floor(val);
-            result = valDeg + "º";
-
-            valMin = Math.floor((val - valDeg) * 60);
-            result += valMin + "'";
-
-            valSec = Math.round((val - valDeg - valMin / 60) * 3600 * 1000) / 1000;
-            result += valSec + '"';
-
-            return result;
-        }
-
-        window.onload = function () {
-            var baseLayer = L.tileLayer(
-                'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
-                    maxZoom: 100
-                }
-            );
-            //var heatmapLayer = new HeatmapOverlay(!{JSON.stringify(map.heatmapConfig)});
-            var map = new L.Map('map', {
-                center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
-                zoom: !{map.config.zoom},
-                layers: [baseLayer],
-                scrollWheelZoom: !{map.config.scrollWheelZoom},
-                minZoom: 0,
+        var control1, control2, control3, control4, control5
+        var baseLayer = L.tileLayer(
+            'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="http://cloudmade.com">CloudMade</a>',
                 maxZoom: 100
-            });
+            }
+        );
+        //var heatmapLayer = new HeatmapOverlay(!{JSON.stringify(map.heatmapConfig)});
+        var map = new L.Map('map', {
+            center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
+            zoom: !{map.config.zoom},
+            layers: [baseLayer],
+            scrollWheelZoom: !{map.config.scrollWheelZoom},
+            minZoom: 0,
+            maxZoom: 100
+        });
 
 
-            if ((!{map.hasRoute})) {
-                // Display the route
-                var control = L.Routing.control({
-                    waypoints: [!{map.routeData}],
-                    routeWhileDragging: true,
-                    lineOptions: {
-                        styles: [{color: 'black', opacity: 0.15, weight: 9}, {color: 'white', opacity: 0.5, weight: 6}, {color: 'red', opacity: 1, weight: 2}]
+        if ((!{hasRoute}) || (!{foundRoutes})) {
+            // Display the route
+            control1 = {
+                waypoints: [!{routeMaps[0].routeData}],
+                routeWhileDragging: false,
+                lineOptions: {
+                    styles: [{color: 'black', opacity: 0.15, weight: 9}, {color: 'white', opacity: 0.5, weight: 6}, {color: 'red', opacity: 1, weight: 2}]
+                },
+                createMarker: function (i, wp) {
+                    return L.marker(wp.latLng, {
+                        draggable: false,
+                        opacity: 0
+                    });
+                }
+            };
+            control2 = Object.assign({}, control1);
+            control3 = Object.assign({}, control1);
+            control4 = Object.assign({}, control1);
+            control5 = Object.assign({}, control1);
+
+            control2.waypoints = [!{routeMaps[1].routeData}];
+            control3.waypoints = [!{routeMaps[2].routeData}];
+            control4.waypoints = [!{routeMaps[3].routeData}];
+            control5.waypoints = [!{routeMaps[4].routeData}];
+
+            var control = [
+                L.Routing.control(control1),
+                L.Routing.control(control2),
+                L.Routing.control(control3),
+                L.Routing.control(control4),
+                L.Routing.control(control5)
+            ];
+
+            //control.hide();
+            control[routeIndex].addTo(map);
+
+
+            // Markers
+            function onEachFeature(feature, layer) {
+                if (feature.properties && feature.properties.popupContent) {
+                    layer.bindPopup(feature.properties.popupContent);
+                }
+            };
+
+            /*var states = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
                     },
-                    createMarker: function (i, wp) {
-                        return L.marker(wp.latLng, {
-                            draggable: false,
-                            opacity: 0
-                        });
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [!{routeMaps[0].routeData[0].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[0].split(",")[0].substring(9,18)}]
                     }
-                });
-                //control.hide();
-                control.addTo(map);
-
-
-                // Markers
-                function onEachFeature(feature, layer) {
-                    if (feature.properties && feature.properties.popupContent) {
-                        layer.bindPopup(feature.properties.popupContent);
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [!{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[0].substring(9,18)}]
                     }
-                };
+                }
+            ];
 
+            var geojsonMarkerOptions = {
+                radius: 8,
+                fillColor: "#ff780000",
+                color: "#000",
+                weight: 5,
+                opacity: 1,
+                fillOpacity: 0.8
+            };
+
+            L.geoJSON(states, {
+                onEachFeature: onEachFeature,
+                style: function (feature) {
+                    switch (feature.properties.type) {
+                        case 'route':
+                            geojsonMarkerOptions.color = "#007bff"
+                            return geojsonMarkerOptions;
+                        case 'start':
+                            geojsonMarkerOptions.color = "#ffffff"
+                            return geojsonMarkerOptions;
+                        case 'end':
+                            geojsonMarkerOptions.color = "#00ff5e"
+                            return geojsonMarkerOptions;
+                    }
+                },
+                pointToLayer: function (feature, latlng) {
+                    return L.circleMarker(latlng, geojsonMarkerOptions);
+                }
+            }).addTo(map);*/
+        }
+
+
+        var coverageLayer = new L.GridLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
+        coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
+        //map.fitBounds(coverageLayer.bounds);
+        map.addLayer(coverageLayer);
+
+        // Sidebar
+        if (!(!{hasRoute})) {
+            L.control.scale().addTo(map);
+            L.control.sidebar('sidebar').addTo(map);
+        }
+
+        // Mouse coordinate capture
+        var startPointLayer
+        map.on('click', function (obj) {
+             if (obj.latlng && !(!{hasRoute})) {
                 var states = [
                     {
                         "type": "Feature",
@@ -80,21 +174,9 @@ div
                         },
                         "geometry": {
                             "type": "Point",
-                            "coordinates": [!{map.routeData[0].split(",")[1].substring(0,8)}, !{map.routeData[0].split(",")[0].substring(9,18)}]
+                            "coordinates": [obj.latlng.lng.toFixed(4).toString(), obj.latlng.lat.toFixed(4).toString()]
                         }
-                    },
-                    {
-                        "type": "Feature",
-                        "properties": {
-                            "type": "end",
-                            "popupContent": "This is the end point!"
-                        },
-                        "geometry": {
-                            "type": "Point",
-                            "coordinates": [!{map.routeData[map.routeData.length-1].split(",")[1].substring(0,8)}, !{map.routeData[map.routeData.length-1].split(",")[0].substring(9,18)}]
-                        }
-                    }
-                ];
+                    }];
 
                 var geojsonMarkerOptions = {
                     radius: 8,
@@ -104,87 +186,28 @@ div
                     opacity: 1,
                     fillOpacity: 0.8
                 };
+                if (startPointLayer) {
+                    map.removeLayer(startPointLayer)
 
-                L.geoJSON(states, {
+                }
+                startPointLayer = L.geoJSON(states, {
                     onEachFeature: onEachFeature,
                     style: function (feature) {
-                        switch (feature.properties.type) {
-                            case 'route':
-                                geojsonMarkerOptions.color = "#007bff"
-                                return geojsonMarkerOptions;
-                            case 'start':
-                                geojsonMarkerOptions.color = "#ffffff"
-                                return geojsonMarkerOptions;
-                            case 'end':
-                                geojsonMarkerOptions.color = "#00ff5e"
-                                return geojsonMarkerOptions;
-                        }
+                        geojsonMarkerOptions.color = "#ff7100"
+                        return geojsonMarkerOptions;
                     },
                     pointToLayer: function (feature, latlng) {
                         return L.circleMarker(latlng, geojsonMarkerOptions);
                     }
-                }).addTo(map);
+                });
+                startPointLayer.addTo(map);
+
+
+                document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString();
+                document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString();
+                document.getElementById('gps-calculated').innerText =
+                    ddToDms(document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString(),
+                        document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString());
             }
-
-
-            var coverageLayer = new L.GridLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
-            coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
-            //map.fitBounds(coverageLayer.bounds);
-            map.addLayer(coverageLayer);
-
-            // Sidebar
-            if (!(!{map.hasRoute})) {
-                L.control.scale().addTo(map);
-                L.control.sidebar('sidebar').addTo(map);
-            }
-
-            // Mouse coordinate capture
-            var startPointLayer
-            map.on('click', function (obj) {
-                 if (obj.latlng && !(!{map.hasRoute})) {
-                    var states = [
-                        {
-                            "type": "Feature",
-                            "properties": {
-                                "type": "start",
-                                "popupContent": "This is the start point!"
-                            },
-                            "geometry": {
-                                "type": "Point",
-                                "coordinates": [obj.latlng.lng.toFixed(4).toString(), obj.latlng.lat.toFixed(4).toString()]
-                            }
-                        }];
-
-                    var geojsonMarkerOptions = {
-                        radius: 8,
-                        fillColor: "#ff780000",
-                        color: "#000",
-                        weight: 5,
-                        opacity: 1,
-                        fillOpacity: 0.8
-                    };
-                    if (startPointLayer) {
-                        map.removeLayer(startPointLayer)
-
-                    }
-                    startPointLayer = L.geoJSON(states, {
-                        onEachFeature: onEachFeature,
-                        style: function (feature) {
-                            geojsonMarkerOptions.color = "#ff7100"
-                            return geojsonMarkerOptions;
-                        },
-                        pointToLayer: function (feature, latlng) {
-                            return L.circleMarker(latlng, geojsonMarkerOptions);
-                        }
-                    });
-                    startPointLayer.addTo(map);
-
-
-                    document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString();
-                    document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString();
-                    document.getElementById('gps-calculated').innerText =
-                        ddToDms(document.getElementById('input-lat').value = obj.latlng.lat.toFixed(4).toString(),
-                            document.getElementById('input-lng').value = obj.latlng.lng.toFixed(4).toString());
-                }
-            })
-        };
+        })
+    };

@@ -129,11 +129,16 @@ exports.show = function (req, res) {
         User.load_full(req.user._id, {}, function(err, user) {
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);
-                const map = Map.generateRouteMap(req.article.geo, geos);
+                const exploredMap = Map.generateExploredMapData(geos);
+                const map = Map.generateRouteMap(req.article.geo);
                 respond(res, 'routes/show', {
                     title: req.article.title,
                     article: req.article,
-                    map: map
+                    map: exploredMap,
+                    routeMaps: [map, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}],
+                    hasRoute: true,
+                    foundRoutes: false,
+                    numRoutes: 0
                 });
             }
         })
@@ -149,7 +154,12 @@ exports.show = function (req, res) {
 
 };
 
-/**
+exports.userSaveChoice = function(req, res) {
+    Log.debug(TAG, "Save there routes: ", req.generatedRoutes);
+
+};
+
+    /**
  * Delete an article
  */
 
@@ -160,3 +170,19 @@ exports.destroy = async(function* (req, res) {
         text: 'Deleted successfully'
     });
 });
+
+
+
+exports.makeid = function (route) {
+    let hash = Math.ceil(route.distance * route.start[0] * route.start[1] * route.end[0] * route.end[1] * 1000);
+
+    if (route.title.length === 0) {
+        return hash;
+    }
+    for (let i = 0; i < route.title.length; i++) {
+        const char = route.title.charCodeAt(i);
+        hash = ((hash<<5)-hash)+char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+    return hash;
+};

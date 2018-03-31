@@ -1,6 +1,5 @@
 extends ../layouts/default
 block main
-
     - var name = user.name ? user.name : user.username;
         h1= name
         //p= JSON.stringify(map.config)
@@ -10,6 +9,7 @@ block main
 block map
     script.
         $(document).ready(function () {
+            var genRoutes = [#{generatedRoutes}];
             setTimeout(
                 function () {
                     if (#{hasGeneratedRoutes}) {
@@ -90,11 +90,47 @@ block map
                 $("#start").toggleClass("active");
 
             });
-            $("#generate2").on("click", function () {
-                $("#sidebar-routes").toggleClass("active");
-                $("#routes").toggleClass("active");
-                $("#sidebar-start").toggleClass("active");
-                $("#start").toggleClass("active");
+            $("#keepButton1").on("click", function () {
+                $("#keepButton1").toggleClass("active");
+
+                if ($("#keepButton1").hasClass("active")) {
+                } else {
+                }
+            });
+            $("#keepButton2").on("click", function () {
+                $("#keepButton2").toggleClass("active");
+            });
+            $("#keepButton3").on("click", function () {
+                $("#keepButton3").toggleClass("active");
+            });
+            $("#keepButton4").on("click", function () {
+                $("#keepButton4").toggleClass("active");
+            });
+            $("#keepButton5").on("click", function () {
+                $("#keepButton5").toggleClass("active");
+            });
+
+            $("#showButton1").on("click", function () {
+                loadMap(0);
+            });
+            $("#showButton2").on("click", function () {
+                loadMap(1);
+            });
+            $("#showButton3").on("click", function () {
+                loadMap(2);
+            });
+            $("#showButton4").on("click", function () {
+                loadMap(3);
+            });
+            $("#showButton5").on("click", function () {
+                loadMap(4);
+            });
+
+            $("#saveButton").on("click", function () {
+                $("#saveButton").toggleClass("active");
+                alert(JSON.stringify(genRoutes));
+
+
 
             });
             $("#position-next").on("click", function () {
@@ -207,14 +243,26 @@ block map
                     | Routen
                 br
                 if (hasGeneratedRoutes)
-                    if (generatedRoutes.length > 0)
-                        - each route in generatedRoutes
-                            p= JSON.stringify(route.title)
+                    if (foundRoutes)
+                        - var c = 0
+                        - each route in routeMaps
+                            if (c < numRoutes)
+                                - c = c+1
+                                div.card.box.shadow(style="width:90%; margin-bottom:20px; padding-top:-40px; padding-bottom:-80px;")
+                                    div.card-body(style="margin-top:-5px; margin-bottom:-20px")
+                                        //p.card-text= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
+                                        p.card-text= '80% undiscovered area'
+
+                                        .inline-buttons
+                                            p
+                                                a.btn.btn-outline-primary.one-half.first(id="showButton"+c)= "View " + c
+                                                | &nbsp;
+                                                button.btn.btn-outline-primary.one-half(id="keepButton"+c)= "Merken"
                     else
                         p Keine Routen gefunden
 
-                button.btn.btn-outline-primary.btn-block(id="generate2", title="generate")
-                     | Generate New Routes
-
-    div.sidebar-map(id='map', style="width:100%;")
-        include ../includes/map.jade
+                button.btn.btn-outline-success.btn-block(href='/users/5abe5afac5fd1ef5a9246b6d/generated', title="save", style="width:90%;", id="saveButton")
+                     | Gemerkte Routen Speichern
+    div(id="mapcontainer", style="width:100%;")
+        div.sidebar-map(id='map', style="width:100%;")
+            include ../includes/map.jade

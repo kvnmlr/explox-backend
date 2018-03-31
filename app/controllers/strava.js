@@ -424,6 +424,7 @@ const extractGeosFromPayload = function (id, payload, next) {
 
     let lat, lng;
     let geos = [];
+    let geosSaved = 0;
     for (let i = 0; i < data.length; ++i) {
         lat = data[i][0];
         lng = data[i][1];
@@ -469,12 +470,13 @@ const extractGeosFromPayload = function (id, payload, next) {
 
         // save the new geo
         geo.save(function (err) {
+            geosSaved++;
             if (err) {
                 return;
             }
 
             // if this was the last one, call the callback
-            if (i === data.length - 1) {
+            if (geosSaved === data.length - 1) {
                 if (next) {
                     next(null, geos);
                 }

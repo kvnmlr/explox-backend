@@ -107,19 +107,40 @@ exports.show = async(function* (req, res) {
             req.params.userId = req.user._id;
         }
         User.load_full(req.params.userId, {}, function (err, user) {
-            //Log.debug(TAG, "User: " + user);
             if (user) {
                 const geos = Strava.activitiesToGeos(user.activities);
-                const map = Map.generateExploredMapData(geos);
                 const generatedRoutes = req.generatedRoutes || [];
+                const foundRoutes = generatedRoutes.length > 0;
                 const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
+                const exploredMap = Map.generateExploredMapData(geos);
+                let routeMaps = [
+                    {routeData: [",", ","]},
+                    {routeData: [",", ","]},
+                    {routeData: [",", ","]},
+                    {routeData: [",", ","]},
+                    {routeData: [",", ","]},
+                    ];
+
+                if (hasGeneratedRoutes) {
+                    if (generatedRoutes.length > 0) {
+                        generatedRoutes.forEach(function(route, index){
+                            routeMaps[index] = Map.generateRouteMap(route.geo);
+                        });
+                    }
+                }
+
+                Log.debug(TAG, "Route amps: ", routeMaps.map(r => r.routeData));
+
                 respond(res, 'users/show', {
                     title: user.name,
                     user: user,
-                    map: map,
+                    map: exploredMap,
+                    routeMaps: routeMaps,
                     userData: 'User data goes here',
-                    generatedRoutes: generatedRoutes,
-                    hasGeneratedRoutes : hasGeneratedRoutes
+                    hasGeneratedRoutes : hasGeneratedRoutes,
+                    hasRoute: false,
+                    foundRoutes: foundRoutes,
+                    numRoutes: generatedRoutes.length
                 });
             }
         });
