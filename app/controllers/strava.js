@@ -180,8 +180,10 @@ exports.segmentsExplorer = function (token, options, next) {
         if (err) {
             Log.error(TAG, err);
         } else {
-            for (let i = 0; i < payload.segments.length; ++i) {
-                getSegment(payload.segments[i].id, token, payload.segments[i], next);
+            if (payload.segments) {
+                for (let i = 0; i < payload.segments.length; ++i) {
+                    getSegment(payload.segments[i].id, token, payload.segments[i], next);
+                }
             }
         }
     });
