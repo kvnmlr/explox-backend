@@ -68,7 +68,7 @@ block main
                                 p= route.location
                             td
                                 - if(route.user)
-                                    p= route.user.username
+                                    a(href='/users/' + route.user._id) #{route.user.username}
                             td
                                 p= route.createdAt.toString().substring(0, 24)
                             td
@@ -96,7 +96,7 @@ block main
                                 p= route.location
                             td
                                 - if(route.user)
-                                    p= route.user.username
+                                    a(href='/users/' + route.user._id) #{route.user.username}
                             td
                                 p= route.createdAt.toString().substring(0, 24)
                             td

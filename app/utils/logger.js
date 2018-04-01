@@ -12,7 +12,11 @@ log4js.configure({
 module.exports.log = function(tag, message, data) {
     let info = '';
     if (data !== undefined && data != null)
-        info = JSON.stringify(data, null, 2);
+        try {
+            info = JSON.stringify(data, null, 2);
+        } catch (e) {
+            info = "data was too long";
+        }
 
     let sep = '';
     if (message !== undefined && message != null && message !== '' && info !== '')
@@ -24,8 +28,11 @@ module.exports.log = function(tag, message, data) {
 module.exports.error = function(tag, message, data) {
     let info = '';
     if (data !== undefined && data != null)
-        info = JSON.stringify(data, null, 2);
-
+        try {
+            info = JSON.stringify(data, null, 2);
+        } catch (e) {
+            info = "data was too long";
+        }
     let sep = '';
     if (message !== undefined && message != null && message !== '' && info !== '')
         sep = ': ';
@@ -36,8 +43,11 @@ module.exports.error = function(tag, message, data) {
 module.exports.debug = function(tag, message, data) {
     let info = '';
     if (data !== undefined && data != null)
-        info = JSON.stringify(data, null, 2);
-
+        try {
+            info = JSON.stringify(data, null, 2);
+        } catch (e) {
+            info = "data was too long";
+        }
     let sep = '';
     if (message !== undefined && message != null && message !== '' && info !== '')
         sep = ': ';
