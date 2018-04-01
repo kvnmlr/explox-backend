@@ -120,11 +120,6 @@ const logAll = function (callbacks) {
 const respond = function (callbacks) {
     Log.debug(TAG, 'Respond ', resultRoutes);
 
-    resultRoutes.forEach(function (route) {
-        route.id = '\'"' + route._id + '\'"';
-        route._id = null;
-        route.createdAt = null;
-    });
     request.generatedRoutes = resultRoutes;//.map(r => {return {title: r.title, distance: r.distance, _id: r._id.toString()}});
     request.hasGeneratedRoutes = true;
     users.show(request, response);

@@ -9,7 +9,8 @@ block main
 block map
     script.
         $(document).ready(function () {
-            var genRoutes = [#{generatedRoutes}];
+            var genRoutes = !{JSON.stringify(routeMaps)};
+            var keep = [];
             setTimeout(
                 function () {
                     if (#{hasGeneratedRoutes}) {
@@ -92,22 +93,48 @@ block map
             });
             $("#keepButton1").on("click", function () {
                 $("#keepButton1").toggleClass("active");
-
-                if ($("#keepButton1").hasClass("active")) {
+                if (!keep.includes(0)) {
+                    keep.push(0)
                 } else {
+                    var index = keep.indexOf(0);
+                    keep.splice(index, 1);
                 }
             });
             $("#keepButton2").on("click", function () {
                 $("#keepButton2").toggleClass("active");
+                if (!keep.includes(1)) {
+                    keep.push(1)
+                } else {
+                    var index = keep.indexOf(1);
+                    keep.splice(index, 1);
+                }
             });
             $("#keepButton3").on("click", function () {
                 $("#keepButton3").toggleClass("active");
+                if (!keep.includes(2)) {
+                    keep.push(2)
+                } else {
+                    var index = keep.indexOf(2);
+                    keep.splice(index, 1);
+                }
             });
             $("#keepButton4").on("click", function () {
                 $("#keepButton4").toggleClass("active");
+                if (!keep.includes(3)) {
+                    keep.push(3)
+                } else {
+                    var index = keep.indexOf(3);
+                    keep.splice(index, 1);
+                }
             });
             $("#keepButton5").on("click", function () {
                 $("#keepButton5").toggleClass("active");
+                if (!keep.includes(4)) {
+                    keep.push(4)
+                } else {
+                    var index = keep.indexOf(4);
+                    keep.splice(index, 1);
+                }
             });
 
             $("#showButton1").on("click", function () {
@@ -128,11 +155,32 @@ block map
 
             $("#saveButton").on("click", function () {
                 $("#saveButton").toggleClass("active");
-                alert(JSON.stringify(genRoutes));
 
+                var form = document.createElement("form");
+                var generatedRoutesField = document.createElement("input");
+                var keepField = document.createElement("input");
+                var csrf = document.createElement("input");
 
+                form.method = "POST";
+                form.action = "/users/5abe5afac5fd1ef5a9246b6d/generated";  // TODO replace with read ID
 
+                generatedRoutesField.value = JSON.stringify(genRoutes);
+                generatedRoutesField.name = "generatedRoutes";
+                form.appendChild(generatedRoutesField);
+
+                keepField.value = JSON.stringify(keep);
+                keepField.name = "keep";
+                form.appendChild(keepField);
+
+                csrf.value = "#{csrf_token}";
+                csrf.name = "_csrf";
+                csrf.type = "hidden";
+                form.appendChild(csrf);
+
+                document.body.appendChild(form);
+                form.submit();
             });
+
             $("#position-next").on("click", function () {
             });
             $("#sidebar-start").on("click", function () {
@@ -263,6 +311,7 @@ block map
 
                 button.btn.btn-outline-success.btn-block(href='/users/5abe5afac5fd1ef5a9246b6d/generated', title="save", style="width:90%;", id="saveButton")
                      | Gemerkte Routen Speichern
+
     div(id="mapcontainer", style="width:100%;")
         div.sidebar-map(id='map', style="width:100%;")
             include ../includes/map.jade

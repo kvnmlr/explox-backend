@@ -155,10 +155,43 @@ exports.show = function (req, res) {
 
 };
 
-exports.userSaveChoice = function(req, res) {
-    Log.debug(TAG, "Save there routes: ", req.generatedRoutes);
-
-};
+exports.userSavedChoice = async(function* (req, res) {
+    //Log.debug(TAG, "genr", )
+    let generatedRoutes = JSON.parse(req.body.generatedRoutes);
+    let keep = JSON.parse(req.body.keep);
+    const limit = 10;
+    const options = {
+        limit: limit,
+        page: 1
+    };
+    let routes = [];
+    for (let index = 0; index < generatedRoutes.length; ++index) {
+        if (keep.includes(index)) {
+            let _id = generatedRoutes[index].id;
+            options.criteria = {
+                _id: _id
+                };
+            const route = yield Route.list(options);
+            if (route.length > 0) {
+                routes.push(route[0]);
+            }
+        } else {
+            Route.delete(generatedRoutes[index].id, function (err) {
+                if (err) {
+                    Log.error(TAG, "Remove failed");
+                    return;
+                }
+                Log.debug(TAG, "delete worked");
+            });
+        }
+    }
+    respond(res, 'routes/index', {
+        title: 'Routes',
+        routes: routes,
+        page: 1,
+        pages: 1
+    });
+});
 
     /**
  * Delete an article

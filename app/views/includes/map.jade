@@ -43,6 +43,7 @@ script.
         var map = new L.Map('map', {
             center: new L.LatLng(!{map.config.center[0]}, !{map.config.center[1]}),
             zoom: !{map.config.zoom},
+            zoomControl: !{map.config.zoomControl},
             layers: [baseLayer],
             scrollWheelZoom: !{map.config.scrollWheelZoom},
             minZoom: 0,

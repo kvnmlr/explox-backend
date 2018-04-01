@@ -121,7 +121,8 @@ var getConfig = function (geos) {
         // Probably not needed because we use fitBounds which does this automatically
         zoom: 11,                   // Zoom out such that every point is visible
         center: [49.21296,7.127770000000001],  // Center in the middle of the points
-        scrollWheelZoom: false,     // Prevents scrolling the map when scrolling the page (maybe turn on for non-mobile page)
+        scrollWheelZoom: true,     // Prevents scrolling the map when scrolling the page (maybe turn on for non-mobile page)
+        zoomControl: false
     };
     return config;
 };

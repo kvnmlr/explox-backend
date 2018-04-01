@@ -97,6 +97,10 @@ RouteSchema.methods = {
 
 RouteSchema.statics = {
 
+    delete: function (_id, cb) {
+        return this.find({_id: ObjectId(_id)}).remove(cb);
+    },
+
     /**
      * Find route by id
      *
@@ -136,7 +140,10 @@ RouteSchema.statics = {
      */
 
     list: function (options, cb) {
-        const criteria = options.criteria || {};
+        let criteria = options.criteria || {};
+        if (criteria._id) {
+            criteria._id = ObjectId(criteria._id);
+        }
         return this.find(criteria)
             .populate('user', 'name username')
             .populate('geo', 'name location')

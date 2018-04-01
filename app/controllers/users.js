@@ -126,6 +126,7 @@ exports.show = async(function* (req, res) {
                         generatedRoutes.forEach(function(route, index){
                             routeMaps[index] = Map.generateRouteMap(route.geo);
                             routeMaps[index].distance = route.distance;
+                            routeMaps[index].id = route._id;
                         });
                     }
                 }
@@ -141,7 +142,8 @@ exports.show = async(function* (req, res) {
                     hasGeneratedRoutes : hasGeneratedRoutes,
                     hasRoute: false,
                     foundRoutes: foundRoutes,
-                    numRoutes: generatedRoutes.length
+                    numRoutes: generatedRoutes.length,
+                    generatedRoutes: generatedRoutes
                 });
             }
         });
