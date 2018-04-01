@@ -248,13 +248,17 @@ const lowerBoundsFilter = function (callbacks) {
         checkAndCallback(callbacks);
     }
 
-    let listsProcessed = 0;
-    let routeLengths = [lists[0].routes.length, lists[1].routes.length];
-    let routesProcessed = [0, 0];
+    //let listsProcessed = 0;
+    //let routeLengths = [lists[0].routes.length, lists[1].routes.length];
+    //let routesProcessed = [0, 0];
+
+    let totalLength = lists[0].routes.length + lists[1].routes.length;
+    let processed = 0;
 
     lists.forEach(function (routes) {
         routes.routes.forEach(function (route) {
             if (route.geo.length < 2) {
+                routesProcessed[listsProcessed]++;
                 return;
             }
             const startPoint = route.geo[0];
@@ -323,6 +327,7 @@ const lowerBoundsFilter = function (callbacks) {
                             newGoodSegments.push(route);
                         }
                     }
+                    Log.debug(TAG, routesProcessed[listsProcessed] + "/" + routeLengths[listsProcessed]  + "  " + " " + listsProcessed);
                     if (routesProcessed[listsProcessed] >= routeLengths[listsProcessed]) {
                         listsProcessed++;
                         if (listsProcessed >= (lists.length)) {
@@ -488,7 +493,8 @@ const createRoutes = function (callbacks) {
             geo: [],
             distance: candidate.distance,
             isRoute: true,
-            isGenerated: true
+            isGenerated: true,
+            queryDistance: distance
         });
 
         // TODO check if already exists in DB

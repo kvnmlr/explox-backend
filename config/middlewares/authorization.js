@@ -30,7 +30,12 @@ exports.user = {
 
 exports.article = {
     hasAuthorization: function (req, res, next) {
-        if (req.article.user.id != req.user.id) {
+        // if it is a segment, it does not have a user. Still nobody should be able to delete segments
+        if (!req.article.user) {
+            req.flash('info', 'You are not authorized');
+            return res.redirect('/routes/' + req.article.id);
+        }
+        if (req.article.user.id !== req.user.id) {
             req.flash('info', 'You are not authorized');
             return res.redirect('/routes/' + req.article.id);
         }

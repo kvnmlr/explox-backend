@@ -139,20 +139,25 @@ exports.show = function (req, res) {
                     routeMaps: [map, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}],
                     hasRoute: true,
                     foundRoutes: false,
-                    numRoutes: 0
+                    numRoutes: 0,
+                    hasGeneratedRoutes : false,
                 });
             }
         })
     } else {
+        const exploredMap = Map.generateExploredMapData([]);
         const map = Map.generateRouteMap(req.article.geo, null);
         respond(res, 'routes/show', {
             title: req.article.title,
             article: req.article,
-            map: map
+            map: exploredMap,
+            routeMaps: [map, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}],
+            hasRoute: true,
+            foundRoutes: false,
+            numRoutes: 0,
+            hasGeneratedRoutes : false,
         });
     }
-
-
 };
 
 exports.userSavedChoice = async(function* (req, res) {

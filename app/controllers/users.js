@@ -77,23 +77,26 @@ exports.show = async(function* (req, res) {
     if (req.user.role === 'admin' && req.profile.role === 'admin') {
         User.list({}, function (err, users) {
             Log.debug(TAG, "Admin: " + users);
-            Route.list({criteria: {isRoute: true}}, function (err, routes) {
-                //Log.debug(TAG, "Routes: " + users);
-                // Show admin dashboard
-                Activity.list({}, function (err, activities) {
-                    //Log.debug(TAG, "Activities: " + activities);
-                    Route.list({criteria: {isRoute: false}}, function(err, segments) {
-                        //Log.debug(TAG, "Segments: " + segments);
-                        Strava.getLimits(function (err, apiLimits) {
-                            respond(res, 'users/show_admin', {
-                                title: user.name,
-                                user: user,
-                                data: 'Admin data goes here',
-                                all: users,
-                                routes: routes,
-                                segments: segments,
-                                activities: activities,
-                                limits: apiLimits
+            Route.list({criteria: {isRoute: true, isGenerated: false}}, function (err, routes) {
+                Route.list({criteria: {isRoute: true, isGenerated: true}}, function (err, generated) {
+                    //Log.debug(TAG, "Routes: " + users);
+                    // Show admin dashboard
+                    Activity.list({}, function (err, activities) {
+                        //Log.debug(TAG, "Activities: " + activities);
+                        Route.list({criteria: {isRoute: false}}, function(err, segments) {
+                            //Log.debug(TAG, "Segments: " + segments);
+                            Strava.getLimits(function (err, apiLimits) {
+                                respond(res, 'users/show_admin', {
+                                    title: user.name,
+                                    user: user,
+                                    data: 'Admin data goes here',
+                                    all: users,
+                                    routes: routes,
+                                    generated: generated,
+                                    segments: segments,
+                                    activities: activities,
+                                    limits: apiLimits
+                                });
                             });
                         });
                     });

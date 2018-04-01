@@ -14,6 +14,7 @@ block main
         div.progress
             div.progress-bar(role="progressbar" style="width: " + (limits.longTermUsage / limits.longTermLimit) + "%;" aria-valuenow=limits.longTermUsage aria-valuemin="0" aria-valuemax=limits.longTermLimit)
 
+        br
         h3= 'Registered Users (' + all.length + ')'
         div
             table
@@ -47,7 +48,7 @@ block main
                             td
                                 p= su.lastLogin.toString().substring(0, 24)
 
-
+        br
         h3= 'Routes (' + routes.length + ')'
         div
             table
@@ -66,14 +67,45 @@ block main
                             td
                                 p= route.location
                             td
-                                p= route.user.username
+                                - if(route.user)
+                                    p= route.user.username
                             td
                                 p= route.createdAt.toString().substring(0, 24)
                             td
                                 p= route.geo.length
                             td
                                 p= (route.distance.toString().split('.', 1)) / 1000 + ' km'
-
+        br
+        h3= 'Generated (' + generated.length + ')'
+        div
+            table
+                thead
+                    tr: th Title
+                        th Location
+                        th User
+                        th Created
+                        th GPS Points
+                        th Distance
+                        th Query
+                tbody
+                    each route in generated
+                        tr
+                            td
+                                a(href='/routes/' + route._id) #{route.title}
+                            td
+                                p= route.location
+                            td
+                                - if(route.user)
+                                    p= route.user.username
+                            td
+                                p= route.createdAt.toString().substring(0, 24)
+                            td
+                                p= route.geo.length
+                            td
+                                p= (route.distance.toString().split('.', 1)) / 1000 + ' km'
+                            td
+                                p= (route.queryDistance.toString().split('.', 1)) / 1000 + ' km'
+        br
         h3= 'Segments (' + segments.length + ')'
         div
             table
@@ -97,6 +129,7 @@ block main
                             td
                                 p= (segment.distance.toString().split('.', 1)) / 1000 + ' km'
 
+        br
         h3= 'Activities (' + activities.length + ')'
         div
             table
