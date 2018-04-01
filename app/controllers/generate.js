@@ -20,9 +20,12 @@ let request, response;
 
 /**
  * Generates a new route by doing the following calculations in sequence:
- *      1. Distance filter:
- *      2. Lower Bound filer:
- *      3. Radius filter:
+ *      1. Distance filter
+ *      2. Lower Bound filer
+ *      3. Combine routes and segments and sort by LB distance
+ *      4. Let OSRM generate candidates
+ *      5. Rank and filter candidates by familiarity
+ *      6. Create and save the routes in the DB, deliver results to the user
  */
 exports.generate = function (req, res) {
     Log.log(TAG, 'Generate');
@@ -226,12 +229,8 @@ const lowerBoundsFilter = function (callbacks) {
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
     let lists = [];
-    if (goodRoutes.length > 0) {
-        lists.push({ isRoute: true, routes: goodRoutes });
-    }
-    if (goodSegments.length > 0) {
-        lists.push({ isRoute: false, routes: goodSegments });
-    }
+    lists.push({ isRoute: true, routes: goodRoutes });
+    lists.push({ isRoute: false, routes: goodSegments });
 
     if (lists.length === 0) {
         checkAndCallback(callbacks);
@@ -562,10 +561,8 @@ const createRoutes = function (callbacks) {
  */
 const familiarityFilter = function (callbacks) {
     Log.debug(TAG, 'Familiarity Filter');
-    let resultRoutesTemp = [];
-
     let candidatesProcessed = 0;
-    candidates.forEach(function (route, index) {
+    candidates.forEach(function (route) {
         const leave = 10;
         const takeEvery = Math.ceil(route.waypoints.length * (1/leave));    // parameter for performance, only take every xth route point, 1 = every
         let waypointsProcessed = 0;
