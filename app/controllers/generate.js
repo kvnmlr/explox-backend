@@ -114,11 +114,16 @@ const respond = function (callbacks) {
 
     if (preference === 'discover') {
         resultRoutes.sort(function (a, b) {
-            return a.familiarityScore - b.familiarityScore;
+            return b.familiarityScore - a.familiarityScore;
+        });
+    }
+    if (preference === 'distance'){
+        resultRoutes.sort(function (a, b) {
+            return b.distance - a.distance;
         });
     } else {
         resultRoutes.sort(function (a, b) {
-            return b.distance - a.distance;
+            return b.distance + ((1-b.familiarityScore) * a.distance) - a.distance  + ((1-a.familiarityScore) * b.distance);
         });
     }
 
@@ -500,8 +505,8 @@ const createRoutes = function (callbacks) {
 
         // get the user
         User.load(request.user, function (err, user) {
-            const title = 'Generated Route';
-            const description = 'This route has been generated.';
+            const title = 'New Route (' + Math.floor(candidate.distance / 1000) + " km)";
+            const description = 'This route has been generated. Select this route and change the title and description.';
             let id = routes.makeid({
                 title: title,
                 distance: candidate.distance,

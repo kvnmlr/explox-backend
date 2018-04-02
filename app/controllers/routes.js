@@ -174,10 +174,10 @@ exports.show = function (req, res) {
 
 exports.userSavedChoice = async(function* (req, res) {
     Log.debug(TAG, "genr", req );
-    Log.debug(TAG, "genr", req.query.generatedRoutes);
-    Log.debug(TAG, "genr", req.query.keep );
-    let generatedRoutes = JSON.parse(req.query.generatedRoutes);
-    let keep = JSON.parse(req.query.keep);
+    Log.debug(TAG, "genr", req.body.generatedRoutes);
+    Log.debug(TAG, "genr", req.body.keep );
+    let generatedRoutes = JSON.parse(req.body.generatedRoutes);
+    let keep = JSON.parse(req.body.keep);
     const limit = 10;
     const options = {
         limit: limit,
@@ -192,6 +192,7 @@ exports.userSavedChoice = async(function* (req, res) {
                 };
             const route = yield Route.list(options);
             if (route.length > 0) {
+                route[0].geo = [];
                 routes.push(route[0]);
             }
         } else {
@@ -204,6 +205,8 @@ exports.userSavedChoice = async(function* (req, res) {
             });
         }
     }
+
+    Log.debug(TAG, "RESPOND", routes);
     respond(res, 'routes/index', {
         title: 'Routes',
         routes: routes,

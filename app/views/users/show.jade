@@ -175,7 +175,7 @@ block map
                 var keepField = document.createElement("input");
                 var csrf = document.createElement("input");
 
-                form.method = "GET";
+                form.method = "POST";
                 form.action = "/routes/generated";
 
                 generatedRoutesField.value = JSON.stringify(genRoutes);
@@ -230,9 +230,9 @@ block map
                 h1.sidebar-header
                     | Starting Point
                 br
-                p Klicke an die Position an der du deine Tour beginnen möchtest.
+                p Select the location on the map where you want to start.
                 form(id="coordinate-form")
-                    h5 Ausgwählte Position
+                    h5 Selected Location
                     div.row
                         p Latitude:
                         input.form-control(id="input-lat", type='text', placeholder="23,5246", style="margin-top: -10px", required)
@@ -245,15 +245,15 @@ block map
                         b(id="gps-calculated")
                         br
                     br
-                    button.btn.btn-outline-primary.btn-block(type='submit') Next
+                    button.btn.btn-outline-primary.btn-block(type='submit') Next Step
 
             #settings.sidebar-pane
                 h1.sidebar-header
                     | Settings
                 br
-                button.btn.btn-outline-primary.btn-block(id= "back-button") Zurück
+                button.btn.btn-outline-primary.btn-block(id= "back-button") Go Back
                 br
-                p Gebe gewünschte Eigenschaften deiner Route ein.
+                p Select some criteria for generating your new routes.
                 form(action="/generate/", id="settings-form")
                     h5 Tour Distance:
                     div.row
@@ -261,7 +261,8 @@ block map
                             input(id="distance-input", onchange="this.value = parseFloat(this.value).toFixed(1);", type='number', name='distance', value="20.0", style="margin-top:-10px; margin-bottom: 10px;", max="99", min="1", size="2", step="0.5")
                             span(style="margin-left:10px") km
                         div.col-xs-5
-                    h5 What Do You Prefer?:
+                    br
+                    h5 What is Your Goal?
                     fieldset#group1
                         .btn-group.btn-group-vertical.btn-group-toggle(data-toggle='buttons')
                             label.btn.btn-outline-secondary.active(id="toggle-button-cycling") Discover New Routes
@@ -274,15 +275,15 @@ block map
                             label.btn.btn-outline-secondary(id="toggle-button-both") Surprise Me
                                 input(type='radio', value='both', name='preference')
                     br
-                    button.btn.btn-outline-primary.btn-block(type='submit') Next
+                    button.btn.btn-outline-primary.btn-block(type='submit') Next Step
 
             #loading.div.sidebar-pane
                 h1.sidebar-header
-                    | Suche
+                    | Search
                 br
                 br
                 br
-                p(style="text-align: center;", id="loadingText") Routen werden gesucht ...
+                p(style="text-align: center;", id="loadingText") Generating your new routes ...
                 div.row
                     .wrap
                         .loading
@@ -323,7 +324,7 @@ block map
                                                 | &nbsp;
                                                 button.btn.btn-outline-danger.one-half(id="keepButton"+c)= "Discard"
                     else
-                        p Keine Routen gefunden
+                        p No routes that match your criteria found.
                 button.btn.btn-outline-success.btn-block(id = 'saveButton', type='submit', title="save", style="width:90%;")
                      | Save Routes
 

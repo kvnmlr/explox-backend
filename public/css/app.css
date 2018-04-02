@@ -58,8 +58,8 @@ th {
 
 .btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active {
     border-color: #ff7100 !important;
-    background: #FFFFFF !important;
-    color: #ff7100;
+    background: #ff7100 !important;
+    color: #FFFFFF;
     box-shadow: none !important;
 }
 

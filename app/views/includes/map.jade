@@ -58,54 +58,8 @@ script.
         });
 
         if ((!{hasRoute}) || (!{foundRoutes})) {
-            // Display the route
-            control1 = {
-                fitSelectedRoutes: false,
-                draggableWaypoints:false,
-                addWaypoints:false,
-                waypoints: [!{routeMaps[0].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}],
-                router: L.Routing.mapbox("pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw", {
-                    profile: 'mapbox/cycling',
-
-                }),
-                routeWhileDragging: false,
-                waypointMode: 'snap',
-                lineOptions: {
-                    styles: [{color: 'black', opacity: 0.5, weight: 9}, {color: '#ff7100', opacity: 1, weight: 6}, {color: 'red', opacity: 0 /*1*/, weight: 2}]
-                },
-                createMarker: function (i, wp) {
-                    return L.marker(wp.latLng, {
-                        draggable: false,
-                        opacity: 1,
-                        icon: greenIcon
-                    });
-                }
-            };
-            control2 = Object.assign({}, control1);
-            control3 = Object.assign({}, control1);
-            control4 = Object.assign({}, control1);
-            control5 = Object.assign({}, control1);
-
-            control2.waypoints = [!{routeMaps[1].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
-            control3.waypoints = [!{routeMaps[2].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
-            control4.waypoints = [!{routeMaps[3].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
-            control5.waypoints = [!{routeMaps[4].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
-
-            var control = [
-                L.Routing.control(control1),
-                L.Routing.control(control2),
-                L.Routing.control(control3),
-                L.Routing.control(control4),
-                L.Routing.control(control5)
-            ];
-
-            //control.hide();
-            let routeLayer = control[routeIndex];
-            routeLayer.addTo(map);
-
-
             // Markers
-            function onEachFeature(feature, layer) {
+            function onEachFeature (feature, layer) {
                 if (feature.properties && feature.properties.popupContent) {
                     layer.bindPopup(feature.properties.popupContent);
                 }
@@ -131,7 +85,7 @@ script.
                     },
                     "geometry": {
                         "type": "Point",
-                        "coordinates": !{JSON.stringify(routeMaps[0].routeData[routeMaps[0].routeData.length-1])}
+                        "coordinates": !{JSON.stringify(routeMaps[0].routeData[routeMaps[0].routeData.length - 1])}
                     }
                 }
             ];
@@ -278,8 +232,8 @@ script.
                 }
             ];
 
-            var states = [states1,states2,states3,states4,states5]
-            var route = [route1,route2,route3,route4,route5]
+            var states = [states1, states2, states3, states4, states5]
+            var route = [route1, route2, route3, route4, route5]
 
             var geojsonMarkerOptions = {
                 radius: 6,
@@ -315,6 +269,55 @@ script.
                 "opacity": 1
             }).addTo(map);
             map.fitBounds(lineLayer.getBounds());
+
+
+            // Display the route
+            control1 = {
+                fitSelectedRoutes: false,
+                draggableWaypoints:false,
+                addWaypoints:false,
+                waypoints: [!{routeMaps[0].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}],
+                router: L.Routing.mapbox("pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw", {
+                    profile: 'mapbox/cycling',
+
+                }),
+                routeWhileDragging: false,
+                waypointMode: 'snap',
+                lineOptions: {
+                    styles: [{color: 'black', opacity: 0.5, weight: 9}, {color: '#ff7100', opacity: 1, weight: 6}, {color: 'red', opacity: 0 /*1*/, weight: 2}]
+                },
+                createMarker: function (i, wp) {
+                    return L.marker(wp.latLng, {
+                        draggable: false,
+                        opacity: 1,
+                        icon: greenIcon
+                    });
+                }
+            };
+            control2 = Object.assign({}, control1);
+            control3 = Object.assign({}, control1);
+            control4 = Object.assign({}, control1);
+            control5 = Object.assign({}, control1);
+
+            control2.waypoints = [!{routeMaps[1].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control3.waypoints = [!{routeMaps[2].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control4.waypoints = [!{routeMaps[3].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control5.waypoints = [!{routeMaps[4].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+
+            var control = [
+                L.Routing.control(control1),
+                L.Routing.control(control2),
+                L.Routing.control(control3),
+                L.Routing.control(control4),
+                L.Routing.control(control5)
+            ];
+
+            //control.hide();
+            let routeLayer = control[routeIndex];
+            routeLayer.addTo(map);
+
+
+
         }
 
 
