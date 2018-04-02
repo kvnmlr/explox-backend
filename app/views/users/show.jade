@@ -10,7 +10,7 @@ block map
     script.
         $(document).ready(function () {
             var genRoutes = !{JSON.stringify(routeMaps)};
-            var keep = [];
+            var keep = [0,1,2,3,4];
             setTimeout(
                 function () {
                     if (#{hasGeneratedRoutes}) {
@@ -167,8 +167,8 @@ block map
                 var keepField = document.createElement("input");
                 var csrf = document.createElement("input");
 
-                form.method = "POST";
-                form.action = "/users/5abe5afac5fd1ef5a9246b6d/generated";  // TODO replace with read ID
+                form.method = "GET";
+                form.action = "/routes/generated";
 
                 generatedRoutesField.value = JSON.stringify(genRoutes);
                 generatedRoutesField.name = "generatedRoutes";
@@ -305,7 +305,7 @@ block map
                                 div.card.shadow(style="width:90%; margin-bottom:20px; ")
                                     div.card-body(style="margin-top:-5px;")
                                         p(style="margin-top:-10px")= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
-                                        p(style="margin-top:-10px")= '80% undiscovered area'
+                                        p(style="margin-top:-10px")= Math.ceil((1 - route.familiarityScore) * 100) + '% undiscovered area'
                                         p
                                             | Contains: &nbsp
                                             - if (route.parts.length === 0)
@@ -322,14 +322,13 @@ block map
                                         br
                                         div.inline-buttons(style="margin-bottom:-20px; margin-top:-30px;")
                                             p
-                                                button.btn.btn-outline-primary.one-half.first(id="showButton"+c)= "View"
+                                                button.btn.btn-outline-secondary.one-half.first(id="showButton"+c)= "Show on Map"
                                                 | &nbsp;
-                                                button.btn.btn-outline-primary.one-half(id="keepButton"+c)= "Merken"
+                                                button.btn.btn-outline-danger.one-half(id="keepButton"+c)= "Discard"
                     else
                         p Keine Routen gefunden
-
-                button.btn.btn-outline-success.btn-block(href='/users/5abe5afac5fd1ef5a9246b6d/generated', title="save", style="width:90%;", id="saveButton")
-                     | Gemerkte Routen Speichern
+                button.btn.btn-outline-success.btn-block(id = 'saveButton', type='submit', title="save", style="width:90%;")
+                     | Save Routes
 
     div(id="mapcontainer", style="width:100%;")
         div.sidebar-map(id='map', style="width:100%;")

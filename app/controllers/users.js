@@ -117,11 +117,11 @@ exports.show = async(function* (req, res) {
                 const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
                 const exploredMap = Map.generateExploredMapData(geos);
                 let routeMaps = [
-                    {routeData: [",", ","]},
-                    {routeData: [",", ","]},
-                    {routeData: [",", ","]},
-                    {routeData: [",", ","]},
-                    {routeData: [",", ","]},
+                    {routeData: ["0", "0"]},
+                    {routeData: ["0", "0"]},
+                    {routeData: ["0", "0"]},
+                    {routeData: ["0", "0"]},
+                    {routeData: ["0", "0"]},
                     ];
 
                 if (hasGeneratedRoutes) {
@@ -131,6 +131,7 @@ exports.show = async(function* (req, res) {
                             routeMaps[index].distance = route.distance;
                             routeMaps[index].id = route._id;
                             routeMaps[index].parts = route.parts;
+                            routeMaps[index].familiarityScore = route.familiarityScore;
                         });
                     }
                 }

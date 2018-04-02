@@ -10,7 +10,7 @@ const TAG = "map";
  */
 exports.generateRouteMap = function(geos, exploredGeos) {
     const routeData = [];
-    const maxAllowedWaypoints = 250;
+    const maxAllowedWaypoints = 25 - 2;
     let keepEvery = geos.length / maxAllowedWaypoints;
     if (keepEvery > 1) {
         // we have too many waypoints, downsample to something smaller
@@ -28,7 +28,7 @@ exports.generateRouteMap = function(geos, exploredGeos) {
     }
     for (let i = 0; i < geos.length; ++i) {
         if (geos[i].location) {
-            const coords = 'L.latLng('+(geos[i].location.coordinates[1]+0.0000001) + ',' + (geos[i].location.coordinates[0]+0.0000001)+')';
+            const coords = [(geos[i].location.coordinates[0]),(geos[i].location.coordinates[1])];
             routeData.push(coords);
         }
     }
@@ -120,7 +120,7 @@ var getConfig = function (geos) {
     var config = {
         // Probably not needed because we use fitBounds which does this automatically
         zoom: 11,                   // Zoom out such that every point is visible
-        center: [49.21296,7.127770000000001],  // Center in the middle of the points
+        center: [49.2646,6.9598],  // Center in the middle of the points
         scrollWheelZoom: true,     // Prevents scrolling the map when scrolling the page (maybe turn on for non-mobile page)
         zoomControl: false
     };

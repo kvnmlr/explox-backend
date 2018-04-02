@@ -13,47 +13,39 @@ const Log = require('../utils/logger');
 
 const TAG = 'osrm';
 
-const protocol = "http";
-const domain = "router.project-osrm.org";
-const version = "v1";
-const maxAllowedWaypoints = 250;
+const protocol = "https";
+const domain = "api.mapbox.com";
+const version = "v5/mapbox";
+const maxAllowedWaypoints = 25;
 
 
 exports.findRoute = function (options, cb) {
     let waypoints = options.waypoints;
 
-    let keepEvery = waypoints.length / maxAllowedWaypoints;
-    if (keepEvery > 1) {
-        // we have too many waypoints, downsample to something smaller
-        keepEvery = Math.ceil(keepEvery);
-        const waypointsTemp = Object.assign([], waypoints);
-        waypoints = [waypointsTemp[0]];     // start point must not be deleted
-        let counter = 0;
-        waypointsTemp.forEach(function(wp) {
-            if (counter % keepEvery === 0) {
-                waypoints.push(wp);
-            }
-            ++counter;
-        });
-        waypoints.push(waypointsTemp[waypointsTemp.length-1])   // end point must also definitely be a waypoint
-    }
+
     let coordinates = toOsrmFormat(waypoints);
 
-    const service = "route";
-    const profile = "bike";
-    const query = "overview=false&steps=true";
+    const service = "directions";
+    const profile = "cycling";
+    const query = "overview=false&steps=true&geometries=geojson&access_token=pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw";
 
     let requestString = protocol + "://" + domain + "/" + service + "/" + version + "/" + profile +"/";
     requestString += coordinates;
     requestString += "?" + query;
 
+    Log.debug(TAG, "request: " + requestString);
+
     request(requestString, function (error, response, body) {
+        if (error) {
+            Log.error(TAG, "OSRM request could not be satisfied", error);
+            return;
+        }
         try {
             let bodyString = JSON.stringify(body).replace(/\\/g, "");
             bodyString = bodyString.substring(1, bodyString.length-1);
             body = JSON.parse(bodyString);
         } catch (e) {
-            Log.error(TAG, "OSRM request could not be satisfied", body);
+            Log.error(TAG, "OSRM request could not be satisfied", response);
             return false;
         }
 

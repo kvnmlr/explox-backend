@@ -103,7 +103,7 @@ GeoSchema.statics = {
      * @param cb
      */
     findWithinRadius: function (options, cb) {
-        const select = options.select || "";
+        const select = options.select || {distance:0};
         const limit = options.limit || 1000000;
         const latitude = parseFloat(options.latitude);
         const longitude = parseFloat(options.longitude);
@@ -125,7 +125,7 @@ GeoSchema.statics = {
                     limit: limit,
                 }
             },
-            { $project: select},
+            //{ $project: select},
             { $sort: { distance: -1 }},
             ]).exec(cb);
     },

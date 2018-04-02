@@ -125,7 +125,10 @@ const respond = function (callbacks) {
 const distanceFilter = function (callbacks) {
     Log.debug(TAG, 'Distance Filter');
     let criteria = {
-        distance: { $lt: distance },
+        distance: {
+            $lt: distance,
+            $gt: distance / 5   // this segment should be at least 10% of the final route (to avoid too small/insignificant segments
+        },
         isRoute: true,
         isGenerated: false
     };
@@ -261,10 +264,12 @@ const lowerBoundsFilter = function (callbacks) {
             Geo.findDistance(options, function (err, distanceToStart) {
                 // if this one failed
                 if (distanceToStart.length === 0) {
+                    Log.debug(TAG, processed + "/" + totalLength  + "  ");
+
                     processed++;
 
                     // ... and it was the last one of this list
-                    if (processed >= totalLength - 1) {
+                    if (processed >= totalLength) {
                         return printAndCallback();
                     }
                     // otherwise just skip this route and continue with the next one
@@ -278,6 +283,7 @@ const lowerBoundsFilter = function (callbacks) {
                     processed++;
                     // if this one failed
                     if (distanceToEnd.length === 0) {
+                        Log.debug(TAG, processed + "/" + totalLength  + "  ");
 
                         // ... and it was the last one of the last list, call the callback
                         if (processed >= totalLength) {
@@ -324,7 +330,7 @@ const sortAndReduce = function (callbacks) {
     combos.sort(function (a, b) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
-    const keepBest = 20;
+    const keepBest = 15;
     while (combos.length > keepBest) {
         let indexFromStart = combos[0];
         let indexFromEnd = combos[combos.length - 1];
@@ -404,6 +410,23 @@ const generateCandidates = function (callbacks) {
             ],
             'type': 'Point'
         });
+
+        const maxAllowedWaypoints = 25;
+        let keepEvery = coordinates.length / (maxAllowedWaypoints-2);
+        if (keepEvery > 1) {
+            // we have too many waypoints, downsample to something smaller
+            keepEvery = Math.ceil(keepEvery);
+            const waypointsTemp = Object.assign([], coordinates);
+            coordinates = [waypointsTemp[0]];     // start point must not be deleted
+            let counter = 0;
+            waypointsTemp.forEach(function(wp) {
+                if (counter % keepEvery === 0) {
+                    coordinates.push(wp);
+                }
+                ++counter;
+            });
+            coordinates.push(waypointsTemp[waypointsTemp.length-1])   // end point must also definitely be a waypoint
+        }
 
         osrm.findRoute({ waypoints: coordinates }, function (route) {
             ++count;
@@ -500,10 +523,12 @@ const createRoutes = function (callbacks) {
             Route.load_options(options, function(err, existingRoute) {
                 if (existingRoute) {
                     Log.debug(TAG, "Route already exists (" + existingRoute.title + "," + existingRoute.stravaId + ", " + existingRoute.geo.length + ")");
+                    existingRoute.familiarityScore = candidate.familiarityScore;
                     generatedRoutes.push(existingRoute);
                     if (generatedRoutes.length === candidates.length) {
                         //Log.debug(TAG, 'All candidates have been saved 1 ' + generatedRoutes.length + " " + candidates.length);
                         resultRoutes = generatedRoutes;
+                        Log.debug(TAG, "fffinal routes: ", resultRoutes.map(r => r.familiarityScore));
                         return checkAndCallback(callbacks);
                     }
                     return;
@@ -550,11 +575,14 @@ const createRoutes = function (callbacks) {
                                         return;
                                     }
                                     Log.debug(TAG, "Created new route (" + route.title + "," + route.stravaId + ", " + route.geo.length + ")");
+                                    route.familiarityScore = candidate.familiarityScore;
                                     generatedRoutes.push(route);
 
                                     if (generatedRoutes.length === candidates.length) {
                                         //Log.debug(TAG, 'All candidates have been saved 2 ' + generatedRoutes.length + " " + candidates.length);
                                         resultRoutes = generatedRoutes;
+                                        Log.debug(TAG, "fffinal routes: ", resultRoutes.map(r => r.familiarityScore));
+
                                         checkAndCallback(callbacks);
                                     }
                                 });
@@ -582,30 +610,61 @@ const familiarityFilter = function (callbacks) {
     let candidatesProcessed = 0;
 
     candidates.forEach(function (route) {
-        const leave = 10;
+        const leave = 25;
         const takeEvery = Math.floor(route.waypoints.length * (1/leave));    // parameter for performance, only take every xth route point, 1 = every
         let waypointsProcessed = 0;
-        route.waypoints.forEach(function (waypoint, waypointIndex) {
-            if (waypointIndex % takeEvery === 0) {
+        let matches = 0;
+        let exploredGeos = [];
+        User.load_full(request.user._id, {}, function (err, user) {
+            user.activities.forEach(function (activity) {
+                activity.geo.forEach(function (g) {
+                    exploredGeos.push(g._id.toString());
+                });
+            });
 
-                // TODO database check
+            route.waypoints.forEach(function (waypoint, waypointIndex) {
+                if (waypointIndex % takeEvery === 0) {
 
-                waypointsProcessed++;
-                if (waypointsProcessed === leave) {
+                        const options = {
+                            distance: 200,
+                            latitude: waypoint[1],
+                            longitude: waypoint[0]
+                        };
 
-                    candidatesProcessed++;
+                        let matching = false;
+                        Geo.findWithinRadius(options, function (err, geos) {
+                            if (!geos) {
+                                return;
+                            }
+                            geos.some(function (geo) {
+                                if (exploredGeos.includes(geo._id.toString())) {
+                                    matching = true;
+                                }
+                                return matching;
+                            });
 
-                    route.familiarityScore = candidatesProcessed;   // TODO this is bullshit, just for test
-                    if (candidatesProcessed === candidates.length) {
-                        candidates.sort(function (a, b) {
-                            return b.familiarityScore - a.familiarityScore;
+                            if (matching) matches++;
+
+                            waypointsProcessed++;
+                            if (waypointsProcessed === leave) {
+
+                                candidatesProcessed++;
+
+                                route.familiarityScore = matches/leave;
+                                Log.debug(TAG, "matches " + matches + " " + "l " + leave);
+                                if (candidatesProcessed === candidates.length) {
+                                    candidates.sort(function (a, b) {
+                                        return b.familiarityScore - a.familiarityScore;
+                                    });
+                                    const keepBest = 5;
+                                    candidates = candidates.slice(0, keepBest);
+                                    Log.debug(TAG, "final routes: ", candidates.map(r => r.familiarityScore));
+                                    checkAndCallback(callbacks);
+                                }
+                            }
                         });
-                        const keepBest = 5;
-                        candidates = candidates.slice(0, keepBest);
-                        checkAndCallback(callbacks);
                     }
-                }
-            }
-        })
+                });
+            });
     });
 };

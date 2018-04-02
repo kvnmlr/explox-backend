@@ -136,7 +136,13 @@ exports.show = function (req, res) {
                     title: req.article.title,
                     article: req.article,
                     map: exploredMap,
-                    routeMaps: [map, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}],
+                    routeMaps: [
+                        map,
+                        {routeData: ["0", "0"]},
+                        {routeData: ["0", "0"]},
+                        {routeData: ["0", "0"]},
+                        {routeData: ["0", "0"]}
+                        ],
                     hasRoute: true,
                     foundRoutes: false,
                     numRoutes: 0,
@@ -151,7 +157,13 @@ exports.show = function (req, res) {
             title: req.article.title,
             article: req.article,
             map: exploredMap,
-            routeMaps: [map, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}, {routeData: [",", ","]}],
+            routeMaps: [
+                map,
+                {routeData: ["0", "0"]},
+                {routeData: ["0", "0"]},
+                {routeData: ["0", "0"]},
+                {routeData: ["0", "0"]}
+                ],
             hasRoute: true,
             foundRoutes: false,
             numRoutes: 0,
@@ -161,9 +173,11 @@ exports.show = function (req, res) {
 };
 
 exports.userSavedChoice = async(function* (req, res) {
-    //Log.debug(TAG, "genr", )
-    let generatedRoutes = JSON.parse(req.body.generatedRoutes);
-    let keep = JSON.parse(req.body.keep);
+    Log.debug(TAG, "genr", req );
+    Log.debug(TAG, "genr", req.query.generatedRoutes);
+    Log.debug(TAG, "genr", req.query.keep );
+    let generatedRoutes = JSON.parse(req.query.generatedRoutes);
+    let keep = JSON.parse(req.query.keep);
     const limit = 10;
     const options = {
         limit: limit,

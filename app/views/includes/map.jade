@@ -50,24 +50,28 @@ script.
             maxZoom: 100
         });
         var greenIcon = L.icon({
-            iconUrl: 'http://www.clker.com/cliparts/e/i/5/h/r/P/orange-circle-icon-hi.png',
+            iconUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Button_Icon_White.svg/1000px-Button_Icon_White.svg.png',
 
-            iconSize: [10, 10], // size of the icon
-            iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
-            popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+            iconSize: [6, 6], // size of the icon
+            iconAnchor: [3, 3], // point of the icon which will correspond to marker's location
+            popupAnchor: [0, 0] // point from which the popup should open relative to the iconAnchor
         });
 
         if ((!{hasRoute}) || (!{foundRoutes})) {
             // Display the route
             control1 = {
-                waypoints: [!{routeMaps[0].routeData}],
-                router: L.Routing.osrmv1({
-                    profile: 'none',
+                fitSelectedRoutes: false,
+                draggableWaypoints:false,
+                addWaypoints:false,
+                waypoints: [!{routeMaps[0].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}],
+                router: L.Routing.mapbox("pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw", {
+                    profile: 'mapbox/cycling',
+
                 }),
                 routeWhileDragging: false,
-                //waypointMode: 'snap',
+                waypointMode: 'snap',
                 lineOptions: {
-                    styles: [{color: 'black', opacity: 0.5, weight: 9}, {color: 'white', opacity: 0 /*0.5*/, weight: 6}, {color: 'red', opacity: 0 /*1*/, weight: 2}]
+                    styles: [{color: 'black', opacity: 0.5, weight: 9}, {color: '#ff7100', opacity: 1, weight: 6}, {color: 'red', opacity: 0 /*1*/, weight: 2}]
                 },
                 createMarker: function (i, wp) {
                     return L.marker(wp.latLng, {
@@ -82,10 +86,10 @@ script.
             control4 = Object.assign({}, control1);
             control5 = Object.assign({}, control1);
 
-            control2.waypoints = [!{routeMaps[1].routeData}];
-            control3.waypoints = [!{routeMaps[2].routeData}];
-            control4.waypoints = [!{routeMaps[3].routeData}];
-            control5.waypoints = [!{routeMaps[4].routeData}];
+            control2.waypoints = [!{routeMaps[1].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control3.waypoints = [!{routeMaps[2].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control4.waypoints = [!{routeMaps[3].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
+            control5.waypoints = [!{routeMaps[4].routeData.map(function(w) { return "L.latLng(" + w[1] + ", " + w[0] + ")";})}]
 
             var control = [
                 L.Routing.control(control1),
@@ -96,7 +100,8 @@ script.
             ];
 
             //control.hide();
-            control[routeIndex].addTo(map);
+            let routeLayer = control[routeIndex];
+            routeLayer.addTo(map);
 
 
             // Markers
@@ -106,7 +111,7 @@ script.
                 }
             };
 
-            var states = [
+            var states1 = [
                 {
                     "type": "Feature",
                     "properties": {
@@ -115,7 +120,7 @@ script.
                     },
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [!{routeMaps[0].routeData[0].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[0].split(",")[0].substring(9,18)}]
+                        "coordinates": !{JSON.stringify(routeMaps[0].routeData[0])}
                     }
                 },
                 {
@@ -126,7 +131,20 @@ script.
                     },
                     "geometry": {
                         "type": "Point",
-                        "coordinates": [!{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[0].substring(9,18)}]
+                        "coordinates": !{JSON.stringify(routeMaps[0].routeData[routeMaps[0].routeData.length-1])}
+                    }
+                }
+            ];
+            var states2 = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[1].routeData[0])}
                     }
                 },
                 {
@@ -136,40 +154,153 @@ script.
                         "popupContent": "This is the end point!"
                     },
                     "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[[!{routeMaps[0].routeData[routeMaps[0].routeData.length - 1].split(",")[1].substring(0, 8)}, !{routeMaps[0].routeData[routeMaps[0].routeData.length - 1].split(",")[0].substring(9, 18)}],
-                            [!{routeMaps[0].routeData[0].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[0].split(",")[0].substring(9,18)}],
-                            [7.020964, 49.254810]]]
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[1].routeData[routeMaps[1].routeData.length - 1])}
+                    }
+                }
+            ];
+            var states3 = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[2].routeData[0])}
                     }
                 },
-
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[2].routeData[routeMaps[2].routeData.length - 1])}
+                    }
+                }
+            ];
+            var states4 = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[3].routeData[0])}
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[3].routeData[routeMaps[3].routeData.length - 1])}
+                    }
+                }
+            ];
+            var states5 = [
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "start",
+                        "popupContent": "This is the start point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[4].routeData[0])}
+                    }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": !{JSON.stringify(routeMaps[4].routeData[routeMaps[4].routeData.length - 1])}
+                    }
+                }
             ];
 
+            var route1 = [
+                {
+                    "type": "MultiLineString",
+                    "coordinates": [!{JSON.stringify(routeMaps[0].routeData)}],
+                    "properties": {
+                        "type": "route"
+                    }
+                }
+            ];
+            var route2 = [
+                {
+                    "type": "MultiLineString",
+                    "coordinates": [!{JSON.stringify(routeMaps[1].routeData)}],
+                    "properties": {
+                        "type": "route"
+                    }
+                }
+            ];
+            var route3 = [
+                {
+                    "type": "MultiLineString",
+                    "coordinates": [!{JSON.stringify(routeMaps[2].routeData)}],
+                    "properties": {
+                        "type": "route"
+                    }
+                }
+            ];
+            var route4 = [
+                {
+                    "type": "MultiLineString",
+                    "coordinates": [!{JSON.stringify(routeMaps[3].routeData)}],
+                    "properties": {
+                        "type": "route"
+                    }
+                }
+            ];
+            var route5 = [
+                {
+                    "type": "MultiLineString",
+                    "coordinates": [!{JSON.stringify(routeMaps[4].routeData)}],
+                    "properties": {
+                        "type": "route"
+                    }
+                }
+            ];
+
+            var states = [states1,states2,states3,states4,states5]
+            var route = [route1,route2,route3,route4,route5]
+
             var geojsonMarkerOptions = {
-                radius: 8,
+                radius: 6,
                 fillColor: "#ff780000",
                 color: "#000",
                 weight: 5,
                 opacity: 1,
-                fillOpacity: 0.8
+                fillOpacity: 1
             };
 
-            L.geoJSON(states, {
+            L.geoJSON(states[routeIndex], {
                 onEachFeature: onEachFeature,
                 style: function (feature) {
-                    if (feature.type === 'LineString') {
-                        geojsonMarkerOptions.color = "#FF0000"
-                        return geojsonMarkerOptions;
-                    }
                     switch (feature.properties.type) {
-                        case 'route':
-                            geojsonMarkerOptions.color = "#007bff"
-                            return geojsonMarkerOptions;
                         case 'start':
-                            geojsonMarkerOptions.color = "#ffffff"
+                            geojsonMarkerOptions.color = "#ffffff";
+                            geojsonMarkerOptions.radius = 12;
                             return geojsonMarkerOptions;
                         case 'end':
-                            geojsonMarkerOptions.color = "#00ff5e"
+                            geojsonMarkerOptions.color = "#00FF00";
+                            geojsonMarkerOptions.radius = 8;
                             return geojsonMarkerOptions;
                     }
                 },
@@ -177,12 +308,18 @@ script.
                     return L.circleMarker(latlng, geojsonMarkerOptions);
                 }
             }).addTo(map);
+
+            var lineLayer = L.geoJSON(route[routeIndex], {
+                "color": "#ffffff",
+                "weight": 1,
+                "opacity": 1
+            }).addTo(map);
+            map.fitBounds(lineLayer.getBounds());
         }
 
 
         var coverageLayer = new L.GridLayer.MaskCanvas(!{JSON.stringify(map.maskConfig)});
         coverageLayer.setData(!{JSON.stringify(map.heatmapData.data)});
-        //map.fitBounds(coverageLayer.bounds);
         map.addLayer(coverageLayer);
 
         // Sidebar
