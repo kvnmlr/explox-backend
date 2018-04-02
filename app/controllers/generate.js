@@ -40,7 +40,7 @@ exports.generate = function (req, res) {
     request = req;
     response = res;
 
-    apply([initSearch, distanceFilter, /*radiusFilter,*/ lowerBoundsFilter, combine, sort, generateCandidates, familiarityFilter, createRoutes, respond]);
+    apply([initSearch, distanceFilter, /*radiusFilter,*/ lowerBoundsFilter, combine, sortAndReduce, generateCandidates, familiarityFilter, createRoutes, respond]);
 };
 
 const initSearch = function (callbacks) {
@@ -318,12 +318,22 @@ const lowerBoundsFilter = function (callbacks) {
  * Sort combos on the lower bound total distance in descending order
  * @param callbacks array of callback functions
  */
-const sort = function (callbacks) {
+const sortAndReduce = function (callbacks) {
     Log.debug(TAG, 'Sort');
 
     combos.sort(function (a, b) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
+    const keepBest = 20;
+    while (combos.length > keepBest) {
+        let indexFromStart = combos[0];
+        let indexFromEnd = combos[combos.length - 1];
+        if (indexFromStart.lowerBoundDistance - distance > distance - indexFromEnd.lowerBoundDistance) {
+            combos = combos.slice(1, combos.length);    // remove item form the beginning
+        } else {
+            combos = combos.slice(0, combos.length - 1);    // remove item from the end
+        }
+    }
     checkAndCallback(callbacks);
 };
 
@@ -423,9 +433,9 @@ const generateCandidates = function (callbacks) {
                     let indexFromStart = routes[0];
                     let indexFromEnd = routes[routes.length - 1];
                     if (indexFromStart.distance - distance > distance - indexFromEnd.distance) {
-                        routes.splice(0, 1);    // remove item form the beginning
+                        routes = routes.slice(1, routes.length);    // remove item form the beginning
                     } else {
-                        routes.splice(routes.length - 1, 1);    // remove item from the end
+                        routes = routes.slice(0, routes.length - 1);    // remove item from the end
                     }
                 }
                 Log.debug(TAG, routes.length + ' best ' + keepBest + ' routes kept: ', routes.map(r => r.distance));
@@ -452,6 +462,8 @@ const createRoutes = function (callbacks) {
     let generatedRoutes = [];
     candidates.forEach(function (candidate) {
 
+        Log.debug(TAG, "Parts: ", candidate.parts);
+
         // get the user
         User.load(request.user, function (err, user) {
             const title = 'Generated Route';
@@ -474,7 +486,8 @@ const createRoutes = function (callbacks) {
                 distance: candidate.distance,
                 isRoute: true,
                 isGenerated: true,
-                queryDistance: distance
+                queryDistance: distance,
+                parts: candidate.parts
             });
 
             const options = {
@@ -561,10 +574,16 @@ const createRoutes = function (callbacks) {
  */
 const familiarityFilter = function (callbacks) {
     Log.debug(TAG, 'Familiarity Filter');
+
+    if (candidates.length === 0) {
+        checkAndCallback(callbacks);
+    }
+
     let candidatesProcessed = 0;
+
     candidates.forEach(function (route) {
         const leave = 10;
-        const takeEvery = Math.ceil(route.waypoints.length * (1/leave));    // parameter for performance, only take every xth route point, 1 = every
+        const takeEvery = Math.floor(route.waypoints.length * (1/leave));    // parameter for performance, only take every xth route point, 1 = every
         let waypointsProcessed = 0;
         route.waypoints.forEach(function (waypoint, waypointIndex) {
             if (waypointIndex % takeEvery === 0) {
@@ -573,7 +592,9 @@ const familiarityFilter = function (callbacks) {
 
                 waypointsProcessed++;
                 if (waypointsProcessed === leave) {
+
                     candidatesProcessed++;
+
                     route.familiarityScore = candidatesProcessed;   // TODO this is bullshit, just for test
                     if (candidatesProcessed === candidates.length) {
                         candidates.sort(function (a, b) {
@@ -581,8 +602,6 @@ const familiarityFilter = function (callbacks) {
                         });
                         const keepBest = 5;
                         candidates = candidates.slice(0, keepBest);
-                        Log.debug(TAG, candidates.length + ' best ' + keepBest + ' routes kept after familiarity scoring: ', candidates.map(r => r.familiarityScore));
-
                         checkAndCallback(callbacks);
                     }
                 }

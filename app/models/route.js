@@ -22,6 +22,7 @@ const RouteSchema = new Schema({
     body: {type: String, default: '', trim: true},                          // Optional description
     user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of references to geo points
+    parts: [{type: Schema.ObjectId, ref: 'Route'}],     // List of routes that are part of this route (only for generated routes)
     distance: {type: Number , default: '', trim: true},      // Distance in meters
     comments: [{                                            // Comments, currently not used
         body: {type: String, default: ''},
@@ -127,6 +128,7 @@ RouteSchema.statics = {
         return this.findOne(options.criteria)
             .populate('user', 'name email username')
             .populate('geo')
+            .populate('parts')
             .populate('comments.user')
             .select(options.select)
             .exec(cb);

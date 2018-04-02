@@ -9,15 +9,16 @@ const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
+const users = require('./users');
 
 const Log = require('../utils/logger');
 
 const TAG = 'strava';
 
 exports.getLimits = function (cb) {
-    Settings.loadValue("api", function(err, setting) {
+    Settings.loadValue('api', function (err, setting) {
         let apiLimits = { 'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000 };
-        Log.debug(TAG, "api", setting);
+        Log.debug(TAG, 'api', setting);
         if (setting) {
             apiLimits.shortTermUsage = setting.value.shortTerm;
             apiLimits.longTermUsage = setting.value.longTerm;
@@ -26,12 +27,13 @@ exports.getLimits = function (cb) {
     });
 };
 
-const updateLimits = function(limit) {
+const updateLimits = function (limit) {
     const apiUsage = {
         shortTerm: limit.shortTermUsage,
         longTerm: limit.longTermUsage
     };
-    Settings.updateValue({key: "api", value: apiUsage}, function(){})
+    Settings.updateValue({ key: 'api', value: apiUsage }, function () {
+    });
 };
 
 /**
@@ -50,7 +52,9 @@ exports.updateUser = function (req, res, next) {
             exports.getStats(id, token);
             exports.getRoutes(id, token);
             exports.getActivities(id, token);
-            next(null, user);
+            setTimeout(function () {
+                next(null, user);
+            }, 10000);
         }
     });
 };
@@ -104,7 +108,6 @@ exports.getStats = function (id, token, next) {
             Log.error(TAG, err);
         }
         //Log.debug(TAG, '\nAthlete Stats: \n' + JSON.stringify(payload, null, 2));
-        // todo update database with new user statistics
         if (next) {
             next(null, payload);
         }
@@ -121,14 +124,15 @@ exports.getRoutes = function (id, token, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        //Log.debug(TAG, '\nRoutes: \n' + JSON.stringify(payload, null, 2));
+        if (payload) {
 
-        // for each route, get detailed route information
-        let max = 4;
-        if (payload.length < max) max = payload.length;
-        for (let i = 0; i < max; ++i) {        // TODO for testing only gets 3 routes
-            // TODO Optimization: only get the routes that are new
-            getRoute(payload[i].id, token, id, next);
+            // TODO for each route, get detailed route information
+            let max = 15;
+            if (payload.length < max) max = payload.length;
+
+            for (let i = 0; i < max; ++i) {
+                getRoute(payload[i].id, token, id, next);
+            }
         }
     });
 };
@@ -149,13 +153,21 @@ exports.getActivities = function (id, token, next) {
             Log.error(TAG, err);
             return;
         }
-        //Log.debug(TAG, '\nActivities: \n' + JSON.stringify(payload, null, 2));
+        if (payload) {
+            //Log.debug(TAG, '\nActivities: \n' + JSON.stringify(payload, null, 2));
 
-        // for each activity, get detailed activity information
-        for (let i = 0; i < 4 /*payload.length*/; ++i) {            // TODO for testing gets only 3 activities
-            // TODO Optimization: only get the routes that are new
-            getActivity(payload[i].id, token, id, next);
+            let numActivities = payload.length;
+
+            // TODO for testing gets only 3 activities
+            if (numActivities > 4) numActivities = 4;
+
+            // for each activity, get detailed activity information
+            for (let i = 0; i < numActivities; ++i) {
+                // TODO Optimization: only get the routes that are new
+                getActivity(payload[i].id, token, id, next);
+            }
         }
+
     });
 };
 
@@ -163,7 +175,7 @@ exports.segmentsExplorer = function (token, options, next) {
     if (!options) {
         options = {
             bounds: '49.25, 7.04, 49.60, 7.1',
-            activity_type: 'running',
+            activity_type: 'riding',
             min_cat: 0,
             max_cat: 100,
         };
@@ -186,6 +198,7 @@ exports.segmentsExplorer = function (token, options, next) {
                 }
             }
         }
+        next(null, payload);
     });
 };
 
@@ -225,6 +238,10 @@ const getSegment = function (id, token, segment, next) {
                     route.save(function (err) {
                         if (err) {
                             Log.error(TAG, err);
+                            return;
+                        }
+                        if (next) {
+                            next(null, route);
                         }
                     });
                 });
@@ -285,7 +302,9 @@ const getActivity = function (id, token, userID, next) {
                                 Log.error(TAG, err);
                                 return;
                             }
-                            if (next) next(null, activity);
+                            if (next) {
+                                next(null, activity);
+                            }
                         });
                     }
                 });
@@ -363,8 +382,12 @@ const getRoute = function (id, token, userID, next) {
                                 route.save(function (err) {
                                     if (err) {
                                         Log.error(TAG, err);
-                                        if (next) next(null, route);
+                                        return;
                                     }
+                                    if (next) {
+                                        next(null, route);
+                                    }
+
                                 });
                             });
                         });
@@ -408,7 +431,7 @@ const getSegmentStream = function (id, token, segment, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        extractGeosFromPayload(id, {payload: payload, route: segment}, next);
+        extractGeosFromPayload(id, { payload: payload, route: segment }, next);
     });
 };
 
@@ -430,7 +453,7 @@ const extractGeosFromPayload = function (id, payload, next) {
     for (let i = 0; i < data.length; ++i) {
         lat = data[i][0];
         lng = data[i][1];
-        const geo = new Geo({
+        let geo = new Geo({
             name: id,
             location: {
                 type: 'Point',
@@ -446,7 +469,7 @@ const extractGeosFromPayload = function (id, payload, next) {
             if (activity._id != null) {
                 geo.activities.push(activity);
             } else {
-                Log.error(TAG, "Activity of the stream was not null but had no _id");
+                Log.error(TAG, 'Activity of the stream was not null but had no _id');
                 return;
             }
         }
@@ -456,7 +479,7 @@ const extractGeosFromPayload = function (id, payload, next) {
             if (route._id != null) {
                 geo.routes.push(route);
             } else {
-                Log.error(TAG, "Route of the stream was not null but had no _id");
+                Log.error(TAG, 'Route of the stream was not null but had no _id');
                 return;
             }
         }
@@ -464,7 +487,7 @@ const extractGeosFromPayload = function (id, payload, next) {
         // if for some reason something went wrong and we did have
         // neither an activity nor a route, cancel and don't save the geo
         else {
-            Log.error(TAG, "Stream had neither activity nor route fields");
+            Log.error(TAG, 'Stream had neither activity nor route fields');
             return;
         }
 
@@ -478,7 +501,7 @@ const extractGeosFromPayload = function (id, payload, next) {
             }
 
             // if this was the last one, call the callback
-            if (geosSaved === data.length - 1) {
+            if (geosSaved === data.length) {
                 if (next) {
                     next(null, geos);
                 }

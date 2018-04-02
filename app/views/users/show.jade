@@ -84,12 +84,18 @@ block map
 
             });
 
+
             $("#generate").on("click", function () {
-                $("#sidebar-overview").toggleClass( "active" );
-                $("#overview").toggleClass( "active" );
+                $("#sidebar-overview").toggleClass("active");
+                $("#overview").toggleClass("active");
                 $("#sidebar-start").toggleClass("active");
                 $("#start").toggleClass("active");
 
+            });
+            $("#update").on("click", function () {
+                $("#overview").toggleClass("active");
+                $("#loading").toggleClass("active");
+                $("#loadingText").html("Loading profile data. This can take a moment, please wait.");
             });
             $("#keepButton1").on("click", function () {
                 $("#keepButton1").toggleClass("active");
@@ -208,7 +214,7 @@ block map
                 br
                 p= userData
                 div.row
-                    a.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update")
+                    a.btn.btn-outline-primary.btn-block(href='/users/' + user._id + '/update', title="update", id="update")
                         | Update Profile
                     button.btn.btn-outline-primary.btn-block(id="generate", title="generate")
                         | Generate New Route
@@ -279,7 +285,7 @@ block map
                 br
                 br
                 br
-                p(style="text-align: center;") Routen werden gesucht ...
+                p(style="text-align: center;", id="loadingText") Routen werden gesucht ...
                 div.row
                     .wrap
                         .loading
@@ -296,12 +302,25 @@ block map
                         - each route in routeMaps
                             if (c < numRoutes)
                                 - c = c+1
-                                div.card.box.shadow(style="width:90%; margin-bottom:20px; padding-top:-40px; padding-bottom:-80px;")
-                                    div.card-body(style="margin-top:-5px; margin-bottom:-20px")
-                                        p.card-text= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
-                                        p.card-text= '80% undiscovered area'
-
-                                        .inline-buttons
+                                div.card.shadow(style="width:90%; margin-bottom:20px; ")
+                                    div.card-body(style="margin-top:-5px;")
+                                        p(style="margin-top:-10px")= 'Distance ' + (route.distance.toString().split('.', 1)) / 1000 + ' km'
+                                        p(style="margin-top:-10px")= '80% undiscovered area'
+                                        p
+                                            | Contains: &nbsp
+                                            - if (route.parts.length === 0)
+                                                p none
+                                            - each part in route.parts
+                                                - if (part.isRoute)
+                                                    a.badge.badge-pill.badge-success(href="/routes/"+part._id)= part.title
+                                                    | &nbsp
+                                            - each part in route.parts
+                                                - if (!part.isRoute)
+                                                    a.badge.badge-pill.badge-primary(href="/routes/" + part._id)= part.title
+                                                    | &nbsp
+                                        br
+                                        br
+                                        div.inline-buttons(style="margin-bottom:-20px; margin-top:-30px;")
                                             p
                                                 button.btn.btn-outline-primary.one-half.first(id="showButton"+c)= "View"
                                                 | &nbsp;

@@ -130,11 +130,13 @@ exports.show = async(function* (req, res) {
                             routeMaps[index] = Map.generateRouteMap(route.geo);
                             routeMaps[index].distance = route.distance;
                             routeMaps[index].id = route._id;
+                            routeMaps[index].parts = route.parts;
                         });
                     }
                 }
 
                 Log.debug(TAG, "Route amps: ", routeMaps.map(r => r.routeData));
+                Log.debug(TAG, "Parts: ", generatedRoutes.map(r => r.parts));
 
                 respond(res, 'users/show', {
                     title: user.name,

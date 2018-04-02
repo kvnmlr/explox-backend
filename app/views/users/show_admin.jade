@@ -8,11 +8,11 @@ block main
         b= "Short term: "
         p= limits.shortTermUsage + " out of " + limits.shortTermLimit + " requests used (per 15 minutes)"
         div.progress
-            div.progress-bar(role="progressbar" style="width: " + (limits.shortTermUsage / limits.shortTermLimit) + "%;" aria-valuenow=limits.shortTermUsage aria-valuemin="0" aria-valuemax=limits.shortTermLimit)
+            div.progress-bar(role="progressbar" style="width: " + (limits.shortTermUsage / limits.shortTermLimit * 100) + "%;" aria-valuenow=limits.shortTermUsage aria-valuemin="0" aria-valuemax=limits.shortTermLimit)
         b= "Long term: "
         p= limits.longTermUsage + " out of " + limits.longTermLimit + " requests used (per day)"
         div.progress
-            div.progress-bar(role="progressbar" style="width: " + (limits.longTermUsage / limits.longTermLimit) + "%;" aria-valuenow=limits.longTermUsage aria-valuemin="0" aria-valuemax=limits.longTermLimit)
+            div.progress-bar(role="progressbar" style="width: " + (limits.longTermUsage / limits.longTermLimit * 100) + "%;" aria-valuenow=limits.longTermUsage aria-valuemin="0" aria-valuemax=limits.longTermLimit)
 
         br
         h3= 'Registered Users (' + all.length + ')'
