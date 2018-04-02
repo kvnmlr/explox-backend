@@ -14,7 +14,7 @@ const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 
-let sport, distance, radius, difficulty, start;
+let preference, distance, radius, difficulty, start;
 let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [], candidates = [], resultRoutes = [];
 let request, response;
 
@@ -29,7 +29,7 @@ let request, response;
  */
 exports.generate = function (req, res) {
     Log.log(TAG, 'Generate');
-    sport = req.query.sport || 'cycling';
+    preference = req.query.preference || 'discover';
     distance = req.query.distance * 1000 || '5000';
     radius = distance / 2.0;
     difficulty = req.query.difficulty || 'advanced';
@@ -112,7 +112,18 @@ const logAll = function (callbacks) {
 const respond = function (callbacks) {
     //Log.debug(TAG, 'Respond ', resultRoutes);
 
-    request.generatedRoutes = resultRoutes;//.map(r => {return {title: r.title, distance: r.distance, _id: r._id.toString()}});
+    if (preference === 'discover') {
+        resultRoutes.sort(function (a, b) {
+            return a.familiarityScore - b.familiarityScore;
+        });
+    } else {
+        resultRoutes.sort(function (a, b) {
+            return b.distance - a.distance;
+        });
+    }
+
+    Log.debug(TAG, "ffffffff" , resultRoutes.map(r => {return {familiarityScore: r.familiarityScore, distance: r.distance}}));
+    request.generatedRoutes = resultRoutes;//
     request.hasGeneratedRoutes = true;
     users.show(request, response);
     checkAndCallback(callbacks);
@@ -643,22 +654,17 @@ const familiarityFilter = function (callbacks) {
                                 return matching;
                             });
 
-                            if (matching) matches++;
+                            if (matching) {
+                                matches++;
+                            }
 
                             waypointsProcessed++;
                             if (waypointsProcessed === leave) {
-
                                 candidatesProcessed++;
-
                                 route.familiarityScore = matches/leave;
-                                Log.debug(TAG, "matches " + matches + " " + "l " + leave);
                                 if (candidatesProcessed === candidates.length) {
-                                    candidates.sort(function (a, b) {
-                                        return b.familiarityScore - a.familiarityScore;
-                                    });
                                     const keepBest = 5;
                                     candidates = candidates.slice(0, keepBest);
-                                    Log.debug(TAG, "final routes: ", candidates.map(r => r.familiarityScore));
                                     checkAndCallback(callbacks);
                                 }
                             }
