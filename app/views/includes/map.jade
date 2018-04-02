@@ -49,20 +49,31 @@ script.
             minZoom: 0,
             maxZoom: 100
         });
+        var greenIcon = L.icon({
+            iconUrl: 'http://www.clker.com/cliparts/e/i/5/h/r/P/orange-circle-icon-hi.png',
 
+            iconSize: [10, 10], // size of the icon
+            iconAnchor: [5, 5], // point of the icon which will correspond to marker's location
+            popupAnchor: [-3, -76] // point from which the popup should open relative to the iconAnchor
+        });
 
         if ((!{hasRoute}) || (!{foundRoutes})) {
             // Display the route
             control1 = {
                 waypoints: [!{routeMaps[0].routeData}],
+                router: L.Routing.osrmv1({
+                    profile: 'none',
+                }),
                 routeWhileDragging: false,
+                //waypointMode: 'snap',
                 lineOptions: {
-                    styles: [{color: 'black', opacity: 0.15, weight: 9}, {color: 'white', opacity: 0.5, weight: 6}, {color: 'red', opacity: 1, weight: 2}]
+                    styles: [{color: 'black', opacity: 0.5, weight: 9}, {color: 'white', opacity: 0 /*0.5*/, weight: 6}, {color: 'red', opacity: 0 /*1*/, weight: 2}]
                 },
                 createMarker: function (i, wp) {
                     return L.marker(wp.latLng, {
                         draggable: false,
-                        opacity: 0
+                        opacity: 1,
+                        icon: greenIcon
                     });
                 }
             };
@@ -95,7 +106,7 @@ script.
                 }
             };
 
-            /*var states = [
+            var states = [
                 {
                     "type": "Feature",
                     "properties": {
@@ -117,7 +128,21 @@ script.
                         "type": "Point",
                         "coordinates": [!{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[routeMaps[0].routeData.length-1].split(",")[0].substring(9,18)}]
                     }
-                }
+                },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "type": "end",
+                        "popupContent": "This is the end point!"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[[!{routeMaps[0].routeData[routeMaps[0].routeData.length - 1].split(",")[1].substring(0, 8)}, !{routeMaps[0].routeData[routeMaps[0].routeData.length - 1].split(",")[0].substring(9, 18)}],
+                            [!{routeMaps[0].routeData[0].split(",")[1].substring(0,8)}, !{routeMaps[0].routeData[0].split(",")[0].substring(9,18)}],
+                            [7.020964, 49.254810]]]
+                    }
+                },
+
             ];
 
             var geojsonMarkerOptions = {
@@ -132,6 +157,10 @@ script.
             L.geoJSON(states, {
                 onEachFeature: onEachFeature,
                 style: function (feature) {
+                    if (feature.type === 'LineString') {
+                        geojsonMarkerOptions.color = "#FF0000"
+                        return geojsonMarkerOptions;
+                    }
                     switch (feature.properties.type) {
                         case 'route':
                             geojsonMarkerOptions.color = "#007bff"
@@ -147,7 +176,7 @@ script.
                 pointToLayer: function (feature, latlng) {
                     return L.circleMarker(latlng, geojsonMarkerOptions);
                 }
-            }).addTo(map);*/
+            }).addTo(map);
         }
 
 
