@@ -125,9 +125,7 @@ exports.getRoutes = function (id, token, next) {
             Log.error(TAG, err);
         }
         if (payload) {
-
-            // TODO for each route, get detailed route information
-            let max = 15;
+            let max = 40;
             if (payload.length < max) max = payload.length;
 
             for (let i = 0; i < max; ++i) {
@@ -156,10 +154,10 @@ exports.getActivities = function (id, token, next) {
         if (payload) {
             //Log.debug(TAG, '\nActivities: \n' + JSON.stringify(payload, null, 2));
 
+            const max = 40;
             let numActivities = payload.length;
 
-            // TODO for testing gets only 3 activities
-            if (numActivities > 4) numActivities = 4;
+            if (numActivities > max) numActivities = max;
 
             // for each activity, get detailed activity information
             for (let i = 0; i < numActivities; ++i) {
@@ -229,7 +227,6 @@ const getSegment = function (id, token, segment, next) {
                 }
                 getSegmentStream(id, token, route, function (err, geos) {
                     if (err) {
-                        Log.error(TAG, err);
                         return;
                     }
                     Log.log(TAG, geos.length + ' geos extracted for segment ' + id);
@@ -276,7 +273,6 @@ const getActivity = function (id, token, userID, next) {
                 // Query the gps points of this activity
                 getActivityStream(id, token, activity, function (err, geos) {
                     if (err) {
-                        Log.error(TAG, err);
                         return;
                     }
                     Log.log(TAG, geos.length + ' geos extracted for activity ' + id);
@@ -359,8 +355,8 @@ const getRoute = function (id, token, userID, next) {
                         route = new Route({
                             stravaId: id,
                             title: payload.name,
-                            body: payload.description || 'A Strava route created by ' + user.username,    // TODO generate
-                            location: '',                                     // TODO find out based on GPS
+                            body: payload.description || 'A Strava route created by ' + user.username,
+                            location: '',   // TODO find out based on GPS
                             user: user,
                             comments: [],
                             tags: tags,
@@ -373,7 +369,6 @@ const getRoute = function (id, token, userID, next) {
                             }
                             getRouteStream(id, token, route, function (err, geos) {
                                 if (err) {
-                                    Log.error(TAG, err);
                                     return;
                                 }
                                 Log.log(TAG, geos.length + ' geos extracted for route ' + id);
@@ -444,69 +439,83 @@ const extractGeosFromPayload = function (id, payload, next) {
         }
     }
     if (data == null) {
-        return next('Could not read payload data from stream ' + id, null);
+        Log.error(TAG, 'Could not read payload data from stream ' + id);
+        return next("Could not read payload data from stream", null);
     }
 
     let lat, lng;
+
+    // Only store a certain number of waypoints for efficiency (routes, segmetns, and activities).
+    let leave = 300; // sample waypoints to max 100
+    if (data.length < leave) {
+        leave = data.length;
+    }
+    const takeEvery = Math.ceil(data.length / leave);
+    const remaining = Math.floor(data.length / takeEvery);
+
     let geos = [];
     let geosSaved = 0;
+
     for (let i = 0; i < data.length; ++i) {
-        lat = data[i][0];
-        lng = data[i][1];
-        let geo = new Geo({
-            name: id,
-            location: {
-                type: 'Point',
-                coordinates: [lng, lat]
-            },
-        });
+        // always keep the first and last element. Only take some in between
+        if (i === 0 || i % takeEvery === 0 || i === data.length-1) {
+            lat = data[i][0];
+            lng = data[i][1];
+            let geo = new Geo({
+                name: id,
+                location: {
+                    type: 'Point',
+                    coordinates: [lng, lat]
+                },
+            });
 
-        const activity = payload.activity;
-        const route = payload.route;
+            const activity = payload.activity;
+            const route = payload.route;
 
-        // let the geo know that it belongs to this activity
-        if (activity != null) {
-            if (activity._id != null) {
-                geo.activities.push(activity);
-            } else {
-                Log.error(TAG, 'Activity of the stream was not null but had no _id');
-                return;
-            }
-        }
-
-        // let the geo know that it belongs to this route
-        else if (route != null) {
-            if (route._id != null) {
-                geo.routes.push(route);
-            } else {
-                Log.error(TAG, 'Route of the stream was not null but had no _id');
-                return;
-            }
-        }
-
-        // if for some reason something went wrong and we did have
-        // neither an activity nor a route, cancel and don't save the geo
-        else {
-            Log.error(TAG, 'Stream had neither activity nor route fields');
-            return;
-        }
-
-        geos.push(geo);
-
-        // save the new geo
-        geo.save(function (err) {
-            geosSaved++;
-            if (err) {
-                return;
-            }
-
-            // if this was the last one, call the callback
-            if (geosSaved === data.length) {
-                if (next) {
-                    next(null, geos);
+            // let the geo know that it belongs to this activity
+            if (activity != null) {
+                if (activity._id != null) {
+                    geo.activities.push(activity);
+                } else {
+                    Log.error(TAG, 'Activity of the stream was not null but had no _id');
+                    return;
                 }
             }
-        });
+
+            // let the geo know that it belongs to this route
+            else if (route != null) {
+                if (route._id != null) {
+                    geo.routes.push(route);
+                } else {
+                    Log.error(TAG, 'Route of the stream was not null but had no _id');
+                    return;
+                }
+            }
+
+            // if for some reason something went wrong and we did have
+            // neither an activity nor a route, cancel and don't save the geo
+            else {
+                Log.error(TAG, 'Stream had neither activity nor route fields');
+                return;
+            }
+
+            geos.push(geo);
+
+            // save the new geo
+            geo.save(function (err) {
+                geosSaved++;
+                if (err) {
+                    return;
+                }
+
+                // if this was the last one, call the callback
+                if (geosSaved === remaining) {
+                    if (next) {
+                        next(null, geos);
+                    }
+                }
+            });
+        }
     }
 };
 
@@ -533,7 +542,6 @@ exports.authCallback = function (req, res, next) {
 };
 
 exports.activitiesToGeos = function (activities) {
-    // TODO transform activities to array of geos
     let res = [];
     for (let i = 0; i < activities.length; ++i) {
         const activity = activities[i];

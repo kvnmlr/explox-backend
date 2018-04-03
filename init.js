@@ -31,7 +31,7 @@ exports.createSampleData = function (callbacks) {
     Activity = mongoose.model('Activity');
     Settings = mongoose.model('Settings');
 
-    apply([createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, createDefaultAdmins, createDefaultUsers, createSampleRoute, createDefaultSettings, finished]);
+    apply([/*createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, */createDefaultUsers, /*createSampleRoute,*/ createDefaultSettings, finished]);
 };
 
 exports.init = function() {
@@ -233,8 +233,10 @@ const createSampleRoute = function(callbacks) {
                 });
                 route.save(function (err) {
                     if (err) Log.error("Init", err);
-                    geos[0].routes.push(route);
-                    geos[0].save();
+                    if (geos.length > 0) {
+                        geos[0].routes.push(route);
+                        geos[0].save();
+                    }
                     checkAndCallback(callbacks)
                 });
             } else {

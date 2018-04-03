@@ -178,7 +178,7 @@ block map
                 form.method = "POST";
                 form.action = "/routes/generated";
 
-                generatedRoutesField.value = JSON.stringify(genRoutes);
+                generatedRoutesField.value = JSON.stringify(genRoutes.map(function(r) {return {id: r.id}}));
                 generatedRoutesField.name = "generatedRoutes";
                 form.appendChild(generatedRoutesField);
 

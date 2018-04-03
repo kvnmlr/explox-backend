@@ -626,8 +626,13 @@ const familiarityFilter = function (callbacks) {
     let candidatesProcessed = 0;
 
     candidates.forEach(function (route) {
-        const leave = 25;
-        const takeEvery = Math.floor(route.waypoints.length * (1/leave));    // parameter for performance, only take every xth route point, 1 = every
+        let leave = 25;
+        if (route.waypoints.length < leave) {
+            leave = data.length;
+        }
+        const takeEvery = Math.ceil(route.waypoints.length / leave);    // parameter for performance, only take every xth route point, 1 = every
+        const remaining = Math.floor(route.waypoints.length / takeEvery);
+
         let waypointsProcessed = 0;
         let matches = 0;
         let exploredGeos = [];
@@ -642,7 +647,7 @@ const familiarityFilter = function (callbacks) {
                 if (waypointIndex % takeEvery === 0) {
 
                         const options = {
-                            distance: 200,
+                            distance: 280,
                             latitude: waypoint[1],
                             longitude: waypoint[0]
                         };
@@ -664,7 +669,7 @@ const familiarityFilter = function (callbacks) {
                             }
 
                             waypointsProcessed++;
-                            if (waypointsProcessed === leave) {
+                            if (waypointsProcessed === remaining) {
                                 candidatesProcessed++;
                                 route.familiarityScore = matches/leave;
                                 if (candidatesProcessed === candidates.length) {

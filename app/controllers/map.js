@@ -10,16 +10,17 @@ const TAG = "map";
  */
 exports.generateRouteMap = function(geos, exploredGeos) {
     const routeData = [];
-    const maxAllowedWaypoints = 25 - 2;
-    let keepEvery = geos.length / maxAllowedWaypoints;
-    if (keepEvery > 1) {
+    const leave = 25 - 2;
+    let takeEvery = geos.length / leave;
+    if (takeEvery > 1) {
         // we have too many waypoints, downsample to something smaller
-        keepEvery = Math.ceil(keepEvery);
+        takeEvery = Math.ceil(takeEvery);
+
         const waypointsTemp = Object.assign([], geos);
         geos = [waypointsTemp[0]];     // start point must not be deleted
         let counter = 0;
         waypointsTemp.forEach(function(wp) {
-            if (counter % keepEvery === 0) {
+            if (counter % takeEvery === 0) {
                 geos.push(wp);
             }
             ++counter;
@@ -71,14 +72,13 @@ exports.generateExploredMapData = function(exploredGeos) {
  */
 var getMaskConfiguration = function() {
     var config = {
-        radius: 100,              // radius in pixels or in meters (see useAbsoluteRadius)
+        radius: 200,                // radius in pixels or in meters (see useAbsoluteRadius)
         useAbsoluteRadius: true,    // true: r in meters, false: r in pixels
         color: '#000',              // the color of the layer
         opacity: .5,                // opacity of the not covered area
         noMask: false,              // true results in normal (filled) circled, instead masked circles
         lineColor: '#A00',          // color of the circle outline if noMask is true
-        blur: .5
-
+        updateWhenZooming: true,
     };
     return config;
 };
