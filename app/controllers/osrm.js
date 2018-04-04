@@ -30,10 +30,10 @@ exports.findRoute = function (options, cb) {
     const query = "overview=false&steps=true&geometries=geojson&access_token=pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw";
 
     let requestString = protocol + "://" + domain + "/" + service + "/" + version + "/" + profile +"/";
+    Log.debug(TAG, "OSRM request path: " + requestString);
+
     requestString += coordinates;
     requestString += "?" + query;
-
-    Log.debug(TAG, "request: " + requestString);
 
     request(requestString, function (error, response, body) {
         if (error) {

@@ -176,7 +176,6 @@ UserSchema.statics = {
      */
     load_full: function (_id, options, cb) {
         options.select = options.select || '';
-        Log.debug(TAG, _id);
         return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',

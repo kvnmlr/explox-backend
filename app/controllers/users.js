@@ -76,7 +76,7 @@ exports.show = async(function* (req, res) {
 
     if (req.user.role === 'admin' && req.profile.role === 'admin') {
         User.list({}, function (err, users) {
-            Log.debug(TAG, "Admin: " + users);
+            //Log.debug(TAG, "Admin: " + users);
             Route.list({criteria: {isRoute: true, isGenerated: false}}, function (err, routes) {
                 Route.list({criteria: {isRoute: true, isGenerated: true}}, function (err, generated) {
                     //Log.debug(TAG, "Routes: " + users);
@@ -135,9 +135,6 @@ exports.show = async(function* (req, res) {
                         });
                     }
                 }
-
-                Log.debug(TAG, "Route amps: ", routeMaps.map(r => r.routeData));
-                Log.debug(TAG, "Parts: ", generatedRoutes.map(r => r.parts));
 
                 respond(res, 'users/show', {
                     title: user.name,

@@ -18,7 +18,6 @@ const TAG = 'strava';
 exports.getLimits = function (cb) {
     Settings.loadValue('api', function (err, setting) {
         let apiLimits = { 'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000 };
-        Log.debug(TAG, 'api', setting);
         if (setting) {
             apiLimits.shortTermUsage = setting.value.shortTerm;
             apiLimits.longTermUsage = setting.value.longTerm;
@@ -154,7 +153,7 @@ exports.getActivities = function (id, token, next) {
         if (payload) {
             //Log.debug(TAG, '\nActivities: \n' + JSON.stringify(payload, null, 2));
 
-            const max = 40;
+            const max = 80;
             let numActivities = payload.length;
 
             if (numActivities > max) numActivities = max;

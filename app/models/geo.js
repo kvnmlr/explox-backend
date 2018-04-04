@@ -162,7 +162,6 @@ GeoSchema.statics = {
             // Again query all users but only fetch one offset by our random #
             findOneFunction.findOne().skip(random).exec(
                 function (err, geo) {
-                    Log.debug(TAG, 'found ', geo);
                     findOneFunction.findWithinRadiusSimple({
                         latitude: geo.location.coordinates[1],
                         longitude: geo.location.coordinates[0],
@@ -171,11 +170,8 @@ GeoSchema.statics = {
                         if (err) {
                             Log.error(TAG, 'error', err);
                         }
-                        Log.debug(TAG, 'found ' + geos.length + ' in radius');
-
                         for (let i = 0; i < geos.length; ++i) {
                             const geo = geos[i].obj;
-                            Log.debug(TAG, 'edited  ', geo);
                             geo.name = 'changed';
                             geo.save((err) => {});
                         }

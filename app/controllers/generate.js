@@ -110,7 +110,7 @@ const logAll = function (callbacks) {
     checkAndCallback(callbacks);
 };
 const respond = function (callbacks) {
-    //Log.debug(TAG, 'Respond ', resultRoutes);
+    Log.debug(TAG, 'Respond ');
 
     if (preference === 'discover') {
         resultRoutes.sort(function (a, b) {
@@ -127,7 +127,6 @@ const respond = function (callbacks) {
         });
     }
 
-    Log.debug(TAG, "ffffffff" , resultRoutes.map(r => {return {familiarityScore: r.familiarityScore, distance: r.distance}}));
     request.generatedRoutes = resultRoutes;//
     request.hasGeneratedRoutes = true;
     users.show(request, response);
@@ -280,8 +279,6 @@ const lowerBoundsFilter = function (callbacks) {
             Geo.findDistance(options, function (err, distanceToStart) {
                 // if this one failed
                 if (distanceToStart.length === 0) {
-                    Log.debug(TAG, processed + "/" + totalLength  + "  ");
-
                     processed++;
 
                     // ... and it was the last one of this list
@@ -299,8 +296,6 @@ const lowerBoundsFilter = function (callbacks) {
                     processed++;
                     // if this one failed
                     if (distanceToEnd.length === 0) {
-                        Log.debug(TAG, processed + "/" + totalLength  + "  ");
-
                         // ... and it was the last one of the last list, call the callback
                         if (processed >= totalLength) {
                             return printAndCallback();
@@ -326,7 +321,6 @@ const lowerBoundsFilter = function (callbacks) {
                             newGoodSegments.push(route);
                         }
                     }
-                    Log.debug(TAG, processed + "/" + totalLength  + "  ");
                     if (processed >= totalLength) {
                         return printAndCallback();
                     }
@@ -466,8 +460,6 @@ const generateCandidates = function (callbacks) {
                 // only keep the best n routes by removing items form the front and end of the array
                 const keepBest = 10;
 
-                //Log.debug(TAG, 'Before take best: ', routes.map(r => r.distance));
-
                 while (routes.length > keepBest) {
                     let indexFromStart = routes[0];
                     let indexFromEnd = routes[routes.length - 1];
@@ -477,7 +469,6 @@ const generateCandidates = function (callbacks) {
                         routes = routes.slice(0, routes.length - 1);    // remove item from the end
                     }
                 }
-                Log.debug(TAG, routes.length + ' best ' + keepBest + ' routes kept: ', routes.map(r => r.distance));
 
                 candidates = routes;
                 checkAndCallback(callbacks);
@@ -500,9 +491,6 @@ const createRoutes = function (callbacks) {
 
     let generatedRoutes = [];
     candidates.forEach(function (candidate) {
-
-        Log.debug(TAG, "Parts: ", candidate.parts);
-
         // get the user
         User.load(request.user, function (err, user) {
             const title = 'New Route (' + Math.floor(candidate.distance / 1000) + " km)";
@@ -538,13 +526,11 @@ const createRoutes = function (callbacks) {
             };
             Route.load_options(options, function(err, existingRoute) {
                 if (existingRoute) {
-                    Log.debug(TAG, "Route already exists (" + existingRoute.title + "," + existingRoute.stravaId + ", " + existingRoute.geo.length + ")");
+                    Log.debug(TAG, "Route already exists (" + existingRoute.title + ")");
                     existingRoute.familiarityScore = candidate.familiarityScore;
                     generatedRoutes.push(existingRoute);
                     if (generatedRoutes.length === candidates.length) {
-                        //Log.debug(TAG, 'All candidates have been saved 1 ' + generatedRoutes.length + " " + candidates.length);
                         resultRoutes = generatedRoutes;
-                        Log.debug(TAG, "fffinal routes: ", resultRoutes.map(r => r.familiarityScore));
                         return checkAndCallback(callbacks);
                     }
                     return;
@@ -582,23 +568,18 @@ const createRoutes = function (callbacks) {
                                 return;
                             }
                             if (waypointsSaved === candidate.waypoints.length) {
-                                //Log.debug(TAG, 'All waypoints have been saved 2 ' + waypointsSaved + " " + candidate.waypoints.length);
-
                                 route.geo = geos;
                                 route.save(function (err) {
                                     if (err) {
                                         Log.error(TAG, "Error saving route" + err);
                                         return;
                                     }
-                                    Log.debug(TAG, "Created new route (" + route.title + "," + route.stravaId + ", " + route.geo.length + ")");
+                                    Log.debug(TAG, "Created new route (" + route.title + ", with " + route.geo.length + " waypoints)");
                                     route.familiarityScore = candidate.familiarityScore;
                                     generatedRoutes.push(route);
 
                                     if (generatedRoutes.length === candidates.length) {
-                                        //Log.debug(TAG, 'All candidates have been saved 2 ' + generatedRoutes.length + " " + candidates.length);
                                         resultRoutes = generatedRoutes;
-                                        Log.debug(TAG, "fffinal routes: ", resultRoutes.map(r => r.familiarityScore));
-
                                         checkAndCallback(callbacks);
                                     }
                                 });

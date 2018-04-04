@@ -41,10 +41,14 @@ exports.index = async(function* (req, res) {
     const limit = 30;
     const options = {
         limit: limit,
-        page: page
+        page: page,
+        criteria : {
+            isRoute : true,
+            isGenerated : false
+        }
     };
 
-    if (_id) options.criteria = {_id};
+    if (_id) options.criteria._id = {_id};
 
     const routes = yield Route.list(options);
     const count = yield Route.count();
@@ -173,9 +177,6 @@ exports.show = function (req, res) {
 };
 
 exports.userSavedChoice = async(function* (req, res) {
-    Log.debug(TAG, "genr", req );
-    Log.debug(TAG, "genr", req.body.generatedRoutes);
-    Log.debug(TAG, "genr", req.body.keep );
     let generatedRoutes = JSON.parse(req.body.generatedRoutes);
     let keep = JSON.parse(req.body.keep);
     const limit = 10;
@@ -201,12 +202,9 @@ exports.userSavedChoice = async(function* (req, res) {
                     Log.error(TAG, "Remove failed");
                     return;
                 }
-                Log.debug(TAG, "delete worked");
             });
         }
     }
-
-    Log.debug(TAG, "RESPOND", routes);
     respond(res, 'routes/index', {
         title: 'Routes',
         routes: routes,
