@@ -203,58 +203,6 @@ Using the social media sources and personal location history we determine areas 
 
 The paper is structured as follows. First we present the introduction and related work that led to the development of this idea. Afterwards we lay out the designing milestones, a list of equipment and resources we need and the formal requirements for this prototype. Thereafter we will present how we want to conduct the user study in order to evaluate our approach. 
 
-\section{Milestones}
-In order to plan and organize our project workflow we set ourselves some milestones describing when and in which order we will work on the different parts of our project.
-
-Until early December we will in the first step become acquainted with the Strava API, which we will develop our application for, as well as openstreetmaps.org. This includes finding out which functions and data we have access to and which functions and data are relevant and needed later on for our application. Then we will have to build internal data structures and convert the data into our own representation of it.
-
-The core algorithm which generates the route for the runner/biker will be implemented until early January. For this algorithm we will need the data from the user's Strava profile as well as the data of other Strava users and information about the streets in the user's area, which we will get from openstreetmaps. 
-
-The implementation of the fading map is planned to be done by end of January. For this we will need a scalable map, maybe from openstreetmaps, and then add another layer on top of the map which is black in the areas that the user hasn't visited yet based on his Strava data, and more and more fades away the more often you go running or biking in the corresponding area.
-
-The user interface will be designed and implemented until mid February. This includes displaying the fading map and the routes on the map in the interface
-
-Until end of February we will do the testing of our application.
-
-The evaluation will be the last part of our project and is set to be done until 28. of February or later depending on the date of the final presentation. In the evaluation we'll use the evaluation data we gathered from the test users during January and February.
-
-
-\section{Software and Hardware}
-After getting a first overview of the technical possibilities, we consider the following tools as useful candidates to use in this project.
-\begin{itemize}
-\item Smartphone for the frontend
-\item Server backend
-\item Strava API 
-\item Komoot API
-\item Postgis for data analysis
-\item Mapdata of OSRM
-\item HeatmapTool
-\end{itemize}
-
-\section{Requirements}
-The following requirements are ordered by importance, however, our goal is to achieve all of them because all of them are necessary to appropriately evaluate our prototype.
-\begin{itemize}
-\item The system will run as a web application on every smartphone using a web browser.
-\item The interface language will be available in German and English and primarily German locations/cities will be supported.
-\item The user will be able to register using Strava and upload their running/cycling history.
-\item The user will be able to see the locations they visited on a map, similar to Google Maps, that is black everywhere the user has not yet been.
-\item The user will be able to select an area they want to explore (i.e. that is still black) and enter the activity (running or cycling) and preferred distance, time and difficulty of the route.
-\item The system will return a recommended route which is displayed on the map and that matches the user's preferences.
-\item Recommended routes will always
-	\begin{itemize}
-	\item start at the current location of the user.
-	\item lead through the selected unexplored area.
-	\item use existing routes from friends (if available) or other users in the unexplored area.
-	\item not recommend routes that are not suitable for running or cycling.
-	\end{itemize}
-\item The user can select the recommended map whereupon it can be exported into a common GPS navigation format to be used on smartwatches.
-\item The system will update the black map after each run. This is done by requesting new activities from Strava. Consequently, Strava needs to be running and record whenever the user is doing the activity.
-\item The user will be given some alternative routes so they can select their preferred one.
-\item The users' data (i.e. preferences, explored locations) will be stored on a server.
-\item The system will use the user's current location as start and destination points, but the user can also specify their preferred start and destination for routes.
-\item The system will implement established security measures to secure the users' data.
-\end{itemize}
-
 \section{Related Work}
 In the following section, we will examine previous work done on the topics of route planning, (urban) exploration and motivation in sports and sightseeing. While the former two topics will give us an overview over different approaches to navigation and goals in exploration, the latter will help us design our prototype in order to motivate users to explore unfamiliar areas as well as complete their training routine and become better athletes.
 \subsection{Route Planning}
@@ -264,6 +212,16 @@ In order to provide a good running experience, the route has to be selected care
 Katayama et al. took a similar approach and navigated visitors of events using body-worn sensors in order to avoid congestions and other problems that are difficult for event managers \cite{routeplanningbodywornsensors}.\\
 There are web mapping services such as Strava (\hyperlink{http://strava.com}{www.strava.com}) and Komoot (\hyperlink{http://komoot.com}{www.komoot.com}) that also provide information about the surface of the track in order to better plan the route. For instance, cyclists can easily identify off-road streets and plan their route accordingly.\\
 As an extension to those online services, Daiber et al. have proposed a concept of \textit{pioneers} to support mountaineers in their route planning. The idea is that users can select a number of friends or experienced mountaineers called \textit{pioneers}. The user will see the routes their pioneers have recently taken and can incorporate them into their own route planning \cite{followthepioneers}. \\
+
+
+\subsection{Implementation}
+
+\subsection{Evaluation}
+
+\subsection{Conclusion}
+
+\subsection{One paragraph about individual
+contribution}
 
 \subsection{Exploration}
 As already identified by McGookin and Brewster, exploring the environment is an important motivational factor for runners \cite{undirectedrunnernav}. In familiar location running, the main objectives are to meet a distance, time or place target rather than enjoying the environment. However, when the athlete is in an unfamiliar location, these objectives are reversed. They find that this is mostly the case on holidays, however, we want to find out whether we can get athletes to take unfamiliar routes and explore areas of cities in which they have been living for a longer period of time as well.\\
