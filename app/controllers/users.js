@@ -111,6 +111,7 @@ exports.show = async(function* (req, res) {
         }
         User.load_full(req.params.userId, {}, function (err, user) {
             if (user) {
+                Log.debug(TAG, "user", user);
                 const geos = Strava.activitiesToGeos(user.activities);
                 const generatedRoutes = req.generatedRoutes || [];
                 const foundRoutes = generatedRoutes.length > 0;

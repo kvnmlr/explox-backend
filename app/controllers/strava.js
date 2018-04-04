@@ -280,28 +280,28 @@ const getActivity = function (id, token, userID, next) {
                     activity.save(function (err) {
                         if (err) {
                             Log.error(TAG, err);
+                            return;
                         }
-                    });
-                });
-
-                // Link activity to user
-                User.load_options({ criteria: { stravaId: userID } }, function (err, user) {
-                    if (err) {
-                        Log.error(TAG, err);
-                        return;
-                    }
-                    if (user) {
-                        user.activities.push(activity);
-                        user.save(function (err) {
+                        // Link activity to user
+                        User.load_options({ criteria: { stravaId: userID } }, function (err, user) {
                             if (err) {
                                 Log.error(TAG, err);
                                 return;
                             }
-                            if (next) {
-                                next(null, activity);
+                            if (user) {
+                                user.activities.push(activity);
+                                user.save(function (err) {
+                                    if (err) {
+                                        Log.error(TAG, err);
+                                        return;
+                                    }
+                                    if (next) {
+                                        next(null, activity);
+                                    }
+                                });
                             }
                         });
-                    }
+                    });
                 });
             });
         } else {
