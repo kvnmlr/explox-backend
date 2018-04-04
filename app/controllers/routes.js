@@ -44,7 +44,6 @@ exports.index = async(function* (req, res) {
         page: page,
         criteria : {
             isRoute : true,
-            isGenerated : false
         }
     };
 

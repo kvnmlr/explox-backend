@@ -128,7 +128,9 @@ exports.getRoutes = function (id, token, next) {
             if (payload.length < max) max = payload.length;
 
             for (let i = 0; i < max; ++i) {
-                getRoute(payload[i].id, token, id, next);
+            	setTimeout(function() {
+                	getRoute(payload[i].id, token, id, next);
+                	}, 500 * i);
             }
         }
     });
@@ -161,7 +163,9 @@ exports.getActivities = function (id, token, next) {
             // for each activity, get detailed activity information
             for (let i = 0; i < numActivities; ++i) {
                 // TODO Optimization: only get the routes that are new
-                getActivity(payload[i].id, token, id, next);
+                setTimeout(function() {
+                	getActivity(payload[i].id, token, id, next);
+                	}, 500 * i);
             }
         }
 
@@ -253,7 +257,6 @@ const getActivity = function (id, token, userID, next) {
             Log.error(TAG, err);
             return;
         }
-
         // If this activity does not yet exist, create it and associate all geos with it
         if (!activity) {
             Log.log(TAG, 'Creating new activity with id ' + id);
@@ -268,7 +271,7 @@ const getActivity = function (id, token, userID, next) {
                     Log.error(TAG, err);
                     return;
                 }
-
+                
                 // Query the gps points of this activity
                 getActivityStream(id, token, activity, function (err, geos) {
                     if (err) {
@@ -276,7 +279,7 @@ const getActivity = function (id, token, userID, next) {
                     }
                     Log.log(TAG, geos.length + ' geos extracted for activity ' + id);
 
-                    activity.geo = geos;
+                    activity.geo = activity.geo.concat(geos);
                     activity.save(function (err) {
                         if (err) {
                             Log.error(TAG, err);
@@ -289,7 +292,7 @@ const getActivity = function (id, token, userID, next) {
                                 return;
                             }
                             if (user) {
-                                user.activities.push(activity);
+                                user.activities = user.activities.concat([activity]);
                                 user.save(function (err) {
                                     if (err) {
                                         Log.error(TAG, err);
@@ -409,8 +412,8 @@ const getRouteStream = function (id, token, route, next) {
 };
 
 const getActivityStream = function (id, token, activity, next) {
-    strava.streams.activity({ id: id, types: 'latlng', access_token: token }, function (err, payload, limits) {
-        updateLimits(limits);
+	strava.streams.activity({ id: id, types: 'latlng', access_token: token }, function (err, payload) {
+        //updateLimits(limits);
         if (err) {
             Log.error(TAG, err);
         }
@@ -474,7 +477,7 @@ const extractGeosFromPayload = function (id, payload, next) {
             // let the geo know that it belongs to this activity
             if (activity != null) {
                 if (activity._id != null) {
-                    geo.activities.push(activity);
+                    geo.activities = geo.activities.concat([activity]);
                 } else {
                     Log.error(TAG, 'Activity of the stream was not null but had no _id');
                     return;
@@ -484,7 +487,7 @@ const extractGeosFromPayload = function (id, payload, next) {
             // let the geo know that it belongs to this route
             else if (route != null) {
                 if (route._id != null) {
-                    geo.routes.push(route);
+                    geo.routes = geo.routes.concat([route]);
                 } else {
                     Log.error(TAG, 'Route of the stream was not null but had no _id');
                     return;
@@ -498,7 +501,7 @@ const extractGeosFromPayload = function (id, payload, next) {
                 return;
             }
 
-            geos.push(geo);
+            geos = geos.concat([geo]);
 
             // save the new geo
             geo.save(function (err) {

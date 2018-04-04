@@ -18,7 +18,7 @@ exports.crawlSegments = function (req, res) {
     const eh = [49.234207, 7.112391]; // Ensheim
     const qs = [49.319769, 7.058146]; // Quierschied
 
-    req.params.start = qs;
+    req.params.start = igb;
     req.params.increaseRadiusBy = 0.2;  // km
     req.params.iterations = 5;          // increase radius x times
 
