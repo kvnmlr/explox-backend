@@ -18,6 +18,19 @@ const Strava = require('./strava');
 const User = mongoose.model('User');
 
 /**
+ * Home Page
+ */
+
+exports.home = async(function* (req, res) {
+    respond(res, 'home', {});
+});
+
+exports.about = async(function* (req, res) {
+    respond(res, 'about', {});
+});
+
+
+/**
  * Load
  */
 

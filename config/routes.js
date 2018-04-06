@@ -102,7 +102,8 @@ module.exports = function (app, passport) {
     app.delete('/routes/:id', routeAuth, routes.destroy);
 
     // home route
-    app.get('/', routes.index);
+    app.get('/', routes.home);
+    app.get('/about', routes.about);
 
     // comment routes
     app.param('commentId', comments.load_options);
