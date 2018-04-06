@@ -214,15 +214,6 @@ There are web mapping services such as Strava (\hyperlink{http://strava.com}{www
 As an extension to those online services, Daiber et al. have proposed a concept of \textit{pioneers} to support mountaineers in their route planning. The idea is that users can select a number of friends or experienced mountaineers called \textit{pioneers}. The user will see the routes their pioneers have recently taken and can incorporate them into their own route planning \cite{followthepioneers}. \\
 
 
-\subsection{Implementation}
-
-\subsection{Evaluation}
-
-\subsection{Conclusion}
-
-\subsection{One paragraph about individual
-contribution}
-
 \subsection{Exploration}
 As already identified by McGookin and Brewster, exploring the environment is an important motivational factor for runners \cite{undirectedrunnernav}. In familiar location running, the main objectives are to meet a distance, time or place target rather than enjoying the environment. However, when the athlete is in an unfamiliar location, these objectives are reversed. They find that this is mostly the case on holidays, however, we want to find out whether we can get athletes to take unfamiliar routes and explore areas of cities in which they have been living for a longer period of time as well.\\
 Robinson et al. have implemented an approach where they encouraged people to explore an area by giving different haptic feedback when they can take alternative routes \cite{ididitmyway}. They could show that people were able to reach their target with only low-resolution haptic feedback and providing users with alternative path awareness is also beneficial.\\
@@ -234,17 +225,38 @@ When designing our system, we must not forget about what motives athletes to do 
 Vallerand et al. have identified three psychological needs which are the reason why people take part in sports \cite{vallerand2007intrinsic}. Those needs are the need for autonomy, competence and relatedness \cite{vallerand1999integrative}. The need for competence is satisfied by giving the athletes regular success and not make them fail all the time. Some competition is good but overall the training climate should be mastery-oriented and not highly competitive. The need for relatedness is satisfied by providing the possibility for athletes to cooperate, share and do activities together. Giving the users some freedom of what they want to do satisfies their need for autonomy \cite{vallerand2007intrinsic}.\\
 In a similar fashion, Ross and Iso-Ahola have identified knowledge-seeking and social interaction as the dominating motivation force in sightseeing. The bottom line from their research is that it is important to teach users something while they are exploring and at the same time give them the opportunity for social interaction \cite{DUNNROSS1991226}.
 
-\section{Evaluation \& Testing}
-Testing and Evaluation will be a key part of our project. We will split this into three parts. 
-\subsection{First Part}
-The first part starts in January. Therefore we will find five to ten athletes that participate in our study. If that works we will work together with the triathlon squad here in Saarbr\"ucken. Each athlete will give us the permission to get their tracked Strava activities for research purposes. We collect the data for about ten days or two weeks and want the participants to write a training diary in this time. The advantage with the triathletes would be that they do training frequently also in winter. 
-\subsection{Second Part}
-The second part of the study will be around February. Then we will tell the participants, which product we are working on and give them admission to our web tool. Now they will do the same thing as before but with our software. This time the goal is to make them familiar with the tool and have them use it. After they had an introduction to the tool the participants start another ten days or two weeks this time using the software and writing diary also concerning the software. 
-Our hypothesis is: Athletes will explore new areas using our system than in their regular training routine.
-\subsection{Third Part}
-The third part will be the evaluation. After our software finally works we can now also calculate the black map that fades away with the gathered data from part one. So we can easily compare the two maps from part one with part two and do this with each athlete. 
-To get more feedback we will also conduct semi-structured interviews with them and give them questionnaires of about two pages. Then we can also avoid complications like if an athlete was ill in one of the two parts or had other reasons not to use our software often we can consider this in the evaluation
-Then we can see whether the athletes could discover new areas by looking at the two maps and either support or reject our hypothesis.
+\section{Design and Implementation}
+\subsection{Vertical Prototypes}
+Our system is very dependent on different third party libraries, web services as well as technical capabilities of the platform. Therefore, it is wise to develop quick vertical prototypes for those parts first, before starting with the design and development of the actual software architecture. In this section we will have a quick look on the vertical prototypes we implemented for various critical functionalities, both those that failed and those that worked.\\
+Since our system performs a lot of calculations on existing route data, we had to find an efficient way to store and execute spatial queries on spatial data. Routes and activities consist of a list of ordered coordinates, represented as latitude-longitude pairs, which act as waypoints. We chose MongoDB, which is a database that specifically supports such coordinates and allows to execute queries such as ''Find all coordinates within 20km of a given point''. After designing our route generation algorithm in theory, we tested the relevant queries on the database in order to verify that it suits our needs. \\
+A critical component of our system is the visualization of the map which includes displaying explored areas as well as single routes. We researched ways how we can display maps on a website and found Leaflet.js as a good candidate. By studying the documentation, we learned that there exist several plugins for this library. We had a look at each of the relevant libraries individually and tested it out with some sample data.\\
+The main use case of our system is the generation of new cycling routes, so we had to find a service that can do that. The Open Source Routing Machine (OSRM) is the most popular way to do this. We will explain this part in more detail below.
+
+\subsection{Implementation}
+The software has been implemented in JavaScript. Although we have a front-end graphical user interface that runs in the browser, the main program logic happens on the server. To achieve that, we used Node.js as JavaScript runtime, which is basically JavaScript for the back-end. This allows the JavaScript code to be programmed in a very efficient asynchronous and non-blocking way and run on the server. The main reasons why we think using Node.js in this context is a good idea are, first, the application is communicating a lot with other APIs by sending and receiving requests over the network. Second, we have a front-end that runs JavaScript in the browser but also third, the Node.js ecosystem has grown a lot in recent years and there is a huge number of open-source packages available, whose dependencies can easily be managed by using the Node package manager.\\
+As discussed earlier, an incremental and iterative approach is very useful when designing and implementing software, which is why we deeply incorporated that paradigm into our development process. After implementing a certain feature, it went through a short phase of testing and evaluation, before we proceeded to the next feature. Also, for most of the methods and functionalities, we created unit tests that constantly ensure the correctness of our code.\\
+The whole system has been designed in a modular way which allows it to easily be maintained and modified for other projects. In the following, we will explain the non-trivial parts of the implementation.
+\subsubsection{User Management}
+//TODO Kevin
+\subsubsection{Spatial Queries}
+//TODO Kevin
+\subsubsection{Strava API}
+//TODO Kevin
+\subsubsection{Map Visualization}
+//TODO Kevin
+\subsubsection{Routing Generation}
+//TODO Kevin
+
+\section{Evaluation}
+//TODO Lukas
+
+
+\section{Conclusion}
+//TODO
+
+\subsection{One paragraph about individual
+contribution}
+I think this should go into a separate document.
 
 % BALANCE COLUMNS
 \balance{}
