@@ -1,11 +1,13 @@
-## ExploX
+# ExploX
 Sports Technologies Seminar
 
-### Installation:
-1. Do the steps in **Database Setup**
-2. Do the steps in **Project Setup**
-3. Optionally, verify the correct installation by doing the steps in **Check Database** and **Check Strava Connection**
+## Quick Start
+* Run mongod
+* _npm install_
+* _npm start_
+* http://localhost:3000/
 
+## Detailed Setup
 ### Database Setup
 * Install **MongoDB** from https://www.mongodb.com/download-center?jmp=nav#community
 * Create a folder /data/db in your computers root dir (e.g. C:// in Windows)
@@ -23,8 +25,6 @@ Sports Technologies Seminar
 * Run _npm start_
 * Visit http://localhost:3000/
 * Website should load
-* (Optional) Run _npm test_
-  * This will run the unit tests. Ideally all tests will pass.
 
 ### Check Database
 These steps are optional, do them to verify that the DB has been set up correctly and get familiar with the mongo tool:
@@ -38,7 +38,6 @@ These steps are optional, do them to verify that the DB has been set up correctl
   * _show collections_ -> should display sessions, users, routes, geos and roles.
   * _db.users.find()_ -> should display two users, one user called "System" and one user called "user"
   * _db.routes.find()_ -> should display a route called "Saarbruecken Uni Route"
-  * _db.roles.find({name: admin})_ will only give you the roles where the name attribute is "admin".
   * _db.geojsons.getIndexes()_ -> should return two indexes, one of which is called "location_2dsphere"
 * This means, the user System has been registered by default and a sample Route has been created in the DB
 * Try to log in using e-mail "system@explox.de" and password "manager"
@@ -52,8 +51,6 @@ These steps are optional, do them to see how the strava connection works.
 * Grant the ExploX app permission to access your data
 * The browser should redirect to the ExploX Website (i.e. localhost:3000)
 * You should be logged in and able to access your profile from the menu at the top
-* Check the npm console log, the last log entry should contain the user data queried from the API.
-* Log in as admin ('system@explox.de'), check API limits in the admin dashboard (on the profile page).
 
 ### Development Quick Start:
 #### Logging
@@ -63,9 +60,9 @@ It can be used in the following way:
 const Log = require('path/to/logger')    // actually the path to app/utils/logger.js
 const TAG = "strava";                    // should be the module name or whatever makes sense
 
-Log.debug(TAG,'my debug message', data); // data is optional
-Log.error(TAG, err);
-Log.log(TAG,'my log message', data);     // data is optional
+Log.debug(TAG,'my debug message', data);  // data is optional
+Log.error(TAG, 'my error message', data); // data is optional
+Log.log(TAG,'my log message', data);      // data is optional
 ```
 #### Tests
 Tests are implemented in the folder test. Write tests like this:
@@ -80,13 +77,4 @@ test('this test does x y', t => {
     t.end();  // required at the end of every test
 });
 ```
-#### Strava API:
-  * Implementation goes into "app\controllers\strava.js"
-  * Routes can be set up in "config\routes.js"
-  * Tests go into "test\test-strava-api.js"
-#### Views:
-  * Routes can be set up in "config\routes.js"
-  * Views are in "app\views"
-#### Database:
-  * Models are defined in "app\models"
 
