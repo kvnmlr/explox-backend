@@ -316,7 +316,41 @@ Lastly, the most interesting part of our system: The algorithm for generating ne
 Those are the most important and interesting parts of the implementation, other more trivial parts have been omitted. The whole implementation can be inspected in the Explox Github repository\footnote{www.github.com/kvnmlr/explox}.
 
 \section{Evaluation}
+
 //TODO Ding
+
+\subsection{Semi-structured Interview}
+After the think aloud observation and the UEQ we had 16 questions in the semi-structured interview to get detailled feedback on more topics concerning the website.
+The interview consists of four parts. These are Design & UX, Black Map, Route Generation and Others. 
+For the Design & UX we asked the participants about performance of the website, visibility, color scheme and overall design. We found out that visibility was only an issue for one of seven participants because the steps of the whole route generation were not always clear for that one person. Even though also only two people said they had to wait longer (compared to similar software) until the website loaded, there was more feedback on that. For one of them the route generation took to long, one found it too slow in general and one had to wait to long for the profile update.
+The overall design and color scheme had no consensus among the answers. Two participants liked it, one because of its similarity to Strava, another two did not decide on whether to like it or not and three needed improvements in design. Those are a more colored website and a website with more fun while exploring it.
+Two participants liked the color scheme, four found it suitable, while one of them liked the ressemblance to Strava, and only one person found it boring, e.g. because of the color orange that appears in Strava, the font of the UI, buttons and route visualization.
+To get feedback for the implementation and visualization of the Black Map we asked participants to rate the bright and dark parts' transparency, shown radius of a discovered GPS point and general correctness of the map. 
+Five out of seven participants found the unseen part of the map too dark while two had no problem reading information in the darker part.
+For the correctness of the routes we had only four answers which is because some did log in with our account and simply could not tell whether the map reflects all the seen part. One found it very "good", another two good and the fourth rated it as "okay".
+The radius of GPS points did also have no consensus. The majority (four out of seven) found it suitable, one too small and two participants too big.
+The Route generation was the most controversy part of the interview. We gathered feedback on the parameters that have to be chosen before generating, visualization of the routes, relevance of the generated routes, chosen roads considering surface, type and traffic, whether it is an useful feature in general and for the participant itself.
+The parameters that can be chosen before generating the route were only sufficient for two participants. Most of the others needed information on altitude (profile, climbs, ...) and were confused with the coordinate entry form. One wished that there was more information on waypoints such as restaurants, cafes and so.
+Four people liked the visualization of the routes, two found it "okay" and one bad. The only feedback given was that the black lines connecting GPS points are distracting.
+The generated routes were not relevant for all participants. Two of them said it was optimal suitable, three found it suitable, one only partly suitable because of the deliverer roads that were too simple and one person said that you cannot completely rely on them.
+All of the participants agreed that the route generation feature is useful in general and for themselves. They said that they would use it especially in an unknown city or for just trying out new routes.
+The questions about the road surface could not be answered sufficiently. According to the participants there was a lack of information on road surface or they do not pay attention on that while looking at the route.
+At the end we asked them whether they know similar software and whether they think, the website has a potential to be used by many athletes.
+None of those seven participants knew similar software for cycling, only one knew an App for alpine tours but could not name it.
+Three participants said that the website has much potential to be used by many athletes and four agreed that it has some under certain circumstances. These are: mobile app preferred, kind of training to be done and that the software must be known by more people (e.g. via advertising).
+Then we collected improvements that the participants suggested us.
+Improvements:
+\begin{itemize}
+\item mobile app
+\item save routes on the phone
+\item altitude information
+\item see routes from friends
+\item information on road surface
+\item POI on the route
+\item connect with social media
+\item keep it always simple
+\end{itemize}
+
 
 
 \section{Conclusion}
