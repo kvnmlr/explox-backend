@@ -58,6 +58,40 @@
 \usepackage{color}
 \usepackage{booktabs}
 \usepackage{textcomp}
+\usepackage{listings}
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+\definecolor{darkgray}{rgb}{.4,.4,.4}
+\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
+
+\lstdefinelanguage{JavaScript}{
+  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
+  keywordstyle=\color{blue}\bfseries,
+  ndkeywords={class, export, boolean, throw, implements, import, this},
+  ndkeywordstyle=\color{darkgray}\bfseries,
+  identifierstyle=\color{black},
+  sensitive=false,
+  comment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  commentstyle=\color{purple}\ttfamily,
+  stringstyle=\color{purple}\ttfamily,
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+   language=JavaScript,
+   extendedchars=true,
+   basicstyle=\footnotesize\ttfamily,
+   showstringspaces=false,
+   showspaces=false,
+   numbers=left,
+   numberstyle=\footnotesize,
+   numbersep=9pt,
+   tabsize=2,
+   breaklines=true,
+   showtabs=false,
+   captionpos=b
+}
 
 % Some optional stuff you might like/need.
 \usepackage{microtype}        % Improved Tracking and Kerning
@@ -227,34 +261,62 @@ In a similar fashion, Ross and Iso-Ahola have identified knowledge-seeking and s
 
 \section{Design and Implementation}
 \subsection{Vertical Prototypes}
-Our system is very dependent on different third party libraries, web services as well as technical capabilities of the platform. Therefore, it is wise to develop quick vertical prototypes for those parts first, before starting with the design and development of the actual software architecture. In this section we will have a quick look on the vertical prototypes we implemented for various critical functionalities, both those that failed and those that worked.\\
-Since our system performs a lot of calculations on existing route data, we had to find an efficient way to store and execute spatial queries on spatial data. Routes and activities consist of a list of ordered coordinates, represented as latitude-longitude pairs, which act as waypoints. We chose MongoDB, which is a database that specifically supports such coordinates and allows to execute queries such as ''Find all coordinates within 20km of a given point''. After designing our route generation algorithm in theory, we tested the relevant queries on the database in order to verify that it suits our needs. \\
-A critical component of our system is the visualization of the map which includes displaying explored areas as well as single routes. We researched ways how we can display maps on a website and found Leaflet.js as a good candidate. By studying the documentation, we learned that there exist several plugins for this library. We had a look at each of the relevant libraries individually and tested it out with some sample data.\\
-The main use case of our system is the generation of new cycling routes, so we had to find a service that can do that. The Open Source Routing Machine (OSRM) is the most popular way to do this. We will explain this part in more detail below.
+Our system is very dependent on different third party libraries, web services as well as technical capabilities of the platform. Therefore, it is wise to develop quick vertical prototypes for those parts first, before starting with the design and development of the actual software architecture. In this section we will have a quick look on the vertical prototypes we implemented for various critical functionalities.\\
+Since our system performs a lot of calculations on existing route data, we had to find an efficient way to store and execute spatial queries on spatial data. Routes and activities consist of a list of ordered coordinates, represented as latitude-longitude pairs, which act as waypoints. We chose MongoDB\footnote{www.mongodb.com}, which is a database that specifically supports such coordinates and allows to execute queries such as ''Find all coordinates within 20km of a given point''. After designing our route generation algorithm in theory, we tested the relevant queries on the database in order to verify that it suits our needs. \\
+A critical component of our system is the visualization of the map which includes displaying explored areas as well as single routes. We researched ways how we can display maps on a website and found Leaflet.js as a good candidate. By studying the documentation, we learned that there exist several plugins for this library. We had a look at each of the relevant libraries individually and tested them out with some sample data.\\
+The main use case of our system is the generation of new cycling routes, so we had to find a service that can do that. The Open Source Routing Machine (OSRM)\footnote{www.project-osrm.org} is the most popular way to do this. We will explain this part in more detail below.
 
 \subsection{Implementation}
-The software has been implemented in JavaScript. Although we have a front-end graphical user interface that runs in the browser, the main program logic happens on the server. To achieve that, we used Node.js as JavaScript runtime, which is basically JavaScript for the back-end. This allows the JavaScript code to be programmed in a very efficient asynchronous and non-blocking way and run on the server. The main reasons why we think using Node.js in this context is a good idea are, first, the application is communicating a lot with other APIs by sending and receiving requests over the network. Second, we have a front-end that runs JavaScript in the browser but also third, the Node.js ecosystem has grown a lot in recent years and there is a huge number of open-source packages available, whose dependencies can easily be managed by using the Node package manager.\\
-As discussed earlier, an incremental and iterative approach is very useful when designing and implementing software, which is why we deeply incorporated that paradigm into our development process. After implementing a certain feature, it went through a short phase of testing and evaluation, before we proceeded to the next feature. Also, for most of the methods and functionalities, we created unit tests that constantly ensure the correctness of our code.\\
-The whole system has been designed in a modular way which allows it to easily be maintained and modified for other projects. In the following, we will explain the non-trivial parts of the implementation.
+The software has been implemented in JavaScript. Although we have a front-end graphical user interface that runs in the browser, the main program logic happens on the server. To achieve that, we used Node.js\footnote{www.nodejs.org} as backend JavaScript runtime. The main reasons why we think using Node.js in this context is a good idea are, first, the application is communicating a lot with other APIs by sending and receiving requests over the network. Second, we have a front-end that runs JavaScript in the browser but also third, the Node.js ecosystem has grown a lot in recent years and there is a huge number of open-source packages available, whose dependencies can easily be managed by using the Node package manager.\\
+An incremental and iterative approach is very useful when designing and implementing software, which is why we deeply incorporated that paradigm into our development process. After implementing a certain feature, it went through a short phase of testing and evaluation, before we proceeded to the next feature. Also, for most of the methods and functionalities, we created unit tests that constantly ensure the correctness of our code.\\
+The whole system has been designed in a modular way which allows it to be easily maintained and modified for other projects. In the following, we will explain the non-trivial parts of the implementation.
 \subsubsection{User Management}
-To make later evaluations and studies more easy, we decided to start with a solid user management. We defined database schemas for users and provided forms for logging in to existing accounts or signing up new users. The password is hashed and stored in the database and sessions are created such that the user stays logged in in their browser as long as the session is active. In order to use our features, users have to connect their strava account. Therefore, we had to implement an OAuth for a strava login. Users who wish to log in using their strava account are redirected to the strava login page where they have to log in and authorize our app to access their profile data. This only has to be done once.
+To make later evaluations and studies more easy, we decided to start with a solid user management. We defined database schemas for users and provided forms for logging in to existing accounts or signing up new users. The password is salted and hashed and stored in the database. Sessions are created such that the user stays logged in in their browser as long as the session is active. In order to use our features, users have to connect their Strava account. Therefore, we had to implement an OAuth authentication for Strava. Users who wish to log in using their Strava account are redirected to the Strava login page where they have to log in and authorize our app to access their profile data. This only has to be done once.
 \subsubsection{Spatial Queries}
-As a database for both regular tables with e.g. route and user data as well as special geographic data we used MongoDB and the Mongoose as database driver for Node.js. Each route or activity waypoint is a separate entry in the table that consists of a latitude-longitude-pair, a list of references to routes and activities that contain this point as well as an optional name for special locations (e.g. ''Home''). The schema can be seen in listing // TODO db schema
-On this table, we can easily execute spatial queries. The following query returns all datapoints within 1000m of the given coordinate. // TODO example code
-We make use of this functionality in the route generation algorithm.
+As a database for both regular tables with route, activity and user data as well as special geographic data we used MongoDB and Mongoose\footnote{www.mongoosejs.com} as database driver for Node.js. Each route or activity waypoint is a separate entry in the table that consists of a latitude-longitude-pair, a list of references to routes and activities that contain this point as well as an optional name for special locations (e.g. ''Home''). The schema can be seen in listing 1.
+\begin{lstlisting}[caption=Geo Schema with Spatial Index]
+const GeoSchema = new Schema({
+  name: { type: String, default: '',
+    trim: true },
+  location: { type: Schema.Types.Point, 
+    index: '2dsphere' },
+  routes: [{ type: Schema.ObjectId, 
+    ref: 'Route' }],
+  activities: [{ type: Schema.ObjectId, 
+    ref: 'Activity' }],
+});
+\end{lstlisting}
+Notice that we added an index called 2dsphere on the location attribute (line 5) which allows the database to correctly execute spatial queries, considering the earth's curvature. The example query in listing 2 returns all datapoints within 1000m of the given coordinate 'coord' together with the exact distance to this coordinate added in a field called 'distance' in ascending order. We make use of this functionality in the route generation algorithm.
+\begin{lstlisting}[caption=Sample Spatial Query]
+Geo.aggregate([{
+  $geoNear: {
+    query: {},
+    near: {
+      type: 'Point',
+      coordinates: [coord.lng, coord.lat]},
+    maxDistance: 1000,
+    minDistance: 0.1,
+    spherical: true,
+    distanceField: 'distance',
+    }
+  },
+  { $sort: { distance: 1 }}])
+.exec(callback);
+\end{lstlisting}
 \subsubsection{Strava API}
-As described earlier, our goal is to generate new and good cycling routes. To make sure those routes are good for cycling and include interesting sections, we decided to use existing routes and segments from Strava to lead our algorithm. Moreover, the activity map needs the user's past cycling activities which we can also get form Strava. In order to get all all this data, we had to implement the corresponding Strava api calls, namely getting the user's profile data, getting a user's personal routes and activities, getting the coordinates of each route and activity, getting a list of segments for a given area and getting the coordinates for each of them. Unfortunately, the api does only allow getting routes from users that have explicitly authorized our app to do so, which means we only have the routes of users available that have logged in on our website. To get most of the available segments, we implemented a crawler that works around the api limitations and can retrieve a good amount of Strava segments. For example, in the area of Saarbr\''ucken to St. Ingbert, we could retrieve the 200 most popular segments.
+As described earlier, our goal is to generate new and good cycling routes. To make sure those routes are good for cycling and include interesting sections, we decided to use existing routes and segments from Strava to lead our algorithm. Moreover, the activity map should display the user's past cycling activities which we can also get form Strava. In order to get all this data, we had to implement the corresponding Strava API calls, namely getting the user's profile data, getting a user's personal routes and activities, getting the coordinates of each route and activity, getting a list of segments for a given area and getting the coordinates for each of them. Unfortunately, the API does only allow getting routes from users that have explicitly authorized our app to do so, which means we only have the routes of users available that have registered on our website. To get most of the available segments, we implemented a specialized crawler that works around the API limitations and can retrieve a good amount of Strava segments. For example, in the area of Saarbr\"ucken to St. Ingbert, we could retrieve more than 200 of the most popular segments.
 \subsubsection{Map Visualization}
-The map visualization is rather straight forward. As a map provider, we use Leaflet.js and a map from Open Street Maps. To display the activity map, we integrated a plugin called MaskCanvas which overlays the base layer map with a canvas. We chose this canvas to have a dark and semi-transparent background. The plugin receives all the coordinates from the user's activities and renders the overlay fully transparend at those locations with a radius of 200m.
+The map visualization is rather straight forward. As a map provider, we use Leaflet.js\footnote{www.leafletjs.com} and a map from Open Street Maps. To display the activity map, we integrated a plugin called MaskCanvas\footnote{www.github.com/domoritz/leaflet-maskcanvas } which overlays the base layer map with a canvas. We chose this canvas to have a dark and semi-transparent background. The plugin receives all the coordinates from the user's activities and renders the overlay fully transparend at those locations with a radius of 200m. We used Leaflet.js's GeoJSON markers to highlight the start and end points of the route with colored circles as well as thin lines connecting each waypoint directly as an additional guide when the actual routing is not clear (e.g. on route intersections).
 \subsubsection{Routing Generation}
-Lastly, the most interesting part of our system: The algorithm for generating new routes. Basically there are five steps that in the end lead to a list of five or less matching route suggestions.\\
-1. Lower Bound Distance Filter: We get all routes and segments that are shorter than the wanted route distance from the database. Then, for each route/segment we calculate the distance from the given start point to each the start and end point. Those to measures summed up with the distance of the route/segment gives us the lower bound distance that a route that includes this route/segment would have.\\
-2. Combine, Sort and Reduce: Next, routes and segments are combined such that multiple short segments would be connected and included in the final route. By doing so, we can find a new route that traverses as many segments as possible in the given distance. However, in our prototype, we only used single routes and segments and did not combine them. Next, the remaining combinations are sorted on the lower bound distance and filtered such that the top 20 combinations that match the wanted distance remain.\\
-3. Find Route: In this step, we down-sample the route/segments that we want to include in our route such that only 25 waypoints remain. We then query the MapBox directions API and pass the waypoints as well as some other relevant parameters. The API will then return a route from and to the given start point that includes the given route/segment. Another distance filter removes routes where the actual distance deviates a lot from the lower bound distance (i.e. routes that are much too long).\\
-4. Familiarity Filter: The last step includes filtering the found routes based on what percentage of the route is in a familiar area. To get this value, we make use of the spatial database queries by checking for each of the waypoints whether an explored point is within a radius of 200m. Wether we return routes that are very new or familiar to the user can be chosen by the user.\\
+Lastly, the most interesting part of our system: The algorithm for generating new routes. Wherever possible the operations are implemented in an asynchronous (i.e. non-blocking) way to maximize efficiency. Basically, there are four steps that in the end lead to a list of five or less matching route suggestions.\\
+1. Lower Bound Distance Filter: We get all routes and segments that are shorter than the wanted route distance from the database. Then, for each route/segment we calculate the distance from the given start point to each the start and end point. Those two measures summed up with the distance of the route/segment itself gives us the lower bound on the distance that a route that includes this route/segment would have.\\
+2. Combine, Sort and Reduce: Next, routes and segments are combined such that multiple short segments would be connected and included in the final route. By doing so, we can find a new route that traverses as many segments as possible in the given distance. However, in our prototype, we only used single routes and segments and did not combine them, but the design of the algorithm as it is implemented already allows this feature. Next, the remaining combinations are sorted on the lower bound distance and filtered such that the top 20 combinations that match the wanted distance remain.\\
+3. Find Route: In this step, we down-sample the route/segments that we want to include in our route such that only 25 waypoints remain. We then query the MapBox\footnote{www.mapbox.com} directions API and pass the waypoints as well as some other relevant parameters. The API will then return a route from and to the given start point that includes the given route/segment. Another distance filter removes routes where the actual distance deviates a lot from the lower bound distance (i.e. routes that are much too long).\\
+4. Familiarity Filter: The last step includes filtering the found routes based on what percentage of the route is in a familiar area. To get this value, we make use of the spatial database queries by checking for each of the waypoints whether an explored point is within a radius of 200m. Wether we return routes that are very new or familiar to the user can be chosen by the user. The actual route distance and percentage of the part of the route that is unexplored is later displayed in the interface to the user. Also, by simply looking at the route on the activity map, one can clearly see what parts are in unexplored areas.\\
+Those are the most important and interesting parts of the implementation, other more trivial parts have been omitted. The whole implementation can be inspected in the Explox Github repository\footnote{www.github.com/kvnmlr/explox}.
 
 \section{Evaluation}
-//TODO Lukas
+//TODO Ding
 
 
 \section{Conclusion}
