@@ -58,40 +58,6 @@
 \usepackage{color}
 \usepackage{booktabs}
 \usepackage{textcomp}
-\usepackage{listings}
-\definecolor{lightgray}{rgb}{.9,.9,.9}
-\definecolor{darkgray}{rgb}{.4,.4,.4}
-\definecolor{purple}{rgb}{0.65, 0.12, 0.82}
-
-\lstdefinelanguage{JavaScript}{
-  keywords={typeof, new, true, false, catch, function, return, null, catch, switch, var, if, in, while, do, else, case, break},
-  keywordstyle=\color{blue}\bfseries,
-  ndkeywords={class, export, boolean, throw, implements, import, this},
-  ndkeywordstyle=\color{darkgray}\bfseries,
-  identifierstyle=\color{black},
-  sensitive=false,
-  comment=[l]{//},
-  morecomment=[s]{/*}{*/},
-  commentstyle=\color{purple}\ttfamily,
-  stringstyle=\color{purple}\ttfamily,
-  morestring=[b]',
-  morestring=[b]"
-}
-
-\lstset{
-   language=JavaScript,
-   extendedchars=true,
-   basicstyle=\footnotesize\ttfamily,
-   showstringspaces=false,
-   showspaces=false,
-   numbers=left,
-   numberstyle=\footnotesize,
-   numbersep=9pt,
-   tabsize=2,
-   breaklines=true,
-   showtabs=false,
-   captionpos=b
-}
 
 % Some optional stuff you might like/need.
 \usepackage{microtype}        % Improved Tracking and Kerning
@@ -110,7 +76,7 @@
 % Paper metadata (use plain text, for PDF inclusion and later
 % re-using, if desired).  Use \emtpyauthor when submitting for review
 % so you remain anonymous.
-\def\plaintitle{ExploX - Seminar Project Proposal}
+\def\plaintitle{ExploX - Seminar Project Report}
 \def\plainauthor{Kevin M\"uller, Marc Rupp, Lukas Strobel, Xueting Li}
 \def\emptyauthor{}
 \def\plainkeywords{}
@@ -184,16 +150,9 @@
 \maketitle
 
 \begin{abstract}
-  In this proposal, we present ExploX, an app that allows for route creation and exploration of less frequented areas.With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. \textbf{}
+  In this Report, we present ExploX, an web-app that allows for route generation and exploration of more new areas.With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. \textbf{}
 \end{abstract}
 
-\category{H.5.m.}{Information Interfaces and Presentation
-  (e.g. HCI)}{Miscellaneous} \category{See
-  \url{http://acm.org/about/class/1998/} for the full list of ACM
-  classifiers. This section is required.}{}{}
-
- 
- 
  \keywords{Route planning;
  Exploration of unfamiliar areas;
  Navigation;
@@ -225,17 +184,22 @@ A reference \cite{dorr2009gaze}
 
 
 \section{Introduction}
-In the last 10 years, the services such as Google Maps that enable point to point navigation and  Geocaching that enable people to explore unfamiliar areas have made great progress and bring more fun. Nowadays also a variety of services such as Strava and Komoot emerge not only navigation but also route planning for running and biking. Based on these services, we want to develop an app which could plan routes and help do personal exploration of the unseen area with the history data using the API of Strava, motivating athletes to cover more less visited parts of their environment.
+In the last 10 years, the services such as Google Maps that enable point to point navigation and Geocaching that enable people to explore unfamiliar areas have made great progress and bring more fun. Nowadays also a variety of services such as Strava and Komoot emerge not only navigation but also route planning for running and biking. Based on these services, we want to develop a web app which could plan routes and help do personal exploration of the unseen area with other's history data using the API of Strava, motivating athletes to cover more less visited parts of their environment.
 
-Our aim here is to motivate athletes to explore more of less visited parts of cities. To accomplish this ,firstly we aim to create routes along paths around areas that the user is most unlikely to know about. The maps would be divided into two parts, the familiar area and unfamiliar area using the history data. The app would recommend person A the routes in seldom visited area but frequent visited by person B, in terms of safety. Secondly our work will allow the user to explore neglected areas knowing the current location and specific destination. So the generated route could be downloaded and preview before exploring. Thirdly, the explored areas would fade out from dark black to transparent according the the frequency of visiting.
+Our aim here is to motivate athletes to explore more of less visited parts of Saarbr\"ucken. 
 
-Psychogeography is the practice of exploring the urban environment with the intention to investigate the effects on feelings and behavior. To generate a complete image of the city this is necessary, as the Psychogeographers argue. This is one of the  reason we want to create the fading map.
+To accomplish this ,firstly we aim to create routes along paths around areas that the user is most unlikely to know about. The maps would be divided into two parts, the familiar area and unfamiliar area using the history data. The app would recommend athletes the routes in seldom visited area but frequent visited by others, in terms of safety.By setting the staring point ,destination and the total distance that want to be covered, our algorithm would generate several routes and the percentage of covering new area.
 
-Taking routes of another athlete could avoid the case of illegal exploration or simply routes that are not suited for running or cycling. One has to explore parts of the environment that are normally not frequented.As our aim with this project is not to support illegal activities we do not consider the actual exploration of such areas  which is regarded as danger.
+Secondly our work would show the black map of covered area and uncovered one. So the generated route could be downloaded and previewed before exploring.The explored areas would fade out from dark black to transparent according the the frequency of visiting.
 
-Using the social media sources and personal location history we determine areas that are less frequented and might be unknown even to citizens living in the city for a long time. The design of the ExploX application, tries to combine the ideas of the psychogeography movement from the 60s with more recent developments of the exploration and Strava communities. With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. Additionally we hope to complete the users spatial memory about their city.
+Psychogeography is the practice of exploring the urban environment with the intention to investigate the effects on feelings and behavior. To generate a complete image of the city is necessary, as the Psychogeographers argue. This is one of the  reason we want to create the fading map.
 
-The paper is structured as follows. First we present the introduction and related work that led to the development of this idea. Afterwards we lay out the designing milestones, a list of equipment and resources we need and the formal requirements for this prototype. Thereafter we will present how we want to conduct the user study in order to evaluate our approach. 
+Taking routes of another athlete could avoid the case of illegal exploration or simply routes that are not suited for cycling. One has to explore parts of the environment that are normally not frequented.As our aim with this project is not to support illegal activities we do not consider the actual exploration of such areas  which is regarded as danger.
+
+Using the social media sources and personal location history(GPS data) we determine areas that are less frequented and might be unknown even to citizens living in the city for a long time. The design of the ExploX application, tries to combine the ideas of the psychogeography movement from the 60s with more recent developments of the exploration and Strava communities. With this we want to enable the user to generate a more holistic image of their living surroundings and allow them to escape their daily routine. Additionally we hope to complete the users spatial memory about their city.
+
+The report is structured as follows. First we present the introduction and related work that led to the development of this idea. Afterwards we lay out the implementation details, such as the framework and the idea of combining the segmentation.Thereafter we will present how we conduct the user study for evaluation of the designs and functions we have implemented and show the related results.It would show whether the result support or against our hypotheses "the web-app motives the athletes to explore more new places".The results showe that the usability and user
+experience of our system is above average overall
 
 \section{Related Work}
 In the following section, we will examine previous work done on the topics of route planning, (urban) exploration and motivation in sports and sightseeing. While the former two topics will give us an overview over different approaches to navigation and goals in exploration, the latter will help us design our prototype in order to motivate users to explore unfamiliar areas as well as complete their training routine and become better athletes.
@@ -403,12 +367,21 @@ Improvements:
 
 
 \section{Conclusion}
-//TODO
+According to the survey of our users, they don't know any existing similar application that could generate routes to motivate them to explore more new area, which means our application has prosperous potential in the future market.
+Current sport-related applications are more or less about point to point navigation, but as to route generation, there exists few approaches.
+Our application fulfills the idea which motivate the user to explore more new areas compared to other app like Strava.We provide several selected routes for the users and they could choose the most preferred one.According to the result of the survey, the design of the App is also quite good, the aspects of  attractiveness,perspicuity,efficiency,dependability,stimulation and novelty are quite popular. More re-fined functions are waited to be fully implemented to satisfy users personally.
+\section{Future Work}
 
+As to the future work,first of all,the app is supposed to combine multiple routes and segments in the route generation, for example, it could split existing routes into smaller segments to satisfy the users.
+Secondly, more parameters for the route generation should be included such as 
+altitude, road surface,traffic states...
+By now, our app is used just for cycling, in the future, running,hiking...more activities should be included as well.
+Mobile app should be developed as well for the mobile uers.
 \subsection{One paragraph about individual
 contribution}
 For the individual contribution see separate file. 
 
+% BALANCE COLUMNS
 % BALANCE COLUMNS
 \balance{}
 
