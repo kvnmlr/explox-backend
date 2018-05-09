@@ -42,7 +42,10 @@ require('./config/routes')(app, passport);
 
 const Log = require('./app/utils/logger');
 
-fs.writeFile('application.log', '');        // Reset the log file
+// Reset the log file
+fs.writeFile('application.log', '', (err) => {
+    if (err) throw err;
+});
 
 if (cluster.isMaster) {
     Log.log("Server", "_____Starting Server_____");
