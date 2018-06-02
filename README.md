@@ -1,6 +1,12 @@
 # ExploX
 Sports Technologies Seminar
 
+## Versions
+* npm: 6.1.0
+* Node: 10.3.0
+* MongoDB: 3.6 (Community Edition, Windows 10 x64)
+* Webstorm: 2018.1.4
+
 ## Quick Start
 * Run mongod
 * _npm install_
