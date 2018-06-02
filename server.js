@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Module dependencies
- */
-
 require('dotenv').config();
 
 const fs = require('fs');
@@ -32,7 +28,7 @@ module.exports.mongoose = mongoose;
 
 // Bootstrap models
 fs.readdirSync(models)
-    .filter(file => ~file.search(/^[^\.].*\.js$/))
+    .filter(file => ~file.search(/^[^.].*\.js$/))
     .forEach(file => require(join(models, file)));
 
 // Bootstrap routes
@@ -48,7 +44,7 @@ fs.writeFile('application.log', '', (err) => {
 });
 
 if (cluster.isMaster) {
-    Log.log("Server", "_____Starting Server_____");
+    Log.log('Server', '_____Starting Server_____');
     Log.log('Server', 'Starting ' + numCPUs + ' workers on port ' + port);
 
     connect()
@@ -59,16 +55,16 @@ if (cluster.isMaster) {
     for (let i = 0; i < numCPUs; i++) {
         cluster.fork();
     }
-    cluster.on('exit', function(deadWorker, code, signal) {
+    cluster.on('exit', function (deadWorker) {
         // Restart the worker
         const worker = cluster.fork();
 
         // Log the event
-        Log.error('Server', 'Worker '+deadWorker.process.pid+' has died.');
-        Log.log('Server', 'Worker '+worker.process.pid+' was born.');
+        Log.error('Server', 'Worker ' + deadWorker.process.pid + ' has died.');
+        Log.log('Server', 'Worker ' + worker.process.pid + ' was born.');
     });
 
-    Object.keys(cluster.workers).forEach(function(id) {
+    Object.keys(cluster.workers).forEach(function (id) {
         Log.log('Server', 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
     });
 } else {
@@ -78,26 +74,26 @@ if (cluster.isMaster) {
         .once('open', listen);
 }
 
-function listen() {
+function listen () {
     if (app.get('env') === 'test') return;
     app.listen(port);
 }
 
-function initialize() {
+function initialize () {
     init.init();
 
 }
 
-function connect() {
+function connect () {
     const options = {
         keepAlive: true,
-        useMongoClient: true,
         autoIndex: true,                   // TODO build the spatial index
         reconnectTries: Number.MAX_VALUE,   // Always try to reconnect
         reconnectInterval: 500,             // Reconnect every 500ms
         bufferMaxEntries: 0                 // If not connected, return errors immediately
     };
     mongoose.Promise = global.Promise;
-    return mongoose.connect(config.db, options);
+    mongoose.connect(config.db, options);
+    return mongoose.connection;
 }
 

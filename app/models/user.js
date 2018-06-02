@@ -10,27 +10,27 @@ const ObjectId = require('mongoose').Types.ObjectId;
 const Schema = mongoose.Schema;
 const oAuthTypes = ['strava'];
 const Log = require('../utils/logger');
-const TAG = "user";
+const TAG = 'user';
 
 /**
  * User Schema
  */
 
 const UserSchema = new Schema({
-    name: {type: String, default: ''},
-    email: {type: String, default: '', index: {unique: true}},
-    username: {type: String, default: '', trim: true, index: {unique: true}},
-    provider: {type: String, default: ''},
-    hashed_password: {type: String, default: ''},
-    salt: {type: String, default: ''},
-    authToken: {type: String, default: ''},
-    stravaId: {type: String, default: ''},
+    name: { type: String, default: '' },
+    email: { type: String, default: '', index: { unique: true } },
+    username: { type: String, default: '', trim: true, index: { unique: true } },
+    provider: { type: String, default: '' },
+    hashed_password: { type: String, default: '' },
+    salt: { type: String, default: '' },
+    authToken: { type: String, default: '' },
+    stravaId: { type: String, default: '' },
     strava: {},
-    routes: [{type: Schema.ObjectId, ref: 'Route'}],
-    activities: [{type: Schema.ObjectId, ref: 'Activity'}],
-    role: {type: String, default: 'user'},
-    createdAt: {type: Date, default: Date.now},
-    lastLogin: {type: Date, default: Date.now}
+    routes: [{ type: Schema.ObjectId, ref: 'Route' }],
+    activities: [{ type: Schema.ObjectId, ref: 'Activity' }],
+    role: { type: String, default: 'user' },
+    createdAt: { type: Date, default: Date.now },
+    lastLogin: { type: Date, default: Date.now }
 });
 
 const validatePresenceOf = value => value && value.length;
@@ -66,16 +66,16 @@ UserSchema.path('email').validate(function (email) {
     return email.length;
 }, 'Email cannot be blank');
 
-UserSchema.path('email').validate(function (email, fn) {
+UserSchema.path('email').validate(function (email) {
     const User = mongoose.model('User');
-    if (this.skipValidation()) fn(true);
+    if (this.skipValidation()) return (true);
 
     // Check only when it is a new user or when email field is modified
     if (this.isNew || this.isModified('email')) {
-        User.find({email: email}).exec(function (err, users) {
-            fn(!err && users.length === 0);
+        User.find({ email: email }).exec(function (err, users) {
+            return (!err && users.length === 0);
         });
-    } else fn(true);
+    } else return (true);
 }, 'Email already exists');
 
 UserSchema.path('username').validate(function (username) {
@@ -176,7 +176,7 @@ UserSchema.statics = {
      */
     load_full: function (_id, options, cb) {
         options.select = options.select || '';
-        return this.findOne({_id: ObjectId(_id)})
+        return this.findOne({ _id: ObjectId(_id) })
             .populate({
                 path: 'activities',
                 populate: {
@@ -211,7 +211,7 @@ UserSchema.statics = {
      */
 
     load: function (_id, cb) {
-        return this.load_options({criteria: {_id: _id}}, cb);
+        return this.load_options({ criteria: { _id: _id } }, cb);
     },
 
     /**
@@ -224,7 +224,7 @@ UserSchema.statics = {
      */
 
     update_user: function (id, data, cb) {
-        return this.update({_id: ObjectId(id)}, data, function(err) {
+        return this.update({ _id: ObjectId(id) }, data, function (err) {
             if (err) {
                 Log.error(TAG, err);
             }
@@ -237,7 +237,7 @@ UserSchema.statics = {
     list: function (options, cb) {
         const criteria = options.criteria || {};
         return this.find(criteria)
-            .sort({createdAt: -1})
+            .sort({ createdAt: -1 })
             .exec(cb);
     }
 

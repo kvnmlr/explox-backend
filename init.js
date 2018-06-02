@@ -1,4 +1,5 @@
 'use strict';
+
 const Log = require('./app/utils/logger');
 const TAG = 'Init';
 
@@ -8,18 +9,18 @@ let geos = [];
 let adminRole, userRole;
 
 // Utility functions
-const apply = function(callbacks) {
+const apply = function (callbacks) {
     checkAndCallback(callbacks);
 };
-const checkAndCallback = function(callbacks) {
+const checkAndCallback = function (callbacks) {
     if (callbacks.length > 0) {
         const cb = callbacks[0];
         callbacks.shift();
         return cb(callbacks);
     }
 };
-const finished = function(callbacks) {
-    Log.log('Init', "_______Server Ready________");
+const finished = function (callbacks) {
+    Log.log('Init', '_______Server Ready________');
     checkAndCallback(callbacks);
 };
 exports.createSampleData = function (callbacks) {
@@ -31,10 +32,10 @@ exports.createSampleData = function (callbacks) {
     Activity = mongoose.model('Activity');
     Settings = mongoose.model('Settings');
 
-    apply([/*createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, */createDefaultUsers, /*createSampleRoute,*/ createDefaultSettings, finished]);
+    apply([/* createDefaultGeo1, createDefaultGeo2, createDefaultGeo3, */createDefaultUsers, /* createSampleRoute,*/ createDefaultSettings, finished]);
 };
 
-exports.init = function() {
+exports.init = function () {
     Log.log('Init', 'Initializing database');
     mongoose = require('mongoose');
     Route = mongoose.model('Route');
@@ -42,26 +43,26 @@ exports.init = function() {
     User = mongoose.model('User');
     Role = mongoose.model('Role');
 
-    apply([createRoles, createDefaultAdmins, this.createSampleData])
+    apply([createRoles, createDefaultAdmins, this.createSampleData]);
 };
 
-const createDefaultGeo1 = function(callbacks) {
-    createDefaultGeo("init1", 23.600800037384033, 46.76758746952729, callbacks);
+const createDefaultGeo1 = function (callbacks) {
+    createDefaultGeo('init1', 23.600800037384033, 46.76758746952729, callbacks);
 };
-const createDefaultGeo2 = function(callbacks) {
-    createDefaultGeo("init2", 25.600800037384033, 48.76758746952729, callbacks);
+const createDefaultGeo2 = function (callbacks) {
+    createDefaultGeo('init2', 25.600800037384033, 48.76758746952729, callbacks);
 };
-const createDefaultGeo3 = function(callbacks) {
-    createDefaultGeo("init3", 65.600800037384033, 2.76758746952729, callbacks);
+const createDefaultGeo3 = function (callbacks) {
+    createDefaultGeo('init3', 65.600800037384033, 2.76758746952729, callbacks);
 };
 
-const createDefaultGeo = function(name, lat, long, callbacks) {
+const createDefaultGeo = function (name, lat, long, callbacks) {
     const options = {
-        criteria: {'name': name}
+        criteria: { 'name': name }
     };
 
     Geo.load_options(options, function (err, geo) {
-        if (err) Log.error("Init", err);
+        if (err) Log.error('Init', err);
         if (!geo) {
             const coords = [];
             coords[1] = lat;
@@ -75,7 +76,7 @@ const createDefaultGeo = function(name, lat, long, callbacks) {
                 }            });
 
             geo.save(function (err) {
-                if (err) Log.error("Init", err);
+                if (err) Log.error('Init', err);
                 geos[geos.length] = geo;
                 checkAndCallback(callbacks);
             });
@@ -86,9 +87,9 @@ const createDefaultGeo = function(name, lat, long, callbacks) {
 };
 
 
-const createDefaultAdmins = function(callbacks) {
+const createDefaultAdmins = function (callbacks) {
     const options = {
-        criteria: {'email': 'system@explox.de'}
+        criteria: { 'email': 'system@explox.de' }
     };
     User.load_options(options, function (err, user) {
         if (!user) {
@@ -102,7 +103,7 @@ const createDefaultAdmins = function(callbacks) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
-                if (err) Log.error("Init", err);
+                if (err) Log.error('Init', err);
                 checkAndCallback(callbacks);
             });
         } else {
@@ -111,13 +112,13 @@ const createDefaultAdmins = function(callbacks) {
     });
 };
 
-const createDefaultUsers = function(callbacks) {
+const createDefaultUsers = function (callbacks) {
     const options = {
-        criteria: {'email': 'user@explox.de'}
+        criteria: { 'email': 'user@explox.de' }
     };
     User.load_options(options, function (err, user) {
         if (err) {
-            return done(err);
+            return;
         }
         if (!user) {
             user = new User({
@@ -131,19 +132,19 @@ const createDefaultUsers = function(callbacks) {
                 createdAt: Date.now()
             });
             user.save(function (err) {
-                if (err) Log.error("Init", err);;
-                checkAndCallback(callbacks)
+                if (err) Log.error('Init', err);
+                checkAndCallback(callbacks);
             });
         } else {
-            checkAndCallback(callbacks)
+            checkAndCallback(callbacks);
         }
     });
 };
 
-const createDefaultSettings = function(callbacks) {
-    Settings.loadValue("api", function (err, setting) {
+const createDefaultSettings = function (callbacks) {
+    Settings.loadValue('api', function (err, setting) {
         if (err) {
-            return done(err);
+            return;
         }
         if (!setting) {
             setting = new Settings({
@@ -154,16 +155,16 @@ const createDefaultSettings = function(callbacks) {
                 }
             });
             setting.save(function (err) {
-                if (err) Log.error("Init", err);;
-                checkAndCallback(callbacks)
+                if (err) Log.error('Init', err);
+                checkAndCallback(callbacks);
             });
         } else {
-            checkAndCallback(callbacks)
+            checkAndCallback(callbacks);
         }
     });
 };
 
-const createRoles = function(callbacks) {
+const createRoles = function (callbacks) {
     adminRole = 'admin';
     userRole = 'user';
     /*
@@ -203,17 +204,17 @@ const createRoles = function(callbacks) {
         }
     });
     */
-    checkAndCallback(callbacks)
+    checkAndCallback(callbacks);
 };
 
-const createSampleRoute = function(callbacks) {
+const createSampleRoute = function (callbacks) {
     const options = {
-        criteria: {'name': 'user'}
+        criteria: { 'name': 'user' }
     };
     User.load_options(options, function (err, user) {
-        if (err) return done(err);
+        if (err) return;
         const options = {
-            criteria: {'title': 'Saarbrücken Uni Route'}
+            criteria: { 'title': 'Saarbrücken Uni Route' }
         };
         Route.load_options(options, function (err, route) {
             if (!route) {
@@ -232,15 +233,15 @@ const createSampleRoute = function(callbacks) {
                     distance: 1337.42
                 });
                 route.save(function (err) {
-                    if (err) Log.error("Init", err);
+                    if (err) Log.error('Init', err);
                     if (geos.length > 0) {
                         geos[0].routes.push(route);
                         geos[0].save();
                     }
-                    checkAndCallback(callbacks)
+                    checkAndCallback(callbacks);
                 });
             } else {
-                checkAndCallback(callbacks)
+                checkAndCallback(callbacks);
             }
         });
     });
