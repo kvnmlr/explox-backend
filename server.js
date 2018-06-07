@@ -81,7 +81,6 @@ function listen () {
 
 function initialize () {
     init.init();
-
 }
 
 function connect () {

@@ -5,7 +5,6 @@
  */
 
 const mongoose = require('mongoose');
-const notify = require('../mailer');
 const Schema = mongoose.Schema;
 const getTags = tags => tags.join(',');
 const setTags = tags => tags.split(',');
@@ -119,11 +118,10 @@ RouteSchema.statics = {
      * Load
      *
      * @param {Object} options
-     * @param {Function} cb
      * @api private
      */
 
-    load_options: function (options, cb) {
+    load_options: function (options) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
             .populate('user', 'name email username')
@@ -131,7 +129,7 @@ RouteSchema.statics = {
             .populate('parts')
             .populate('comments.user')
             .select(options.select)
-            .exec(cb);
+            .exec();
     },
 
     /**
@@ -154,14 +152,9 @@ RouteSchema.statics = {
             .exec(cb);
     },
 
-    update_route: function (id, data, cb) {
-        return this.update({_id: ObjectId(id)}, data, function(err) {
-            if (err) {
-            }
-            if (cb) {
-                cb();
-            }
-        });
+    update_route: function (id, data) {
+        return this.update({_id: ObjectId(id)}, data, function (err) {
+        }).exec();
     },
 };
 
