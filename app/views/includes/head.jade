@@ -1,5 +1,7 @@
 head
     meta(charset="utf-8")
+    meta(name='viewport', content='width=device-width, initial-scale=1, shrink-to-fit=no')
+    meta(http-equiv='x-ua-compatible', content='ie=edge')
     title Map
     style.
         #map {
@@ -23,26 +25,42 @@ head
 
         .leaflet-control-container .leaflet-routing-container {
             display: none;
-         }
+        }
 
+    // Leaflet.js
     link(rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css")
     script(src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js")
+
+    // QuadTree.js
     script(src='/js/leaflet-maskcanvas/QuadTree.js')
+
+    // MaskCanvas.js
     script(src='/js/leaflet-maskcanvas/L.GridLayer.MaskCanvas.js')
 
+    // Leaflet-Routing-Machine.js
     link(rel='stylesheet', href='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css')
     script(src='https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js')
+
+    // Icon-Glyph.js
     script(type='text/javascript', src='/js/icon-glyph.js')
+
+    // Leaflet-Sidebar.js
     script(src='/js/leaflet-sidebar.js')
+    link(rel="stylesheet", href="/css/leaflet-sidebar.css")
 
-    //script(src='/js/leaflet-heatmap/leaflet-heatmap.js')
-    link(href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css", rel="stylesheet")
-    script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js')
+    // Font Awesome
+    link(rel='stylesheet', href='https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css')
+    // Bootstrap core CSS
+    link(href='/css/bootstrap.min.css', rel='stylesheet')
+    // Material Design Bootstrap
+    link(href='/css/mdb.min.css', rel='stylesheet')
+    // Custom styles
+    link(rel="stylesheet", href="/css/app.css")
+
+    // JQuery
     script(src="https://code.jquery.com/jquery-3.3.1.js")
-
     link(href="/css/jquery.tagsinput.css", rel="stylesheet")
+
+    // Fonts & Icons
     link(href="//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css", rel="stylesheet")
     link(href="https://fonts.googleapis.com/icon?family=Material+Icons", rel="stylesheet")
-
-    link(rel="stylesheet", href="/css/app.css")
-    link(rel="stylesheet", href="/css/leaflet-sidebar.css")

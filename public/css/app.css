@@ -14,61 +14,12 @@ table, th, td {
     text-align: left;
 }
 
-a {
-  color: #ff7100;
-}
-
-a:hover {
-  color: #ff7100;
-}
-
 input {
     margin-top: 15px;
 }
 
 tr:nth-child(even) {background-color: #f2f2f2;}
-th {
-    background-color: #ff7100;
-    color: white;
-}
 
-
-.btn:focus, .btn:active:focus, .btn.active:focus {
-    outline: 0 none;
-}
-
-.btn-outline-primary{
-    border-color: #ff7100;
-    color: #ff7100;
-}
-
-.btn-primary{
-    border-color: #ff7100;
-    background: #ff7100;
-    color: #ffffff;
-}
-
-.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active {
-    background: #FFFFFF !important;
-    border-color: #ff7100 !important;
-    color: #ff7100;
-    box-shadow: none !important;
-
-}
-
-.btn-outline-primary:hover, .btn-outline-primary:focus, .btn-outline-primary:active, .btn-outline-primary.active {
-    border-color: #ff7100 !important;
-    background: #ff7100 !important;
-    color: #FFFFFF;
-    box-shadow: none !important;
-}
-
-.btn-primary:active, .btn-primary.active, .btn-outline-primary:active, .btn-outline-primary.active {
-    background: #ff7100 !important;
-    box-shadow: none !important;
-    color: #ffffff;
-
-}
 
 
 
@@ -164,21 +115,6 @@ button.error:focus {
  * Signup / login
  */
 
-.form-signin input#email {
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-}
-.form-signin input#password {
-  margin-bottom: 10px;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
-.form-signin input[type="text"] {
-  border-bottom-right-radius: 0;
-  border-bottom-left-radius: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-}
 
 .leaflet-control-container .leaflet-routing-container-hide {
     display: none;
@@ -188,42 +124,7 @@ button.error:focus {
   margin: 0.5rem;
 }
 
-.shadow {
-  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12);
-  transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.shadow:hover {
-   box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.2), 0px 6px 10px 1px rgba(0, 0, 0, 0.14), 0px 2px 16px 2px rgba(0, 0, 0, 0.12);
- }
 
-.shadow-nohover {
-  box-shadow: 0px 1px 2px -1px rgba(0, 0, 0, 0.2), 0px 2px 3px 0px rgba(0, 0, 0, 0.14), 0px 1px 5px 0px rgba(0, 0, 0, 0.12);
-  transition: box-shadow 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.box {
-  border-radius: 0.3rem;
-  height: 10rem;
-  width: 10rem;
-}
-
-.card {
-  padding: 10px;
-  border: 0px;
-  border-radius: 0.3rem;
-  width: 100%;
-}
-
-.card-header {
-  background: #212121;
-}
-.card-header::before {
-   content: '';
-   position: absolute;
-   right: 100%;
-   border: 1rem solid transparent;
-   border-right: 1.25rem solid #212121;
- }
 
 .wrap {
     position: absolute;
@@ -232,11 +133,7 @@ button.error:focus {
     transform: translate(-50%, -50%);
 }
 
-.text {
-    color: #ff7100;
-    font-size: 16pt;
-    margin-left: 10px;
-}
+
 .bounceball {
     position: relative;
     display: inline-block;
