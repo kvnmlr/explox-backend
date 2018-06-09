@@ -1,7 +1,7 @@
 'use strict';
 
 const Log = require('../utils/logger');
-const TAG = "controllers/routes";
+const TAG = 'controllers/routes';
 
 /**
  * Module dependencies.
@@ -21,11 +21,11 @@ const User = mongoose.model('User');
  * Home Page
  */
 
-exports.home = async(function* (req, res) {
+exports.home = async(function (req, res) {
     respond(res, 'home', {});
 });
 
-exports.about = async(function* (req, res) {
+exports.about = async(function (req, res) {
     respond(res, 'about', {});
 });
 
@@ -55,8 +55,8 @@ exports.index = async(function* (req, res) {
     const options = {
         limit: limit,
         page: page,
-        criteria : {
-            isRoute : true,
+        criteria: {
+            isRoute: true,
         }
     };
 
@@ -140,32 +140,31 @@ exports.update = async(function* (req, res) {
  * Show
  */
 
-exports.show = function (req, res) {
+exports.show = async(function* (req, res) {
     if (req.user) {
-        User.load_full(req.user._id, {}, function(err, user) {
-            if (user) {
-                const geos = Strava.activitiesToGeos(user.activities);
-                const exploredMap = Map.generateExploredMapData(geos);
-                const map = Map.generateRouteMap(req.article.geo);
-                map.distance = req.article.distance;
-                respond(res, 'routes/show', {
-                    title: req.article.title,
-                    article: req.article,
-                    map: exploredMap,
-                    routeMaps: [
-                        map,
-                        {routeData: ["0", "0"]},
-                        {routeData: ["0", "0"]},
-                        {routeData: ["0", "0"]},
-                        {routeData: ["0", "0"]}
-                        ],
-                    hasRoute: true,
-                    foundRoutes: false,
-                    numRoutes: 0,
-                    hasGeneratedRoutes : false,
-                });
-            }
-        })
+        let user = yield User.load_full(req.user._id, {});
+        if (user) {
+            const geos = Strava.activitiesToGeos(user.activities);
+            const exploredMap = Map.generateExploredMapData(geos);
+            const map = Map.generateRouteMap(req.article.geo);
+            map.distance = req.article.distance;
+            respond(res, 'routes/show', {
+                title: req.article.title,
+                article: req.article,
+                map: exploredMap,
+                routeMaps: [
+                    map,
+                    {routeData: ['0', '0']},
+                    {routeData: ['0', '0']},
+                    {routeData: ['0', '0']},
+                    {routeData: ['0', '0']}
+                ],
+                hasRoute: true,
+                foundRoutes: false,
+                numRoutes: 0,
+                hasGeneratedRoutes: false,
+            });
+        }
     } else {
         const exploredMap = Map.generateExploredMapData([]);
         const map = Map.generateRouteMap(req.article.geo, null);
@@ -175,18 +174,18 @@ exports.show = function (req, res) {
             map: exploredMap,
             routeMaps: [
                 map,
-                {routeData: ["0", "0"]},
-                {routeData: ["0", "0"]},
-                {routeData: ["0", "0"]},
-                {routeData: ["0", "0"]}
-                ],
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']}
+            ],
             hasRoute: true,
             foundRoutes: false,
             numRoutes: 0,
-            hasGeneratedRoutes : false,
+            hasGeneratedRoutes: false,
         });
     }
-};
+});
 
 exports.userSavedChoice = async(function* (req, res) {
     let generatedRoutes = JSON.parse(req.body.generatedRoutes);
@@ -202,19 +201,14 @@ exports.userSavedChoice = async(function* (req, res) {
             let _id = generatedRoutes[index].id;
             options.criteria = {
                 _id: _id
-                };
+            };
             const route = yield Route.list(options);
             if (route.length > 0) {
                 route[0].geo = [];
                 routes.push(route[0]);
             }
         } else {
-            Route.delete(generatedRoutes[index].id, function (err) {
-                if (err) {
-                    Log.error(TAG, "Remove failed");
-                    return;
-                }
-            });
+            yield Route.delete(generatedRoutes[index].id);
         }
     }
     respond(res, 'routes/index', {
@@ -225,7 +219,7 @@ exports.userSavedChoice = async(function* (req, res) {
     });
 });
 
-    /**
+/**
  * Delete an article
  */
 
@@ -238,7 +232,6 @@ exports.destroy = async(function* (req, res) {
 });
 
 
-
 exports.makeid = function (route) {
     let hash = Math.ceil(route.distance * route.start[0] * route.start[1] * route.end[0] * route.end[1] * 1000);
 
@@ -247,7 +240,7 @@ exports.makeid = function (route) {
     }
     for (let i = 0; i < route.title.length; i++) {
         const char = route.title.charCodeAt(i);
-        hash = ((hash<<5)-hash)+char;
+        hash = ((hash << 5) - hash) + char;
         hash = hash & hash; // Convert to 32bit integer
     }
     return hash;

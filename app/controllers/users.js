@@ -80,7 +80,7 @@ exports.show = async(function* (req, res) {
         let generated = yield Route.list({criteria: {isRoute: true, isGenerated: true}});
         let activities = yield Activity.list({});
         let segments = yield Route.list({criteria: {isRoute: false}});
-        let apiLimits = yield Strava.getLimits(function (apiLimits) {
+        let apiLimits = yield Strava.getLimits();
             respond(res, 'users/show_admin', {
                 title: user.name,
                 user: user,
@@ -92,7 +92,6 @@ exports.show = async(function* (req, res) {
                 activities: activities,
                 limits: apiLimits
             });
-        });
     }
     else {
         // Show user profile
@@ -191,7 +190,7 @@ exports.session = login;
  * Login
  */
 
-function login(req, res) {
+function login (req, res) {
     Log.debug(TAG, 'Login');
     User.update_user(req.user._id, {lastLogin: Date.now()});
     const redirectTo = req.session.returnTo

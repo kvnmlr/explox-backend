@@ -15,14 +15,16 @@ const Log = require('../utils/logger');
 
 const TAG = 'strava';
 
-exports.getLimits = async function (cb) {
+exports.getLimits = async function () {
     let setting = await Settings.loadValue('api');
     let apiLimits = {'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000};
     if (setting) {
         apiLimits.shortTermUsage = setting.value.shortTerm;
         apiLimits.longTermUsage = setting.value.longTerm;
     }
-    cb(apiLimits);
+    return new Promise((resolve, reject) => {
+        resolve(apiLimits);
+    });
 };
 
 const updateLimits = function (limit) {
