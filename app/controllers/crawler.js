@@ -1,5 +1,6 @@
 'use strict';
 
+const {wrap: async} = require('co');
 const Log = require('../utils/logger');
 const TAG = 'controllers/crawler';
 
@@ -10,7 +11,7 @@ const mongoose = require('mongoose');
 const Route = mongoose.model('Route');
 const Strava = require('./strava');
 
-exports.crawlSegments = function (req, res) {
+exports.crawlSegments = async(function (req, res) {
     Log.log(TAG, 'Crawling segments at ' + new Date().toUTCString());
 
     const sb = [49.245665, 6.997569]; // Saarbrücken
@@ -75,4 +76,4 @@ exports.crawlSegments = function (req, res) {
             }
         }
     }
-};
+});

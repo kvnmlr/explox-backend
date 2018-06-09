@@ -4,12 +4,12 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-dark.shadow
             - if (req)
                 - if (req.isAuthenticated())
                     li.nav-item
-                        a.nav-link(href="/", title="Routes", id="navRoutes") Routes
+                        a.nav-link(href="/routes", title="Routes", id="navRoutes") Routes
                     li.nav-item
                         a.nav-link(href="/users/" + req.user.id, title="Routes", id="navGenerate") Generate
                 - else
                     li.nav-item
-                        a.nav-link(href="/", title="Routes", id="navRoutes2") Routes
+                        a.nav-link(href="/routes", title="Routes", id="navRoutes2") Routes
 
     .mx-auto.my-2.order-0.order-md-1.position-relative
         a.navbar-brand.mx-auto(href='/', style="color:white;") Explox

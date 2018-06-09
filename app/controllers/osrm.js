@@ -13,39 +13,37 @@ const Log = require('../utils/logger');
 
 const TAG = 'osrm';
 
-const protocol = "https";
-const domain = "api.mapbox.com";
-const version = "v5/mapbox";
+const protocol = 'https';
+const domain = 'api.mapbox.com';
+const version = 'v5/mapbox';
 const maxAllowedWaypoints = 25;
 
 
-exports.findRoute = function (options, cb) {
+exports.findRoute = function (options) {
     let waypoints = options.waypoints;
-
-
     let coordinates = toOsrmFormat(waypoints);
 
-    const service = "directions";
-    const profile = "cycling";
-    const query = "overview=false&steps=true&geometries=geojson&access_token=pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw";
+    const service = 'directions';
+    const profile = 'cycling';
+    const query = 'overview=false&steps=true&geometries=geojson&access_token=pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw';
 
-    let requestString = protocol + "://" + domain + "/" + service + "/" + version + "/" + profile +"/";
-    Log.debug(TAG, "OSRM request path: " + requestString);
+    let requestString = protocol + '://' + domain + '/' + service + '/' + version + '/' + profile + '/';
+    Log.debug(TAG, 'OSRM request path: ' + requestString);
 
     requestString += coordinates;
-    requestString += "?" + query;
+    requestString += '?' + query;
 
     request(requestString, function (error, response, body) {
         if (error) {
-            Log.error(TAG, "OSRM request could not be satisfied", error);
+            Log.error(TAG, 'OSRM request could not be satisfied', error);
             return;
         }
         try {
-            let bodyString = JSON.stringify(body).replace(/\\/g, "");
-            bodyString = bodyString.substring(1, bodyString.length-1);
+            let bodyString = JSON.stringify(body).replace(/\\/g, '');
+            bodyString = bodyString.substring(1, bodyString.length - 1);
             body = JSON.parse(bodyString);
         } catch (e) {
-            Log.error(TAG, "OSRM request could not be satisfied", response);
+            Log.error(TAG, 'OSRM request could not be satisfied', response);
             return false;
         }
 
@@ -55,14 +53,14 @@ exports.findRoute = function (options, cb) {
         };
 
         if (!resultOk(body)) {
-            return cb(result);
+            return;
         }
 
         const route = body.routes[0];
         const legs = route.legs;
         result.distance = route.distance;
 
-        legs.forEach(function(leg) {
+        legs.forEach(function (leg) {
             const steps = leg.steps;
             steps.forEach(function (step) {
                 if (step.maneuver) {
@@ -71,47 +69,47 @@ exports.findRoute = function (options, cb) {
                 }
             });
         });
-        return cb(result);
+        return new Promise((resolve, reject) => {resolve(result);});
     });
 };
 
-const toOsrmFormat = function(locations) {
+const toOsrmFormat = function (locations) {
     let coords = '';
-    locations.forEach(function(location) {
+    locations.forEach(function (location) {
         coords += location.coordinates[0];
-        coords += ",";
+        coords += ',';
         coords += location.coordinates[1];
-        coords += ";";
+        coords += ';';
     });
     if (coords.length > 0) {
-        coords = coords.substring(0, coords.length-1);
+        coords = coords.substring(0, coords.length - 1);
     }
     return coords;
 };
 
-const resultOk = function(body) {
+const resultOk = function (body) {
     if (!body) {
-        Log.error(TAG, "OSRM request did not return a body object");
+        Log.error(TAG, 'OSRM request did not return a body object');
         return false;
     }
-    if (body.code !== "Ok") {
-        Log.error(TAG, "OSRM response code was not Ok: " + body.code);
+    if (body.code !== 'Ok') {
+        Log.error(TAG, 'OSRM response code was not Ok: ' + body.code);
         return false;
     }
     if (!body.routes) {
-        Log.error(TAG, "OSRM request did not return any routes");
+        Log.error(TAG, 'OSRM request did not return any routes');
         return false;
     }
     if (body.routes.length === 0) {
-        Log.error(TAG, "OSRM request did not return any routes");
+        Log.error(TAG, 'OSRM request did not return any routes');
         return false;
     }
     if (!body.routes[0].legs) {
-        Log.error(TAG, "OSRM request did not return any route legs");
+        Log.error(TAG, 'OSRM request did not return any route legs');
         return false;
     }
     if (body.routes[0].legs.length === 0) {
-        Log.error(TAG, "OSRM request did not return any route legs");
+        Log.error(TAG, 'OSRM request did not return any route legs');
         return false;
     }
     return true;

@@ -1,5 +1,6 @@
 'use strict';
 
+const {wrap: async} = require('co');
 const Log = require('../utils/logger');
 const TAG = 'controllers/optimization';
 
@@ -9,10 +10,7 @@ const TAG = 'controllers/optimization';
 const mongoose = require('mongoose');
 const Geo = mongoose.model('Geo');
 
-exports.prune = function (req, res) {
-
-
-    Geo.prune({}, (err, geos) => {
-        Log.debug(TAG, 'ok');
-    });
-};
+exports.prune = async(function* (req, res) {
+    let geos = yield Geo.prune({});
+    Log.debug(TAG, 'ok');
+});
