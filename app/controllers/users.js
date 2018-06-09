@@ -5,8 +5,8 @@
  */
 const Log = require('../utils/logger');
 const mongoose = require('mongoose');
-const { wrap: async } = require('co');
-const { respond } = require('../utils');
+const {wrap: async} = require('co');
+const {respond} = require('../utils');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
@@ -24,9 +24,9 @@ const TAG = 'views/users';
  */
 
 exports.load_options = async(function* (req, res, next, _id) {
-    const criteria = { _id };
+    const criteria = {_id};
     try {
-        req.profile = yield User.load_options({ criteria });
+        req.profile = yield User.load_options({criteria});
         if (!req.profile) return next(new Error('User not found'));
     } catch (err) {
         return next(err);
@@ -75,32 +75,22 @@ exports.show = async(function* (req, res) {
     }
 
     if (req.user.role === 'admin' && req.profile.role === 'admin') {
-        User.list({}, function (err, users) {
-            //Log.debug(TAG, "Admin: " + users);
-            Route.list({criteria: {isRoute: true, isGenerated: false}}, function (err, routes) {
-                Route.list({criteria: {isRoute: true, isGenerated: true}}, function (err, generated) {
-                    //Log.debug(TAG, "Routes: " + users);
-                    // Show admin dashboard
-                    Activity.list({}, function (err, activities) {
-                        //Log.debug(TAG, "Activities: " + activities);
-                        Route.list({criteria: {isRoute: false}}, function(err, segments) {
-                            //Log.debug(TAG, "Segments: " + segments);
-                            Strava.getLimits(function (err, apiLimits) {
-                                respond(res, 'users/show_admin', {
-                                    title: user.name,
-                                    user: user,
-                                    data: 'Admin data goes here',
-                                    all: users,
-                                    routes: routes,
-                                    generated: generated,
-                                    segments: segments,
-                                    activities: activities,
-                                    limits: apiLimits
-                                });
-                            });
-                        });
-                    });
-                });
+        let users = yield User.list({});
+        let routes = yield Route.list({criteria: {isRoute: true, isGenerated: false}});
+        let generated = yield Route.list({criteria: {isRoute: true, isGenerated: true}});
+        let activities = yield Activity.list({});
+        let segments = yield Route.list({criteria: {isRoute: false}});
+        let apiLimits = yield Strava.getLimits(function (apiLimits) {
+            respond(res, 'users/show_admin', {
+                title: user.name,
+                user: user,
+                data: 'Admin data goes here',
+                all: users,
+                routes: routes,
+                generated: generated,
+                segments: segments,
+                activities: activities,
+                limits: apiLimits
             });
         });
     }
@@ -109,47 +99,46 @@ exports.show = async(function* (req, res) {
         if (req.params.userId === undefined) {
             req.params.userId = req.user._id;
         }
-        User.load_full(req.params.userId, {}, function (err, user) {
-            if (user) {
-                const geos = Strava.activitiesToGeos(user.activities);
-                const generatedRoutes = req.generatedRoutes || [];
-                const foundRoutes = generatedRoutes.length > 0;
-                const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
-                const exploredMap = Map.generateExploredMapData(geos);
-                let routeMaps = [
-                    {routeData: ["0", "0"]},
-                    {routeData: ["0", "0"]},
-                    {routeData: ["0", "0"]},
-                    {routeData: ["0", "0"]},
-                    {routeData: ["0", "0"]},
-                    ];
+        let user = yield User.load_full(req.params.userId, {});
+        if (user) {
+            const geos = Strava.activitiesToGeos(user.activities);
+            const generatedRoutes = req.generatedRoutes || [];
+            const foundRoutes = generatedRoutes.length > 0;
+            const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
+            const exploredMap = Map.generateExploredMapData(geos);
+            let routeMaps = [
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+                {routeData: ['0', '0']},
+            ];
 
-                if (hasGeneratedRoutes) {
-                    if (generatedRoutes.length > 0) {
-                        generatedRoutes.forEach(function(route, index){
-                            routeMaps[index] = Map.generateRouteMap(route.geo);
-                            routeMaps[index].distance = route.distance;
-                            routeMaps[index].id = route._id;
-                            routeMaps[index].parts = route.parts;
-                            routeMaps[index].familiarityScore = route.familiarityScore;
-                        });
-                    }
+            if (hasGeneratedRoutes) {
+                if (generatedRoutes.length > 0) {
+                    generatedRoutes.forEach(function (route, index) {
+                        routeMaps[index] = Map.generateRouteMap(route.geo);
+                        routeMaps[index].distance = route.distance;
+                        routeMaps[index].id = route._id;
+                        routeMaps[index].parts = route.parts;
+                        routeMaps[index].familiarityScore = route.familiarityScore;
+                    });
                 }
-
-                respond(res, 'users/show', {
-                    title: user.name,
-                    user: user,
-                    map: exploredMap,
-                    routeMaps: routeMaps,
-                    userData: 'User data goes here',
-                    hasGeneratedRoutes : hasGeneratedRoutes,
-                    hasRoute: false,
-                    foundRoutes: foundRoutes,
-                    numRoutes: generatedRoutes.length,
-                    generatedRoutes: generatedRoutes
-                });
             }
-        });
+
+            respond(res, 'users/show', {
+                title: user.name,
+                user: user,
+                map: exploredMap,
+                routeMaps: routeMaps,
+                userData: 'User data goes here',
+                hasGeneratedRoutes: hasGeneratedRoutes,
+                hasRoute: false,
+                foundRoutes: foundRoutes,
+                numRoutes: generatedRoutes.length,
+                generatedRoutes: generatedRoutes
+            });
+        }
     }
 });
 
@@ -202,9 +191,9 @@ exports.session = login;
  * Login
  */
 
-function login (req, res) {
+function login(req, res) {
     Log.debug(TAG, 'Login');
-    User.update_user(req.user._id, { lastLogin: Date.now() });
+    User.update_user(req.user._id, {lastLogin: Date.now()});
     const redirectTo = req.session.returnTo
         ? req.session.returnTo
         : '/';

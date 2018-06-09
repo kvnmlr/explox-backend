@@ -192,12 +192,12 @@ UserSchema.statics = {
      * @api private
      */
 
-    load_options: function (options) {
+    load_options: function (options, cb) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
             .populate('activities')
             .select(options.select)
-            .exec();
+            .exec(cb);
     },
 
     /**
