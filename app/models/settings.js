@@ -27,8 +27,8 @@ SettingsSchema.statics = {
      * @api private
      */
 
-    updateValue: function (options, cb) {
-        return this.update({key: options.key}, {value: options.value}).exec(cb);
+    updateValue: function (options) {
+        return this.update({key: options.key}, {value: options.value}).exec();
     },
 
     loadValue: function (key) {

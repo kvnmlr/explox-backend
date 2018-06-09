@@ -12,7 +12,7 @@ const Schema = mongoose.Schema;
  */
 
 const ActivitySchema = new Schema({
-    /** TODO extend schema
+    /** TODO 001 extend schema
      * 1. add user reference
      * 2. add distance
      * 3. add title
@@ -28,25 +28,24 @@ ActivitySchema.statics = {
      * Load
      *
      * @param {Object} options
-     * @param {Function} cb
      * @api private
      */
 
-    load_options: function (options, cb) {
+    load_options: function (options) {
         options.select = options.select || 'activityId';
         return this.findOne(options.criteria)
             .populate('geo')
             .select(options.select)
-            .exec(cb);
+            .exec();
     },
 
-    list: function (options, cb) {
+    list: function (options) {
         const criteria = options.criteria || {};
         return this.find(criteria)
             .populate('user', 'name username')
             .populate('geo', 'name location')
             .sort({createdAt: -1})
-            .exec(cb);
+            .exec();
     }
 };
 

@@ -61,7 +61,7 @@ module.exports = function (app, passport) {
     app.get('/users/:userId', users.show);
     app.get('/users/:userId/update', strava.updateUser, routes.index);
 
-    /*app.get('/auth/facebook',
+    /* app.get('/auth/facebook',
         pauth('facebook', {
             scope: ['email', 'user_about_me'],
             failureRedirect: '/login'
@@ -130,7 +130,7 @@ module.exports = function (app, passport) {
             return next();
         }
 
-        console.error("Error: " + JSON.stringify(err));
+        console.error('Error: ' + JSON.stringify(err));
 
         if (err.stack) {
             if (err.stack.includes('ValidationError')) {

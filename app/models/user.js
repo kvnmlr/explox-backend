@@ -171,10 +171,9 @@ UserSchema.statics = {
      * Populates all activities, this can get quite large so only use it when all user Geo data is required.
      * @param _id
      * @param options
-     * @param cb
      * @returns {Promise}
      */
-    load_full: function (_id, options, cb) {
+    load_full: function (_id, options) {
         options.select = options.select || '';
         return this.findOne({ _id: ObjectId(_id) })
             .populate({
@@ -185,7 +184,7 @@ UserSchema.statics = {
                 }
             })
             .select(options.select)
-            .exec(cb);
+            .exec();
     },    /**
      * Load
      *
@@ -205,12 +204,11 @@ UserSchema.statics = {
      * Find route by id
      *
      * @param {ObjectId} _id the id
-     * @param cb callback
      * @api private
      */
 
-    load: function (_id, cb) {
-        return this.load_options({ criteria: { _id: _id } }, cb);
+    load: function (_id) {
+        return this.load_options({ criteria: { _id: _id } });
     },
 
     /**
@@ -218,26 +216,18 @@ UserSchema.statics = {
      *
      * @param {ObjectId} id
      * @param data data to update
-     * @param cb callback
      * @api private
      */
 
-    update_user: function (id, data, cb) {
-        return this.update({ _id: ObjectId(id) }, data, function (err) {
-            if (err) {
-                Log.error(TAG, err);
-            }
-            if (cb) {
-                cb();
-            }
-        });
+    update_user: function (id, data) {
+        return this.update({ _id: ObjectId(id) }, data).exec();
     },
 
-    list: function (options, cb) {
+    list: function (options) {
         const criteria = options.criteria || {};
         return this.find(criteria)
             .sort({ createdAt: -1 })
-            .exec(cb);
+            .exec();
     }
 
 };

@@ -98,20 +98,19 @@ RouteSchema.methods = {
 
 RouteSchema.statics = {
 
-    delete: function (_id, cb) {
-        return this.find({_id: ObjectId(_id)}).remove(cb);
+    delete: function (_id) {
+        return this.find({_id: ObjectId(_id)}).remove().exec();
     },
 
     /**
      * Find route by id
      *
      * @param {ObjectId} _id
-     * @param cb callback
      * @api private
      */
 
-    load: function (_id, cb) {
-        return this.load_options({criteria: {_id: ObjectId(_id)}}, cb);
+    load: function (_id) {
+        return this.load_options({criteria: {_id: ObjectId(_id)}});
     },
 
     /**
@@ -136,11 +135,10 @@ RouteSchema.statics = {
      * List routes
      *
      * @param {Object} options
-     * @param cb callback
      * @api private
      */
 
-    list: function (options, cb) {
+    list: function (options) {
         let criteria = options.criteria || {};
         if (criteria._id) {
             criteria._id = ObjectId(criteria._id);
@@ -149,7 +147,7 @@ RouteSchema.statics = {
             .populate('user', 'name username')
             .populate('geo', 'name location')
             .sort({createdAt: -1})
-            .exec(cb);
+            .exec();
     },
 
     update_route: function (id, data) {

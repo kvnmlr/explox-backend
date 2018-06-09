@@ -53,15 +53,14 @@ GeoSchema.statics = {
      * Load
      *
      * @param {Object} options
-     * @param {Function} cb
      * @api private
      */
 
-    load_options: function (options, cb) {
+    load_options: function (options) {
         options.select = options.select || 'name';         // TODO
         return this.findOne(options.criteria)
             .select(options.select)
-            .exec(cb);
+            .exec();
     },
 
     /**
@@ -83,7 +82,7 @@ GeoSchema.statics = {
     },
 
 
-    findWithinRadiusSimple: function (options, cb) {
+    findWithinRadiusSimple: function (options) {
         const latitude = options.latitude;
         const longitude = options.longitude;
         let distance = (options.distance || 10000);
@@ -92,17 +91,14 @@ GeoSchema.statics = {
             spherical: true,
             maxDistance: distance,
             distanceMultiplier: 6378137
-        }, (err, geos) => {
-            cb(err, geos);
-        });
+        }).exec();
     },
 
     /**
      *
      * @param options: distance, longitude, latitude, limit
-     * @param cb
      */
-    findWithinRadius: function (options, cb) {
+    findWithinRadius: function (options) {
         const select = options.select || {distance:0};
         const limit = options.limit || 1000000;
         const latitude = parseFloat(options.latitude);
@@ -125,42 +121,40 @@ GeoSchema.statics = {
                     limit: limit,
                 }
             },
-            //{ $project: select},
+            // { $project: select},
             { $sort: { distance: -1 }},
-            ]).exec(cb);
+            ]).exec();
     },
 
-    findDistance(options, cb) {
+    findDistance: function (options) {
         options.criteria._id = ObjectId(options.criteria._id);
-        return this.findWithinRadius(options, cb)
+        return this.findWithinRadius(options);
     },
 
     /**
      *
      * @param options: longitude, latitude
-     * @param cb
      */
-    findClosest: function (options, cb) {
+    findClosest: function (options) {
         options.limit = 1;
-        return this.findWithinRadius(options, cb);
+        return this.findWithinRadius(options);
     },
 
     /**
      *
      * @param options: coarseness
-     * @param cb
      */
-    prune: function (options, cb) {
+    prune: function (options) {
         const coarseness = options.coarseness || 100;     // higher value means more points being merged
 
         // Get the count of all users
-        var findOneFunction = this;
+        let findOneFunction = this;
         this.count().exec(function (err, count) {
             // Get a random entry
             const random = Math.floor(Math.random() * count);
 
             // Again query all users but only fetch one offset by our random #
-            findOneFunction.findOne().skip(random).exec(
+            return findOneFunction.findOne().skip(random).exec(
                 function (err, geo) {
                     findOneFunction.findWithinRadiusSimple({
                         latitude: geo.location.coordinates[1],
@@ -176,7 +170,7 @@ GeoSchema.statics = {
                             geo.save((err) => {});
                         }
                     });
-                });
+                }).exec();
         });
     },
 };
