@@ -218,41 +218,27 @@ const radiusFilter = async function () {
  * Keep routes and segments where, when incorporating them into the route,
  * the lower bound on the total distance would still be less than the route distance.
  */
-const lowerBoundsFilter = function () {
-    Log.debug(TAG, 'LB Filter');
+const lowerBoundsFilter = async function () {
+    Log.debug(TAG, 'Lower Bound Filter');
 
     let newGoodRoutes = [];
     let newGoodSegments = [];
 
-    const printAndCallback = function () {
-        goodRoutes = newGoodRoutes;
-        goodSegments = newGoodSegments;
-        Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
-        Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
-        // checkAndCallback(callbacks);
-    };
-
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
-    let lists = [];
-    lists.push({isRoute: true, routes: goodRoutes});
-    lists.push({isRoute: false, routes: goodSegments});
+    let lists = [
+        {isRoute: true, routes: goodRoutes},
+        {isRoute: false, routes: goodSegments}
+    ];
 
-    if (lists.length === 0) {
-        // checkAndCallback(callbacks);
-    }
-
-    let totalLength = lists[0].routes.length + lists[1].routes.length;
-    let processed = 0;
-
-    lists.forEach(function (routes) {
-        routes.routes.forEach(async function (route) {
+    for (let routes of lists) {
+        for (let route of routes.routes) {
             if (route.geo.length < 2) {
-                processed++;
-                return;
+                continue;
             }
             const startPoint = route.geo[0];
             const endPoint = route.geo[route.geo.length - 1];
 
+            // query the db to get the distance to the start point
             const options = {
                 criteria: {
                     _id: startPoint._id,
@@ -264,35 +250,24 @@ const lowerBoundsFilter = function () {
                 select: {_id: 1, distance: 2}
             };
             let distanceToStart = await Geo.findDistance(options);
+
             // if this one failed
             if (distanceToStart.length === 0) {
-                processed++;
-
-                // ... and it was the last one of this list
-                if (processed >= totalLength) {
-                    return printAndCallback();
-                }
-                // otherwise just skip this route and continue with the next one
-                return;
+                continue;
             }
-
             distanceToStart = distanceToStart[0].distance;
+
             options.criteria._id = endPoint._id;
-            let distanceToEnd = Geo.findDistance(options);
-            // this route is fully processed, all callbacks returned, increment counter
-            processed++;
+            let distanceToEnd = await Geo.findDistance(options);
+
             // if this one failed
             if (distanceToEnd.length === 0) {
-                // ... and it was the last one of the last list, call the callback
-                if (processed >= totalLength) {
-                    return printAndCallback();
-                }
-                // otherwise just skip this route and continue with the next one
-                return;
+                continue;
             }
 
             // calculate lower bound on the total route distance when incorporating this route
             distanceToEnd = distanceToEnd[0].distance;
+
             const totalDistance = route.distance + distanceToStart + distanceToEnd;
 
             // add the distance attribute to the object for later sorting
@@ -308,11 +283,12 @@ const lowerBoundsFilter = function () {
                     newGoodSegments.push(route);
                 }
             }
-            if (processed >= totalLength) {
-                return printAndCallback();
-            }
-        });
-    });
+        }
+    }
+    goodRoutes = newGoodRoutes;
+    goodSegments = newGoodSegments;
+    Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
+    Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
 };
 
 /**
