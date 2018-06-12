@@ -20,9 +20,11 @@ exports.init = async function () {
 
     try {
         await createRoles();
-        await createDefaultAdmins();
-        await createDefaultUsers();
-        await createDefaultSettings();
+        let initialized = await createDefaultAdmins();
+        if (!initialized) {
+            await createDefaultUsers();
+            await createDefaultSettings();
+        }
         finished();
     } catch (e) {
         Log.error(TAG, 'An error occured during initialization', e);
@@ -68,13 +70,13 @@ const createDefaultGeo = async function (name, lat, long) {
 };
 
 const createDefaultAdmins = async function () {
-    Log.debug(TAG, 'createDefaultAdmins');
 
     const options = {
         criteria: {'email': 'system@explox.de'}
     };
     let user = await User.load_options(options);
     if (!user) {
+        Log.debug(TAG, 'createDefaultAdmins');
         user = new User({
             name: 'system',
             email: 'system@explox.de',
@@ -85,8 +87,10 @@ const createDefaultAdmins = async function () {
             createdAt: Date.now()
         });
         await user.save();
+        Log.debug(TAG, 'createDefaultAdmins done');
+        return false;
     }
-    Log.debug(TAG, 'createDefaultAdmins done');
+    return true;
 };
 
 const createDefaultUsers = async function () {
@@ -126,10 +130,8 @@ const createDefaultSettings = async function () {
 };
 
 const createRoles = function () {
-    Log.debug(TAG, 'createRoles');
     adminRole = 'admin';
     userRole = 'user';
-    Log.debug(TAG, 'createRoles done');
 };
 
 const createSampleRoute = async function () {

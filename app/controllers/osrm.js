@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const request = require('request');
+const request = require('request-promise');
 const config = require('../../server').config;
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
@@ -19,7 +19,7 @@ const version = 'v5/mapbox';
 const maxAllowedWaypoints = 25;
 
 
-exports.findRoute = function (options) {
+exports.findRoute = async function (options) {
     let waypoints = options.waypoints;
     let coordinates = toOsrmFormat(waypoints);
 
@@ -33,54 +33,58 @@ exports.findRoute = function (options) {
     requestString += coordinates;
     requestString += '?' + query;
 
-    request(requestString, function (error, response, body) {
-        if (error) {
-            Log.error(TAG, 'OSRM request could not be satisfied', error);
-            return;
-        }
-        try {
-            let bodyString = JSON.stringify(body).replace(/\\/g, '');
-            bodyString = bodyString.substring(1, bodyString.length - 1);
-            body = JSON.parse(bodyString);
-        } catch (e) {
-            Log.error(TAG, 'OSRM request could not be satisfied', response);
-            return false;
-        }
-
-        let result = {
-            distance: 0,
-            waypoints: []
-        };
-
-        if (!resultOk(body)) {
-            return;
-        }
-
-        const route = body.routes[0];
-        const legs = route.legs;
-        result.distance = route.distance;
-
-        legs.forEach(function (leg) {
-            const steps = leg.steps;
-            steps.forEach(function (step) {
-                if (step.maneuver) {
-                    const location = step.maneuver.location;
-                    result.waypoints.push(location);
-                }
-            });
+    let body = await request(requestString)
+        .catch((error) => {
+            if (error) {
+                Log.error(TAG, 'OSRM request could not be satisfied', error);
+            }
         });
-        return new Promise((resolve, reject) => {resolve(result);});
+
+
+    try {
+        let bodyString = JSON.stringify(body).replace(/\\/g, '');
+        bodyString = bodyString.substring(1, bodyString.length - 1);
+        body = JSON.parse(bodyString);
+    } catch (e) {
+        Log.error(TAG, 'OSRM request could not be satisfied', body);
+        return false;
+    }
+
+    let result = {
+        distance: 0,
+        waypoints: []
+    };
+
+    if (!resultOk(body)) {
+        return;
+    }
+
+    const route = body.routes[0];
+    const legs = route.legs;
+    result.distance = route.distance;
+
+    for (let leg of legs) {
+        const steps = leg.steps;
+        steps.forEach(function (step) {
+            if (step.maneuver) {
+                const location = step.maneuver.location;
+                result.waypoints.push(location);
+            }
+        });
+    }
+    return new Promise((resolve) => {
+        resolve(result);
     });
 };
 
 const toOsrmFormat = function (locations) {
     let coords = '';
-    locations.forEach(function (location) {
+    for (let location of locations) {
         coords += location.coordinates[0];
         coords += ',';
         coords += location.coordinates[1];
         coords += ';';
-    });
+    }
     if (coords.length > 0) {
         coords = coords.substring(0, coords.length - 1);
     }

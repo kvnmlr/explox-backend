@@ -44,14 +44,13 @@ exports.generate = async function (req, res) {
     await initSearch();
     await distanceFilter();
     await lowerBoundsFilter();
-    /*
     await combine();
     await sortAndReduce();
     await generateCandidates();
     await familiarityFilter();
     await createRoutes();
+    logAll();
     respond();
-    */
 };
 
 const initSearch = function () {
@@ -75,31 +74,32 @@ const logAll = function () {
         let tempRoutes = goodRoutes;
         let tempSegments = goodSegments;
 
-        tempRoutes.forEach(function (route) {
+        for (let route of tempRoutes) {
             route.geo = [];
-        });
-        tempSegments.forEach(function (segment) {
+        }
+
+        for (let segment of tempSegments) {
             segment.geo = [];
-        });
+        }
 
         Log.log(TAG, goodRoutes.length + ' routes: ', tempRoutes);
         Log.log(TAG, goodSegments.length + ' segments: ', tempSegments);
     } else {
         let tempCombos = combos;
-        tempCombos.forEach(function (combo) {
-            combo.parts.forEach(function (part) {
+
+        for (let combo of tempCombos) {
+            for (let part of combo.parts) {
                 part.geo = [];
-            });
-        });
+            }
+        }
         Log.log(TAG, tempCombos.length + ' combos: ', tempCombos);
 
         if (finalRoutes.length > 0) {
             let tempRoutes = finalRoutes;
 
-            tempRoutes.forEach(function (route) {
+            for (let route of tempRoutes) {
                 route.geo = [];
-            });
-
+            }
             Log.log(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
         }
     }
@@ -294,13 +294,15 @@ const lowerBoundsFilter = async function () {
 /**
  * Sort combos on the lower bound total distance in descending order
  */
-const sortAndReduce = function () {
-    Log.debug(TAG, 'Sort');
+const sortAndReduce = async function () {
+    Log.debug(TAG, 'Sort and Reduce');
 
     combos.sort(function (a, b) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
-    const keepBest = 15;
+
+    // reduce the list of combos to a fixed number
+    const keepBest = 5;
     while (combos.length > keepBest) {
         let indexFromStart = combos[0];
         let indexFromEnd = combos[combos.length - 1];
@@ -310,17 +312,20 @@ const sortAndReduce = function () {
             combos = combos.slice(0, combos.length - 1);    // remove item from the end
         }
     }
+
+    Log.debug(TAG, combos.length + ' combos remaining after sort and reduce');
+
 };
 
 /**
  * Combine routes and segments into combos (combinations that are, when combined
  * in a route, still shorter in the lower bound than the max distance
  */
-const combine = function () {
+const combine = async function () {
     Log.debug(TAG, 'Combine');
 
-    // TODO combine segments and gereate routes that have multiple segments
-    goodRoutes.forEach(function (route) {
+    // TODO split routes and gereate routes that have partial routes
+    for (let route of goodRoutes) {
         const comboObject = {
             lowerBoundDistance: route.lowerBoundDistance,
             singleRoute: true,
@@ -328,8 +333,10 @@ const combine = function () {
             parts: [route]
         };
         combos.push(comboObject);
-    });
-    goodSegments.forEach(function (segment) {
+    }
+
+    // TODO combine segments and gereate routes that have multiple segments
+    for (let segment of goodSegments) {
         const comboObject = {
             lowerBoundDistance: segment.lowerBoundDistance,
             singleRoute: false,
@@ -337,7 +344,9 @@ const combine = function () {
             parts: [segment]
         };
         combos.push(comboObject);
-    });
+    }
+
+    Log.debug(TAG, combos.length + ' combos generated');
 };
 
 /**
@@ -346,14 +355,13 @@ const combine = function () {
 const generateCandidates = async function () {
     Log.debug(TAG, 'Generate Candidates');
     if (combos.length === 0) {
-        return; // checkAndCallback(callbacks);
+        return;
     }
 
     let routes = [];
 
     // for every combo, generate a route
-    let count = 0;
-    combos.forEach(async function (combo) {
+    for (let combo of combos) {
         // start with the starting point
         let coordinates = [{
             'coordinates': [
@@ -364,9 +372,9 @@ const generateCandidates = async function () {
         }];
 
         // add all waypoints of the segment/route
-        combo.parts.forEach(function (part) {
+        for (let part of combo.parts) {
             coordinates = coordinates.concat(part.geo.map(g => g.location));
-        });
+        }
 
         // add the end point last
         coordinates.push({
@@ -385,17 +393,17 @@ const generateCandidates = async function () {
             const waypointsTemp = Object.assign([], coordinates);
             coordinates = [waypointsTemp[0]];     // start point must not be deleted
             let counter = 0;
-            waypointsTemp.forEach(function (wp) {
+
+            for (let wp of waypointsTemp) {
                 if (counter % keepEvery === 0) {
                     coordinates.push(wp);
                 }
                 ++counter;
-            });
+            }
             coordinates.push(waypointsTemp[waypointsTemp.length - 1]);   // end point must also definitely be a waypoint
         }
 
         let route = await osrm.findRoute({waypoints: coordinates});
-        ++count;
         if (route.distance > 0) {
             // save what parts are included in this route
             route.parts = combo.parts;
@@ -403,33 +411,29 @@ const generateCandidates = async function () {
             // add this route to the list of all generated routes
             routes.push(route);
         }
+    }
 
-        // if this was the last osrm request, go on and sort and filter the list of generated routes
-        if (count === combos.length) {
-            // sort the resulting routes by distance
-            routes.sort(function (a, b) {
-                return b.distance - a.distance;
-            });
-
-            Log.debug(TAG, routes.length + ' routes generated by OSRM: ', routes.map(r => r.distance));
-
-            // only keep the best n routes by removing items form the front and end of the array
-            const keepBest = 10;
-
-            while (routes.length > keepBest) {
-                let indexFromStart = routes[0];
-                let indexFromEnd = routes[routes.length - 1];
-                if (indexFromStart.distance - distance > distance - indexFromEnd.distance) {
-                    routes = routes.slice(1, routes.length);    // remove item form the beginning
-                } else {
-                    routes = routes.slice(0, routes.length - 1);    // remove item from the end
-                }
-            }
-
-            candidates = routes;
-            // checkAndCallback(callbacks);
-        }
+    // sort the resulting routes by distance
+    routes.sort(function (a, b) {
+        return b.distance - a.distance;
     });
+
+    Log.debug(TAG, routes.length + ' routes generated by OSRM: ', routes.map(r => r.distance));
+
+    // only keep the best n routes by removing items form the front and end of the array
+    const keepBest = 10;
+
+    while (routes.length > keepBest) {
+        let indexFromStart = routes[0];
+        let indexFromEnd = routes[routes.length - 1];
+        if (indexFromStart.distance - distance > distance - indexFromEnd.distance) {
+            routes = routes.slice(1, routes.length);    // remove item form the beginning
+        } else {
+            routes = routes.slice(0, routes.length - 1);    // remove item from the end
+        }
+    }
+
+    candidates = routes;
 };
 
 
@@ -440,11 +444,12 @@ const createRoutes = async function () {
     Log.debug(TAG, 'Create Routes');
 
     if (candidates.length === 0) {
-        // checkAndCallback(callbacks);
+        return;
     }
 
     let generatedRoutes = [];
-    candidates.forEach(async function (candidate) {
+
+    for (let candidate of candidates) {
         // get the user
         let user = await User.load(request.user);
         const title = 'New Route (' + Math.floor(candidate.distance / 1000) + ' km)';
@@ -478,23 +483,22 @@ const createRoutes = async function () {
                 isGenerated: true
             }
         };
+
         let existingRoute = await Route.load_options(options);
         if (existingRoute) {
             Log.debug(TAG, 'Route already exists (' + existingRoute.title + ')');
             existingRoute.familiarityScore = candidate.familiarityScore;
             generatedRoutes.push(existingRoute);
-            if (generatedRoutes.length === candidates.length) {
-                resultRoutes = generatedRoutes;
-                return; // checkAndCallback(callbacks);
-            }
-            return;
+            continue;
         }
+
+        // if the route does not already exist, save it
         await route.save();
 
         // create a geo object in the db for each waypoint
-        let waypointsSaved = 0;
         let geos = [];
-        candidate.waypoints.forEach(async function (waypoint) {
+
+        for (let waypoint of candidate.waypoints) {
             const geo = new Geo({
                 name: 'Generated',
                 location: {
@@ -505,31 +509,26 @@ const createRoutes = async function () {
 
             if (route != null) {
                 if (route._id != null) {
+                    // add the route reference to the geo
                     geo.routes.push(route);
                 } else {
                     Log.error(TAG, 'Route of the stream was not null but had no _id');
-                    return;
+                    continue;
                 }
             }
             geos.push(geo);
             await geo.save();
-            waypointsSaved++;
+        }
 
-            if (waypointsSaved === candidate.waypoints.length) {
-                route.geo = geos;
-                await route.save();
+        // add the created geos to the route and save it again
+        route.geo = geos;
+        await route.save();
 
-                Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
-                route.familiarityScore = candidate.familiarityScore;
-                generatedRoutes.push(route);
-
-                if (generatedRoutes.length === candidates.length) {
-                    resultRoutes = generatedRoutes;
-                    // checkAndCallback(callbacks);
-                }
-            }
-        });
-    });
+        Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
+        route.familiarityScore = candidate.familiarityScore;
+        generatedRoutes.push(route);
+    }
+    resultRoutes = generatedRoutes;
 };
 
 /**
@@ -539,32 +538,31 @@ const familiarityFilter = async function () {
     Log.debug(TAG, 'Familiarity Filter');
 
     if (candidates.length === 0) {
-        // checkAndCallback(callbacks);
+        return;
     }
 
-    let candidatesProcessed = 0;
-
-    candidates.forEach(async function (route) {
+    for (let route of candidates) {
         let leave = 25;
         if (route.waypoints.length < leave) {
             leave = route.waypoints.length;
         }
         const takeEvery = Math.ceil(route.waypoints.length / leave);    // parameter for performance, only take every xth route point, 1 = every
-        const remaining = Math.floor(route.waypoints.length / takeEvery);
 
-        let waypointsProcessed = 0;
         let matches = 0;
         let exploredGeos = [];
-        let user = await User.load_full(request.user._id, {});
-        user.activities.forEach(function (activity) {
-            activity.geo.forEach(function (g) {
+        let user = await
+            User.load_full(request.user._id, {});
+
+        for (let activity of user.activities) {
+            for (let g of activity.geo) {
                 exploredGeos.push(g._id.toString());
-            });
-        });
+            }
+        }
 
-        route.waypoints.forEach(async function (waypoint, waypointIndex) {
+        let waypointIndex = -1;
+        for (let waypoint of route.waypoints) {
+            waypointIndex++;
             if (waypointIndex % takeEvery === 0) {
-
                 const options = {
                     distance: 280,
                     latitude: waypoint[1],
@@ -574,7 +572,7 @@ const familiarityFilter = async function () {
                 let matching = false;
                 let geos = await Geo.findWithinRadius(options);
                 if (!geos) {
-                    return;
+                    continue;
                 }
                 geos.some(function (geo) {
                     if (exploredGeos.includes(geo._id.toString())) {
@@ -586,18 +584,12 @@ const familiarityFilter = async function () {
                 if (matching) {
                     matches++;
                 }
-
-                waypointsProcessed++;
-                if (waypointsProcessed === remaining) {
-                    candidatesProcessed++;
-                    route.familiarityScore = matches / leave;
-                    if (candidatesProcessed === candidates.length) {
-                        const keepBest = 5;
-                        candidates = candidates.slice(0, keepBest);
-                        // checkAndCallback(callbacks);
-                    }
-                }
             }
-        });
-    });
+        }
+        route.familiarityScore = matches / leave;
+    }
+
+    // TODO needs to be sorted first?
+    const keepBest = 5;
+    candidates = candidates.slice(0, keepBest);
 };

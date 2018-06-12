@@ -7,6 +7,7 @@ const join = require('path').join;
 const express = require('express');
 const mongoose = require('mongoose');
 const cluster = require('cluster');
+const favicon = require('serve-favicon')
 
 const passport = require('passport');
 const config = require('./config');
@@ -15,6 +16,9 @@ const init = require('./init');
 const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
 const app = express();
+
+app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
+
 const os = require('os');
 const numCPUs = os.cpus().length;
 
@@ -95,4 +99,3 @@ function connect () {
     mongoose.connect(config.db, options);
     return mongoose.connection;
 }
-
