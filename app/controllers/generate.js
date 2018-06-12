@@ -28,7 +28,7 @@ let request, response;
  *      5. Rank and filter candidates by familiarity
  *      6. Create and save the routes in the DB, deliver results to the user
  */
-exports.generate = function (req, res) {
+exports.generate = async function (req, res) {
     Log.log(TAG, 'Generate');
     preference = req.query.preference || 'discover';
     distance = req.query.distance * 1000 || '5000';
@@ -41,10 +41,20 @@ exports.generate = function (req, res) {
     request = req;
     response = res;
 
-    apply([initSearch, distanceFilter, /* radiusFilter,*/ lowerBoundsFilter, combine, sortAndReduce, generateCandidates, familiarityFilter, createRoutes, respond]);
+    await initSearch();
+    await distanceFilter();
+    await lowerBoundsFilter();
+    /*
+    await combine();
+    await sortAndReduce();
+    await generateCandidates();
+    await familiarityFilter();
+    await createRoutes();
+    respond();
+    */
 };
 
-const initSearch = function (callbacks) {
+const initSearch = function () {
     Log.debug(TAG, 'Init search');
     goodRoutes = [];
     goodSegments = [];
@@ -52,24 +62,9 @@ const initSearch = function (callbacks) {
     finalRoutes = [];
     candidates = [];
     resultRoutes = [];
-
-    checkAndCallback(callbacks);
 };
 
-// Utility functions
-const apply = function (callbacks) {
-    checkAndCallback(callbacks);
-};
-const checkAndCallback = function (callbacks) {
-    if (callbacks) {
-        if (callbacks.length > 0) {
-            const cb = callbacks[0];
-            callbacks.shift();
-            return cb(callbacks);
-        }
-    }
-};
-const logAll = function (callbacks) {
+const logAll = function () {
     if (resultRoutes.length > 0) {
         Log.debug(TAG, 'Created these routes: ', resultRoutes.map(r => r.title + '\t (' + r.distance + ')'));
     }
@@ -108,9 +103,9 @@ const logAll = function (callbacks) {
             Log.log(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
         }
     }
-    checkAndCallback(callbacks);
 };
-const respond = function (callbacks) {
+
+const respond = function () {
     Log.debug(TAG, 'Respond ');
 
     if (preference === 'discover') {
@@ -131,14 +126,12 @@ const respond = function (callbacks) {
     request.generatedRoutes = resultRoutes;//
     request.hasGeneratedRoutes = true;
     users.show(request, response);
-    checkAndCallback(callbacks);
 };
 
 /**
  * Keep routes and segments that are shorter than the route distance.
- * @param callbacks array of callback functions
  */
-const distanceFilter = function (callbacks) {
+const distanceFilter = async function () {
     Log.debug(TAG, 'Distance Filter');
     let criteria = {
         distance: {
@@ -149,27 +142,23 @@ const distanceFilter = function (callbacks) {
         isGenerated: false
     };
     // get all routes that are shorter than the route should-distance
-    Route.list({criteria}, function (err, routes) {
-        goodRoutes = routes;
+    const routes = await Route.list({criteria});
+    goodRoutes = routes;
 
-        // get all segments that are shorter than the route should-distance
-        criteria.isRoute = false;
-        Route.list({criteria}, function (err, segments) {
-            goodSegments = segments;
+    // get all segments that are shorter than the route should-distance
+    criteria.isRoute = false;
+    const segments = await Route.list({criteria});
+    goodSegments = segments;
 
-            Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
-            Log.debug(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
-            checkAndCallback(callbacks);
-        });
-    });
+    Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
+    Log.debug(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
 };
 
 /**
  * Keep routes and segments where each geo is within the radius of half the
  * route distance around the starting point (i.e. it must not leave the radius).
- * @param callbacks array of callback functions
  */
-const radiusFilter = function (callbacks) {
+const radiusFilter = async function () {
     Log.debug(TAG, 'Radius Filter');
     const options = {
         latitude: start.lat,
@@ -178,61 +167,58 @@ const radiusFilter = function (callbacks) {
         select: {_id: 1, distance: 2, routes: 3}
     };
 
-    Geo.findWithinRadius(options, function (err, radiusGeos) {
-        radiusGeos = radiusGeos.filter(function (geo) {
-            return geo.routes.length > 0;
-        });
-
-        // filter such that only the routes that are completely within the radius remain
-        goodRoutes = goodRoutes.filter(function (route) {
-            const takeEvery = Math.ceil(route.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
-            let count = 0;
-
-            // return whether there is no geo that is not in the radius
-            return (!(route.geo.some(function (routeGeo) {
-                count++;
-                if (count % takeEvery !== 0) {
-                    return false;
-                }
-                // return whether the element is not in the radius geos
-                return !(radiusGeos.some(function (radiusGeo) {
-                    return (radiusGeo._id.toString().trim() === routeGeo._id.toString().trim());
-                }));
-            })));
-        });
-
-        // filter such that only the segments that are completely not outside remain
-        goodSegments = goodSegments.filter(function (segment) {
-            const takeEvery = Math.ceil(segment.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
-            let count = 0;
-
-            // if there is no geo that is not in the radius, return true
-            return (!(segment.geo.some(function (segmentGeo) {
-                count++;
-                if (count % takeEvery !== 0) {
-                    return false;
-                }
-                // if the element is not in the radius geos, then return true
-                return !(radiusGeos.some(function (radiusGeo) {
-
-                    return (radiusGeo._id.toString().trim() === segmentGeo._id.toString().trim());
-                }));
-            })));
-        });
-        // now our routes and segments arrays only contain routes where no geo is outside of the radius
-
-        Log.debug(TAG, goodRoutes.length + ' possible segments after radius filter: ', goodRoutes.map(s => s.distance + ' (' + s.title + ')'));
-        Log.debug(TAG, goodSegments.length + ' possible segments after radius filter: ', goodSegments.map(s => s.distance + ' (' + s.title + ')'));
-        checkAndCallback(callbacks);
+    let radiusGeos = await Geo.findWithinRadius(options);
+    radiusGeos = radiusGeos.filter(function (geo) {
+        return geo.routes.length > 0;
     });
+
+    // filter such that only the routes that are completely within the radius remain
+    goodRoutes = goodRoutes.filter(function (route) {
+        const takeEvery = Math.ceil(route.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
+        let count = 0;
+
+        // return whether there is no geo that is not in the radius
+        return (!(route.geo.some(function (routeGeo) {
+            count++;
+            if (count % takeEvery !== 0) {
+                return false;
+            }
+            // return whether the element is not in the radius geos
+            return !(radiusGeos.some(function (radiusGeo) {
+                return (radiusGeo._id.toString().trim() === routeGeo._id.toString().trim());
+            }));
+        })));
+    });
+
+    // filter such that only the segments that are completely not outside remain
+    goodSegments = goodSegments.filter(function (segment) {
+        const takeEvery = Math.ceil(segment.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
+        let count = 0;
+
+        // if there is no geo that is not in the radius, return true
+        return (!(segment.geo.some(function (segmentGeo) {
+            count++;
+            if (count % takeEvery !== 0) {
+                return false;
+            }
+            // if the element is not in the radius geos, then return true
+            return !(radiusGeos.some(function (radiusGeo) {
+
+                return (radiusGeo._id.toString().trim() === segmentGeo._id.toString().trim());
+            }));
+        })));
+    });
+    // now our routes and segments arrays only contain routes where no geo is outside of the radius
+
+    Log.debug(TAG, goodRoutes.length + ' possible segments after radius filter: ', goodRoutes.map(s => s.distance + ' (' + s.title + ')'));
+    Log.debug(TAG, goodSegments.length + ' possible segments after radius filter: ', goodSegments.map(s => s.distance + ' (' + s.title + ')'));
 };
 
 /**
  * Keep routes and segments where, when incorporating them into the route,
  * the lower bound on the total distance would still be less than the route distance.
- * @param callbacks array of callback functions
  */
-const lowerBoundsFilter = function (callbacks) {
+const lowerBoundsFilter = function () {
     Log.debug(TAG, 'LB Filter');
 
     let newGoodRoutes = [];
@@ -243,7 +229,7 @@ const lowerBoundsFilter = function (callbacks) {
         goodSegments = newGoodSegments;
         Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
         Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
-        checkAndCallback(callbacks);
+        // checkAndCallback(callbacks);
     };
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
@@ -252,14 +238,14 @@ const lowerBoundsFilter = function (callbacks) {
     lists.push({isRoute: false, routes: goodSegments});
 
     if (lists.length === 0) {
-        checkAndCallback(callbacks);
+        // checkAndCallback(callbacks);
     }
 
     let totalLength = lists[0].routes.length + lists[1].routes.length;
     let processed = 0;
 
     lists.forEach(function (routes) {
-        routes.routes.forEach(function (route) {
+        routes.routes.forEach(async function (route) {
             if (route.geo.length < 2) {
                 processed++;
                 return;
@@ -277,65 +263,62 @@ const lowerBoundsFilter = function (callbacks) {
                 limit: 1,
                 select: {_id: 1, distance: 2}
             };
-            Geo.findDistance(options, function (err, distanceToStart) {
-                // if this one failed
-                if (distanceToStart.length === 0) {
-                    processed++;
+            let distanceToStart = await Geo.findDistance(options);
+            // if this one failed
+            if (distanceToStart.length === 0) {
+                processed++;
 
-                    // ... and it was the last one of this list
-                    if (processed >= totalLength) {
-                        return printAndCallback();
-                    }
-                    // otherwise just skip this route and continue with the next one
-                    return;
+                // ... and it was the last one of this list
+                if (processed >= totalLength) {
+                    return printAndCallback();
                 }
+                // otherwise just skip this route and continue with the next one
+                return;
+            }
 
-                distanceToStart = distanceToStart[0].distance;
-                options.criteria._id = endPoint._id;
-                Geo.findDistance(options, function (err, distanceToEnd) {
-                    // this route is fully processed, all callbacks returned, increment counter
-                    processed++;
-                    // if this one failed
-                    if (distanceToEnd.length === 0) {
-                        // ... and it was the last one of the last list, call the callback
-                        if (processed >= totalLength) {
-                            return printAndCallback();
-                        }
-                        // otherwise just skip this route and continue with the next one
-                        return;
-                    }
+            distanceToStart = distanceToStart[0].distance;
+            options.criteria._id = endPoint._id;
+            let distanceToEnd = Geo.findDistance(options);
+            // this route is fully processed, all callbacks returned, increment counter
+            processed++;
+            // if this one failed
+            if (distanceToEnd.length === 0) {
+                // ... and it was the last one of the last list, call the callback
+                if (processed >= totalLength) {
+                    return printAndCallback();
+                }
+                // otherwise just skip this route and continue with the next one
+                return;
+            }
 
-                    // calculate lower bound on the total route distance when incorporating this route
-                    distanceToEnd = distanceToEnd[0].distance;
-                    const totalDistance = route.distance + distanceToStart + distanceToEnd;
+            // calculate lower bound on the total route distance when incorporating this route
+            distanceToEnd = distanceToEnd[0].distance;
+            const totalDistance = route.distance + distanceToStart + distanceToEnd;
 
-                    // add the distance attribute to the object for later sorting
-                    route.lowerBoundDistance = totalDistance;
+            // add the distance attribute to the object for later sorting
+            route.lowerBoundDistance = totalDistance;
 
-                    if (totalDistance - distance * 0.1 > distance) {
-                        Log.debug(TAG, 'Lower bound on route with route/segment is too long: ' + totalDistance);
+            if (totalDistance - distance * 0.1 > distance) {
+                Log.debug(TAG, 'Lower bound on route with route/segment is too long: ' + totalDistance);
 
-                    } else {
-                        if (routes.isRoute) {
-                            newGoodRoutes.push(route);
-                        } else {
-                            newGoodSegments.push(route);
-                        }
-                    }
-                    if (processed >= totalLength) {
-                        return printAndCallback();
-                    }
-                });
-            });
+            } else {
+                if (routes.isRoute) {
+                    newGoodRoutes.push(route);
+                } else {
+                    newGoodSegments.push(route);
+                }
+            }
+            if (processed >= totalLength) {
+                return printAndCallback();
+            }
         });
     });
 };
 
 /**
  * Sort combos on the lower bound total distance in descending order
- * @param callbacks array of callback functions
  */
-const sortAndReduce = function (callbacks) {
+const sortAndReduce = function () {
     Log.debug(TAG, 'Sort');
 
     combos.sort(function (a, b) {
@@ -351,15 +334,13 @@ const sortAndReduce = function (callbacks) {
             combos = combos.slice(0, combos.length - 1);    // remove item from the end
         }
     }
-    checkAndCallback(callbacks);
 };
 
 /**
  * Combine routes and segments into combos (combinations that are, when combined
  * in a route, still shorter in the lower bound than the max distance
- * @param callbacks array of callback functions
  */
-const combine = function (callbacks) {
+const combine = function () {
     Log.debug(TAG, 'Combine');
 
     // TODO combine segments and gereate routes that have multiple segments
@@ -381,17 +362,15 @@ const combine = function (callbacks) {
         };
         combos.push(comboObject);
     });
-    checkAndCallback(callbacks);
 };
 
 /**
  * Generate candidates from a 3rd party routing service using combos
- * @param callbacks array of callback functions
  */
-const generateCandidates = async function (callbacks) {
+const generateCandidates = async function () {
     Log.debug(TAG, 'Generate Candidates');
     if (combos.length === 0) {
-        return checkAndCallback(callbacks);
+        return; // checkAndCallback(callbacks);
     }
 
     let routes = [];
@@ -472,7 +451,7 @@ const generateCandidates = async function (callbacks) {
             }
 
             candidates = routes;
-            checkAndCallback(callbacks);
+            // checkAndCallback(callbacks);
         }
     });
 };
@@ -480,133 +459,116 @@ const generateCandidates = async function (callbacks) {
 
 /**
  * Create Route objects from the generated candidates
- * @param callbacks array of callback functions
  */
-const createRoutes = function (callbacks) {
+const createRoutes = async function () {
     Log.debug(TAG, 'Create Routes');
 
     if (candidates.length === 0) {
-        checkAndCallback(callbacks);
+        // checkAndCallback(callbacks);
     }
 
     let generatedRoutes = [];
-    candidates.forEach(function (candidate) {
+    candidates.forEach(async function (candidate) {
         // get the user
-        User.load(request.user, function (err, user) {
-            const title = 'New Route (' + Math.floor(candidate.distance / 1000) + ' km)';
-            const description = 'This route has been generated. Select this route and change the title and description.';
-            let id = routes.makeid({
-                title: title,
-                distance: candidate.distance,
-                start: candidate.waypoints[0],
-                end: candidate.waypoints[candidate.waypoints.length - 1]
-            });
-            let route = new Route({
-                stravaId: id,
-                title: title,
-                body: description,
-                location: '',       // TODO find out based on GPS
-                comments: [],
-                tags: '',
-                geo: [],
-                user: user,
-                distance: candidate.distance,
-                isRoute: true,
-                isGenerated: true,
-                queryDistance: distance,
-                parts: candidate.parts
-            });
-
-            const options = {
-                criteria: {
-                    stravaId: id,
-                    isRoute: true,
-                    isGenerated: true
-                }
-            };
-            Route.load_options(options, function (err, existingRoute) {
-                if (existingRoute) {
-                    Log.debug(TAG, 'Route already exists (' + existingRoute.title + ')');
-                    existingRoute.familiarityScore = candidate.familiarityScore;
-                    generatedRoutes.push(existingRoute);
-                    if (generatedRoutes.length === candidates.length) {
-                        resultRoutes = generatedRoutes;
-                        return checkAndCallback(callbacks);
-                    }
-                    return;
-                }
-                route.save(function (err) {
-                    if (err) {
-                        Log.error(TAG, 'Error saving route', err);
-                    }
-
-                    // create a geo object in the db for each waypoint
-                    let waypointsSaved = 0;
-                    let geos = [];
-                    candidate.waypoints.forEach(function (waypoint) {
-                        const geo = new Geo({
-                            name: 'Generated',
-                            location: {
-                                type: 'Point',
-                                coordinates: [waypoint[0], waypoint[1]]
-                            },
-                        });
-
-                        if (route != null) {
-                            if (route._id != null) {
-                                geo.routes.push(route);
-                            } else {
-                                Log.error(TAG, 'Route of the stream was not null but had no _id');
-                                return;
-                            }
-                        }
-                        geos.push(geo);
-                        geo.save(function (err) {
-                            waypointsSaved++;
-                            if (err) {
-                                Log.error(TAG, 'Error saving geo: ', err);
-                                return;
-                            }
-                            if (waypointsSaved === candidate.waypoints.length) {
-                                route.geo = geos;
-                                route.save(function (err) {
-                                    if (err) {
-                                        Log.error(TAG, 'Error saving route' + err);
-                                        return;
-                                    }
-                                    Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
-                                    route.familiarityScore = candidate.familiarityScore;
-                                    generatedRoutes.push(route);
-
-                                    if (generatedRoutes.length === candidates.length) {
-                                        resultRoutes = generatedRoutes;
-                                        checkAndCallback(callbacks);
-                                    }
-                                });
-                            }
-                        });
-                    });
-                });
-            });
+        let user = await User.load(request.user);
+        const title = 'New Route (' + Math.floor(candidate.distance / 1000) + ' km)';
+        const description = 'This route has been generated. Select this route and change the title and description.';
+        let id = routes.makeid({
+            title: title,
+            distance: candidate.distance,
+            start: candidate.waypoints[0],
+            end: candidate.waypoints[candidate.waypoints.length - 1]
+        });
+        let route = new Route({
+            stravaId: id,
+            title: title,
+            body: description,
+            location: '',       // TODO find out based on GPS
+            comments: [],
+            tags: '',
+            geo: [],
+            user: user,
+            distance: candidate.distance,
+            isRoute: true,
+            isGenerated: true,
+            queryDistance: distance,
+            parts: candidate.parts
         });
 
+        const options = {
+            criteria: {
+                stravaId: id,
+                isRoute: true,
+                isGenerated: true
+            }
+        };
+        let existingRoute = await Route.load_options(options);
+        if (existingRoute) {
+            Log.debug(TAG, 'Route already exists (' + existingRoute.title + ')');
+            existingRoute.familiarityScore = candidate.familiarityScore;
+            generatedRoutes.push(existingRoute);
+            if (generatedRoutes.length === candidates.length) {
+                resultRoutes = generatedRoutes;
+                return; // checkAndCallback(callbacks);
+            }
+            return;
+        }
+        await route.save();
+
+        // create a geo object in the db for each waypoint
+        let waypointsSaved = 0;
+        let geos = [];
+        candidate.waypoints.forEach(async function (waypoint) {
+            const geo = new Geo({
+                name: 'Generated',
+                location: {
+                    type: 'Point',
+                    coordinates: [waypoint[0], waypoint[1]]
+                },
+            });
+
+            if (route != null) {
+                if (route._id != null) {
+                    geo.routes.push(route);
+                } else {
+                    Log.error(TAG, 'Route of the stream was not null but had no _id');
+                    return;
+                }
+            }
+            geos.push(geo);
+            await geo.save();
+            waypointsSaved++;
+
+            if (waypointsSaved === candidate.waypoints.length) {
+                route.geo = geos;
+                await route.save();
+
+                Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
+                route.familiarityScore = candidate.familiarityScore;
+                generatedRoutes.push(route);
+
+                if (generatedRoutes.length === candidates.length) {
+                    resultRoutes = generatedRoutes;
+                    // checkAndCallback(callbacks);
+                }
+            }
+        });
     });
 };
 
 /**
  * Filters the generated routes to only leave ones that are mostly familiar
- * @param callbacks array of callback functions
  */
-const familiarityFilter = function (callbacks) {
+const familiarityFilter = async function () {
     Log.debug(TAG, 'Familiarity Filter');
 
     if (candidates.length === 0) {
-        checkAndCallback(callbacks);
+        // checkAndCallback(callbacks);
     }
 
     let candidatesProcessed = 0;
 
-    candidates.forEach(function (route) {
+    candidates.forEach(async function (route) {
         let leave = 25;
         if (route.waypoints.length < leave) {
             leave = route.waypoints.length;
@@ -617,51 +579,49 @@ const familiarityFilter = function (callbacks) {
         let waypointsProcessed = 0;
         let matches = 0;
         let exploredGeos = [];
-        User.load_full(request.user._id, {}, function (err, user) {
-            user.activities.forEach(function (activity) {
-                activity.geo.forEach(function (g) {
-                    exploredGeos.push(g._id.toString());
-                });
+        let user = await User.load_full(request.user._id, {});
+        user.activities.forEach(function (activity) {
+            activity.geo.forEach(function (g) {
+                exploredGeos.push(g._id.toString());
             });
+        });
 
-            route.waypoints.forEach(function (waypoint, waypointIndex) {
-                if (waypointIndex % takeEvery === 0) {
+        route.waypoints.forEach(async function (waypoint, waypointIndex) {
+            if (waypointIndex % takeEvery === 0) {
 
-                    const options = {
-                        distance: 280,
-                        latitude: waypoint[1],
-                        longitude: waypoint[0]
-                    };
+                const options = {
+                    distance: 280,
+                    latitude: waypoint[1],
+                    longitude: waypoint[0]
+                };
 
-                    let matching = false;
-                    Geo.findWithinRadius(options, function (err, geos) {
-                        if (!geos) {
-                            return;
-                        }
-                        geos.some(function (geo) {
-                            if (exploredGeos.includes(geo._id.toString())) {
-                                matching = true;
-                            }
-                            return matching;
-                        });
-
-                        if (matching) {
-                            matches++;
-                        }
-
-                        waypointsProcessed++;
-                        if (waypointsProcessed === remaining) {
-                            candidatesProcessed++;
-                            route.familiarityScore = matches / leave;
-                            if (candidatesProcessed === candidates.length) {
-                                const keepBest = 5;
-                                candidates = candidates.slice(0, keepBest);
-                                checkAndCallback(callbacks);
-                            }
-                        }
-                    });
+                let matching = false;
+                let geos = await Geo.findWithinRadius(options);
+                if (!geos) {
+                    return;
                 }
-            });
+                geos.some(function (geo) {
+                    if (exploredGeos.includes(geo._id.toString())) {
+                        matching = true;
+                    }
+                    return matching;
+                });
+
+                if (matching) {
+                    matches++;
+                }
+
+                waypointsProcessed++;
+                if (waypointsProcessed === remaining) {
+                    candidatesProcessed++;
+                    route.familiarityScore = matches / leave;
+                    if (candidatesProcessed === candidates.length) {
+                        const keepBest = 5;
+                        candidates = candidates.slice(0, keepBest);
+                        // checkAndCallback(callbacks);
+                    }
+                }
+            }
         });
     });
 };
