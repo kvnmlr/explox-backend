@@ -6,9 +6,13 @@ patch:
   'npm:qs:20140806-1':
     - notifier > sendgrid > request > qs:
         patched: '2018-06-13T00:44:40.548Z'
+    - notifier > sendgrid > request > qs:
+        patched: '2018-06-13T11:02:02.050Z'
   'npm:request:20160119':
     - notifier > sendgrid > request:
         patched: '2018-06-13T00:44:40.548Z'
+    - notifier > sendgrid > request:
+        patched: '2018-06-13T11:02:02.050Z'
   'npm:uglify-js:20151024':
     - jade > transformers > uglify-js:
         patched: '2018-06-13T00:44:40.548Z'
@@ -18,3 +22,11 @@ patch:
         patched: '2018-06-13T00:44:40.548Z'
     - notifier > jade > constantinople > uglify-js:
         patched: '2018-06-13T00:44:40.548Z'
+    - jade > transformers > uglify-js:
+        patched: '2018-06-13T11:02:02.050Z'
+    - notifier > jade > transformers > uglify-js:
+        patched: '2018-06-13T11:02:02.050Z'
+    - notifier > jade > with > uglify-js:
+        patched: '2018-06-13T11:02:02.050Z'
+    - notifier > jade > constantinople > uglify-js:
+        patched: '2018-06-13T11:02:02.050Z'
