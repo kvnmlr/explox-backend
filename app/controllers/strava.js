@@ -9,7 +9,6 @@ const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
-const users = require('./users');
 
 const Log = require('../utils/logger');
 
@@ -22,7 +21,7 @@ exports.getLimits = async function () {
         apiLimits.shortTermUsage = setting.value.shortTerm;
         apiLimits.longTermUsage = setting.value.longTerm;
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         resolve(apiLimits);
     });
 };
@@ -39,18 +38,22 @@ const updateLimits = function (limit) {
  * Query all relevant user data
  */
 
-exports.updateUser = async function (req, res, next) {
+exports.updateUser = async function (req, res) {
     const id = req.user._id;
     let user = await User.load(id);
     if (user) {
         const token = user.authToken;
         const id = user.stravaId;
-        await exports.getAthlete(id, token);
-        await exports.getFriends(id, token);
-        await exports.getStats(id, token);
-        await exports.getRoutes(id, token);
-        await exports.getActivities(id, token);
-        next(null, user);
+        exports.getAthlete(id, token);
+        exports.getFriends(id, token);
+        exports.getStats(id, token);
+        exports.getRoutes(id, token);
+        exports.getActivities(id, token);
+
+        res.writeHead(302, {
+            'Location': 'http://localhost:3000/users/' + user._id
+        });
+        res.end();
     }
 };
 
@@ -155,7 +158,6 @@ exports.getActivities = function (id, token) {
                 }, 500 * i);
             }
         }
-
     });
 };
 

@@ -7,7 +7,7 @@
 const users = require('../app/controllers/users');
 const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
-const strava = require('../app/controllers/strava')
+const strava = require('../app/controllers/strava');
 const tags = require('../app/controllers/tags');
 const crawler = require('../app/controllers/crawler');
 const optimization = require('../app/controllers/optimization');
@@ -59,7 +59,7 @@ module.exports = function (app, passport) {
 
     app.post('/routes/generated', routes.userSavedChoice);
     app.get('/users/:userId', users.show);
-    app.get('/users/:userId/update', strava.updateUser, routes.index);
+    app.get('/users/:userId/update', strava.updateUser);
 
     /* app.get('/auth/facebook',
         pauth('facebook', {

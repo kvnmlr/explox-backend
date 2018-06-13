@@ -3,7 +3,6 @@
 /**
  * Module dependencies.
  */
-const {wrap: async} = require('co');
 const Log = require('../utils/logger');
 const TAG = 'controllers/generate';
 const mongoose = require('mongoose');

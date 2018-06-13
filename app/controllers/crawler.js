@@ -7,8 +7,6 @@ const TAG = 'controllers/crawler';
 /**
  * Module dependencies.
  */
-const mongoose = require('mongoose');
-const Route = mongoose.model('Route');
 const Strava = require('./strava');
 
 exports.crawlSegments = async(function (req, res) {
@@ -21,7 +19,7 @@ exports.crawlSegments = async(function (req, res) {
 
     req.params.start = qs;
     req.params.increaseRadiusBy = 0.2;  // km
-    req.params.iterations = 5;          // increase radius x times
+    req.params.iterations = 1;          // increase radius x times
 
     let goNorth = 5;   // km
     let goEast = 5;    // km
@@ -76,4 +74,8 @@ exports.crawlSegments = async(function (req, res) {
             }
         }
     }
+    res.writeHead(302, {
+        'Location': 'http://localhost:3000/routes'
+    });
+    res.end();
 });
