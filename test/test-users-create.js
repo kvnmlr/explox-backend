@@ -108,3 +108,6 @@ test('strava auth callback - should redirect', t => {
             t.end();
         });
 });
+
+test.onFinish(() => process.exit(0));
+

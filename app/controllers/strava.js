@@ -27,11 +27,13 @@ exports.getLimits = async function () {
 };
 
 const updateLimits = function (limit) {
-    const apiUsage = {
-        shortTerm: limit.shortTermUsage,
-        longTerm: limit.longTermUsage
-    };
-    Settings.updateValue({key: 'api', value: apiUsage});
+    if (limit) {
+        const apiUsage = {
+            shortTerm: limit.shortTermUsage,
+            longTerm: limit.longTermUsage
+        };
+        Settings.updateValue({key: 'api', value: apiUsage});
+    }
 };
 
 /**
@@ -80,13 +82,18 @@ exports.getFriends = function (id, token) {
  * Get the users profile data, updates db.user in case something has changes (e.g. e-mail address)
  */
 exports.getAthlete = function (id, token) {
-    strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
-        updateLimits(limits);
-        if (err) {
-            Log.error(TAG, err);
-        }
-        // Log.debug(TAG, '\nAthlete Profile: \n' + JSON.stringify(payload, null, 2));
-        // todo update database with new user profile data
+    return new Promise(function(resolve, reject) {
+        strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
+            updateLimits(limits);
+            if (err) {
+                reject(Error(err));
+                Log.error(TAG, 'Error while retrieving user data', err);
+            }
+            resolve(payload);
+
+            // Log.debug(TAG, '\nAthlete Profile: \n' + JSON.stringify(payload, null, 2));
+            // todo update database with new user profile data
+        });
     });
 };
 

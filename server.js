@@ -16,6 +16,7 @@ const init = require('./init');
 const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
 const app = express();
+process.setMaxListeners(0);
 
 app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
 
@@ -56,9 +57,16 @@ if (cluster.isMaster) {
         .on('disconnected', connect)
         .once('open', initialize);
 
-    for (let i = 0; i < numCPUs; i++) {
-        cluster.fork();
+    if (app.get('env') !== 'test') {
+        for (let i = 0; i < numCPUs; i++) {
+            cluster.fork();
+        }
+
+        Object.keys(cluster.workers).forEach(function (id) {
+            Log.log('Server', 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
+        });
     }
+
     cluster.on('exit', function (deadWorker) {
         // Restart the worker
         const worker = cluster.fork();
@@ -68,9 +76,6 @@ if (cluster.isMaster) {
         Log.log('Server', 'Worker ' + worker.process.pid + ' was born.');
     });
 
-    Object.keys(cluster.workers).forEach(function (id) {
-        Log.log('Server', 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
-    });
 } else {
     connect()
         .on('error', console.log)
@@ -84,6 +89,7 @@ function listen () {
 }
 
 function initialize () {
+    if (app.get('env') === 'test') return;
     init.init();
 }
 
