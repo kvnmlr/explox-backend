@@ -6,7 +6,7 @@ const app = require('express')();
 const logConfiguration = {
     appenders: {
         out: {type: 'stdout'},
-        app: {type: 'file', filename: 'application.log'}
+        app: {type: 'file', filename: 'logs/application.log'}
     },
     categories: {
         default: {appenders: ['out', 'app'], level: 'debug'}
@@ -16,7 +16,7 @@ const logConfiguration = {
 const errorConfiguration = {
     appenders: {
         out: {type: 'stdout'},
-        app: {type: 'file', filename: 'errors.log'}
+        app: {type: 'file', filename: 'logs/errors.log'}
     },
     categories: {
         default: {appenders: ['out', 'app'], level: 'debug'}
