@@ -10,7 +10,7 @@ const User = mongoose.model('User');
 const local = require('./passport/local');
 const strava = require('./passport/strava');
 
-/*const google = require('./passport/google');
+/* const google = require('./passport/google');
 const facebook = require('./passport/facebook');
 const twitter = require('./passport/twitter');
 const linkedin = require('./passport/linkedin');

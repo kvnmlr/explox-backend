@@ -3,7 +3,7 @@ module.exports = {
     respondOrRedirect
 };
 
-function respond(res, tpl, obj, status) {
+function respond (res, tpl, obj, status) {
     res.format({
         html: () => res.render(tpl, obj),
         json: () => {
@@ -13,7 +13,7 @@ function respond(res, tpl, obj, status) {
     });
 }
 
-function respondOrRedirect({req, res}, url = '/', obj = {}, flash) {
+function respondOrRedirect ({req, res}, url = '/', obj = {}, flash) {
     res.format({
         html: () => {
             if (req && flash) req.flash(flash.type, flash.text);

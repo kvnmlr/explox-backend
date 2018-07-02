@@ -82,7 +82,7 @@ exports.getFriends = function (id, token) {
  * Get the users profile data, updates db.user in case something has changes (e.g. e-mail address)
  */
 exports.getAthlete = function (id, token) {
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
         strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
