@@ -6,36 +6,12 @@
 
 module.exports = {
     db: 'mongodb://localhost/exploxdb_test',
+    email: process.env.EMAIL,
+    email_password: process.env.EMAIL_PASSWORD,
+    mapbox_token: process.env.MAPBOX_TOKEN,
     strava: {
         clientID: process.env.STRAVA_CLIENTID,
         clientSecret: process.env.STRAVA_SECRET,
         callbackURL: 'http://localhost:3000/auth/strava/callback'
     },
-    /*
-    facebook: {
-        clientID: process.env.FACEBOOK_CLIENTID,
-        clientSecret: process.env.FACEBOOK_SECRET,
-        callbackURL: 'http://localhost:3000/auth/facebook/callback'
-    },
-    twitter: {
-        clientID: process.env.TWITTER_CLIENTID,
-        clientSecret: process.env.TWITTER_SECRET,
-        callbackURL: 'http://localhost:3000/auth/twitter/callback'
-    },
-    github: {
-        clientID: process.env.GITHUB_CLIENTID,
-        clientSecret: process.env.GITHUB_SECRET,
-        callbackURL: 'http://localhost:3000/auth/github/callback'
-    },
-    linkedin: {
-        clientID: process.env.LINKEDIN_CLIENTID,
-        clientSecret: process.env.LINKEDIN_SECRET,
-        callbackURL: 'http://localhost:3000/auth/linkedin/callback'
-    },
-    google: {
-        clientID: process.env.GOOGLE_CLIENTID,
-        clientSecret: process.env.GOOGLE_SECRET,
-        callbackURL: 'http://localhost:3000/auth/google/callback'
-    },
-    */
 };
