@@ -96,7 +96,7 @@ function initialize () {
 function connect () {
     const options = {
         keepAlive: true,
-        autoIndex: true,                   // TODO build the spatial index
+        autoIndex: true,
         reconnectTries: Number.MAX_VALUE,   // Always try to reconnect
         reconnectInterval: 500,             // Reconnect every 500ms
         bufferMaxEntries: 0                 // If not connected, return errors immediately

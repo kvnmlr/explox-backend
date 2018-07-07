@@ -463,7 +463,7 @@ const createRoutes = async function () {
             stravaId: id,
             title: title,
             body: description,
-            location: '',       // TODO find out based on GPS
+            location: '',
             comments: [],
             tags: '',
             geo: [],

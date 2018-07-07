@@ -57,7 +57,7 @@ GeoSchema.statics = {
      */
 
     load_options: function (options) {
-        options.select = options.select || 'name';         // TODO
+        options.select = options.select || 'name';
         return this.findOne(options.criteria)
             .select(options.select)
             .exec();

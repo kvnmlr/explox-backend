@@ -73,8 +73,6 @@ exports.getFriends = function (id, token) {
         if (err) {
             Log.error(TAG, err);
         }
-        // Log.debug(TAG, 'Friends: \n' + JSON.stringify(payload, null, 2));
-        // todo update database to include all friends
     });
 };
 
@@ -90,9 +88,6 @@ exports.getAthlete = function (id, token) {
                 Log.error(TAG, 'Error while retrieving user data', err);
             }
             resolve(payload);
-
-            // Log.debug(TAG, '\nAthlete Profile: \n' + JSON.stringify(payload, null, 2));
-            // todo update database with new user profile data
         });
     });
 };
@@ -322,7 +317,7 @@ const getRoute = async function (id, token, userID, next) {
                         stravaId: id,
                         title: payload.name,
                         body: payload.description || 'A Strava route created by ' + user.username,
-                        location: '',   // TODO find out based on GPS
+                        location: '',
                         user: user,
                         comments: [],
                         tags: tags,
