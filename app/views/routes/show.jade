@@ -32,7 +32,7 @@ block content
           input(type='hidden', name='_csrf', value="#{csrf_token}")
           a.btn.btn-outline-secondary(href='/routes/'+article._id+'/edit', title="edit") Edit
           | &nbsp;
-          a.btn.btn-outline-secondary(href='/' + article._id + '/export', title="export") Export GPX
+          a.btn.btn-outline-secondary(href='/routes/' + article._id + '/export/gpx', title="export") Export GPX
             | &nbsp;
           input(type="hidden", name="_method", value="DELETE")
           button.btn.btn-danger.float-right(type="submit") Delete

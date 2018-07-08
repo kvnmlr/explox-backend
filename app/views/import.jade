@@ -1,0 +1,8 @@
+extends layouts/default
+
+block main
+    form.form-horizontal(method="post", action='/routes/import/gpx', enctype="multipart/form-data", role="form")
+        div
+            label(for='avatar') GPX File:
+            input#avatar(type='file', name='gpx')
+            button(type=submit) Submit
