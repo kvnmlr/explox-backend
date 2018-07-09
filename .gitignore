@@ -1,4 +1,5 @@
 node_modules/
+uploads/
 .monitor
 config/env/env.json
 Makefile

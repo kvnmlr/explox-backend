@@ -114,7 +114,7 @@ module.exports = function (app, passport) {
 
     // import export route
     app.get('/routes/:id/export/gpx', importexport.exportGPX);
-    app.get('/routes/import/gpx', importexport.importGPX);
+    app.post('/routes/import/gpx', importexport.importGPX);
 
     app.get('/import', importexport.import);
 
