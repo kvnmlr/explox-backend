@@ -12,6 +12,7 @@ const tags = require('../app/controllers/tags');
 const crawler = require('../app/controllers/crawler');
 const optimization = require('../app/controllers/optimization');
 const generate = require('../app/controllers/generate');
+const importexport = require('../app/controllers/importexport');
 
 const auth = require('./middlewares/authorization');
 
@@ -59,6 +60,7 @@ module.exports = function (app, passport) {
 
     app.post('/routes/generated', routes.userSavedChoice);
     app.get('/users/:userId', users.show);
+    app.get('/users/:userId/export/gpx', importexport.exportAllActivitiesGPX);
     app.get('/users/:userId/update', strava.updateUser);
 
     /* app.get('/auth/facebook',
@@ -110,6 +112,12 @@ module.exports = function (app, passport) {
     app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.get('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);
+
+    // import export route
+    app.get('/routes/:id/export/gpx', importexport.exportGPX);
+    app.post('/routes/import/gpx', importexport.importGPX);
+
+    app.get('/import', importexport.import);
 
     // tag routes
     app.get('/tags/:tag', tags.index);

@@ -14,7 +14,9 @@ const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 const csrf = require('csurf');
 const cors = require('cors');
-const upload = require('multer')();
+const upload = require('multer')({
+    dest: 'uploads/'
+});
 
 const mongoStore = require('connect-mongo')(session);
 const flash = require('connect-flash');
@@ -73,7 +75,7 @@ module.exports = function (app, passport) {
     // bodyParser should be above methodOverride
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({extended: true}));
-    app.use(upload.single('image'));
+    app.use(upload.any());
     app.use(methodOverride(function (req) {
         if (req.body && typeof req.body === 'object' && '_method' in req.body) {
             // look in urlencoded POST bodies and delete it

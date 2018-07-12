@@ -6,6 +6,7 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ObjectId = require('mongoose').Types.ObjectId;
 
 /**
  * Role Schema
@@ -44,7 +45,11 @@ ActivitySchema.statics = {
             .populate('geo', 'name location')
             .sort({createdAt: -1})
             .exec();
-    }
+    },
+
+    load: function (_id) {
+        return this.load_options({criteria: {_id: ObjectId(_id)}});
+    },
 };
 
 mongoose.model('Activity', ActivitySchema);
