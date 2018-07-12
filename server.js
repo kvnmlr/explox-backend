@@ -72,8 +72,8 @@ if (cluster.isMaster) {
         const worker = cluster.fork();
 
         // Log the event
-        Log.error('Server', 'Worker ' + deadWorker.process.pid + ' has died.');
-        Log.log('Server', 'Worker ' + worker.process.pid + ' was born.');
+        Log.error('Server', 'Worker ' + deadWorker.process.pid + ' has died');
+        Log.log('Server', 'Worker ' + worker.process.pid + ' was born');
     });
 
 } else {

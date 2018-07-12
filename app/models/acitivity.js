@@ -6,20 +6,19 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ObjectId = require('mongoose').Types.ObjectId;
 
 /**
  * Role Schema
  */
 
 const ActivitySchema = new Schema({
-    /** TODO 001 extend schema
-     * 1. add user reference
-     * 2. add distance
-     * 3. add title
-     */
+    title: {type: String, default: '', trim: true},                         // Title of the route
     activityId: {type: String, default: '', trim: true,  index: {unique: true}},     // The ID this activity has in Strava
     createdAt: {type: Date, default: Date.now},                         // The creation date (i.e. when imported into ExploX)
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],                     // List of references to geo points
+    user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
+    distance: {type: Number , default: 0, trim: true},      // Distance in meters
 });
 
 ActivitySchema.statics = {
@@ -46,7 +45,11 @@ ActivitySchema.statics = {
             .populate('geo', 'name location')
             .sort({createdAt: -1})
             .exec();
-    }
+    },
+
+    load: function (_id) {
+        return this.load_options({criteria: {_id: ObjectId(_id)}});
+    },
 };
 
 mongoose.model('Activity', ActivitySchema);

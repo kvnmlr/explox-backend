@@ -1,0 +1,17 @@
+extends layouts/default
+
+block main
+    form.form-horizontal(method="post", action='/routes/import/gpx', enctype="multipart/form-data")
+        h2 Route
+        input(type="file", multiple, name="route")
+        br
+        - if (req)
+            - if (req.isAuthenticated())
+                br
+                br
+                h2 Activity
+                input(type="file", multiple, name="activity")
+                br
+        input(type="hidden", name="_csrf", value="#{csrf_token}")
+        br
+        button.btn.btn-primary(type='submit') Upload
