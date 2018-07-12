@@ -22,6 +22,7 @@
     "prepare": "npm run snyk-protect"
   },
   "dependencies": {
+    "archiver": "^2.1.1",
     "body-parser": "~1.18.2",
     "cluster": "^0.7.7",
     "co": "~4.6.0",
@@ -38,6 +39,7 @@
     "express-session": "~1.15.0",
     "forever": "~0.15.1",
     "formidable": "^1.2.1",
+    "gps-to-gpx": "^1.2.0",
     "gpx-parse": "^0.10.4",
     "heatmap.js": "^2.0.5",
     "jade": "~1.11.0",

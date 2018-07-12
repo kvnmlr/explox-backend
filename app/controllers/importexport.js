@@ -2,6 +2,8 @@
 
 const mongoose = require('mongoose');
 const gpxParse = require('gpx-parse');
+const archiver = require('archiver');
+const gpxWrite = require('gps-to-gpx').default;
 const fs = require('fs');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
@@ -10,17 +12,98 @@ const User = mongoose.model('User');
 const Log = require('../utils/logger');
 const TAG = 'controllers/importexport';
 
-exports.exportGPX = async function (req, res) {
-    Log.debug(TAG, 'Export GPX for route ' + req.article.title);
-    const id = req.article._id;
+exports.exportAllActivitiesGPX = async function (req, res) {
+    const user = req.user;
+    Log.debug(TAG, 'Export GPX for user ' + user.name);
 
-    let file = './gpx/test.gpx';
-    res.writeHead(200, {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=' + file,
+    // create a file to stream archive data to.
+    const zipFile = __dirname + '../../../gpx/activity_export_' + (user.username).toLowerCase() + '.zip';
+    let output = fs.createWriteStream(zipFile);
+    let archive = archiver('zip', {
+        zlib: {level: 9} // Sets the compression level.
+    });
+    archive.pipe(output);
+
+    archive.on('error', function (err) {
+        Log.error(TAG, 'Error while zipping gpx activities', err);
     });
 
-    res.end();
+    // the zip file was written, respond it to the user
+    output.on('close', function () {
+        res.download(zipFile);
+    });
+
+    let activities = user.activities;
+    for (let i = 0; i < activities.length; ++i) {
+        let activity = activities[i];
+        let queriedActivity = await Activity.load(activity._id);
+
+        let data = {
+            activityType: activity._id,
+            waypoints: []
+        };
+
+        for (let geo of queriedActivity.geo) {
+            let geoObject = {
+                'latitude': geo.location.coordinates[1],
+                'longitude': geo.location.coordinates[0],
+                'elevation': 0,
+            };
+            data.waypoints.push(geoObject);
+        }
+
+        const gpx = gpxWrite(data.waypoints, {
+            activityName: data.activityType,
+        });
+
+        // append the current activity gpx to the archive
+        const file = 'activities/activity_' + activity._id + '.gpx';
+        archive.append(gpx, { name: file });
+        Log.debug(TAG, 'Appended activity ' + activity._id + ' to archiever');
+
+        // if this was the last activity, finalize the archiver (i.e. write the zip file)
+        if (i === activities.length - 1) {
+            archive.finalize();
+            Log.debug(TAG, 'Archiver finalized');
+        }
+    }
+};
+
+exports.exportGPX = async function (req, res) {
+    const route = req.article;
+    Log.debug(TAG, 'Export GPX for route ' + route.title);
+
+    let data = {
+        activityType: route.title,
+        waypoints: []
+    };
+
+    for (let geo of route.geo) {
+        let geoObject = {
+            'latitude': geo.location.coordinates[1],
+            'longitude': geo.location.coordinates[0],
+            'elevation': 0,
+        };
+        data.waypoints.push(geoObject);
+    }
+
+    const gpx = gpxWrite(data.waypoints, {
+        activityName: data.activityType,
+    });
+
+    Log.debug(TAG, gpx);
+
+    const file = __dirname + '../../../gpx/route_' + route._id + '.gpx';
+
+    await fs.writeFile(file, gpx, function (err) {
+        if (err) {
+            return console.log(err);
+        }
+
+        Log.debug(TAG, 'File written');
+
+        res.download(file);
+    });
 };
 
 exports.importGPX = async function (req, res) {
@@ -42,6 +125,8 @@ exports.importGPX = async function (req, res) {
             activities.push(fs.readFileSync(file.path, 'utf8'));
         }
     }
+
+    let routesSaved = 0;
     for (let routeData of routes) {
         gpxParse.parseGpx(routeData, async function (error, data) {
             let routeGPX = data.tracks[0];
@@ -69,12 +154,22 @@ exports.importGPX = async function (req, res) {
                     route.geo = await extractGeosFromGPX(data, route, null);
                     await route.save();
                     Log.log(TAG, 'New Route with ' + route.geo.length + ' geos successfully imported');
+                    routesSaved++;
                     if (!headersSent) {
-                        res.writeHead(302, {
-                            'Location': 'http://localhost:3000/routes/' + route._id
-                        });
-                        res.end();
-                        headersSent = true;
+                        if (routes.length === 1) {
+                            res.writeHead(302, {
+                                'Location': 'http://localhost:3000/routes/' + route._id
+                            });
+                            res.end();
+                            headersSent = true;
+                        }
+                        else if (routesSaved === routes.length) {
+                            res.writeHead(302, {
+                                'Location': 'http://localhost:3000/routes/'
+                            });
+                            res.end();
+                            headersSent = true;
+                        }
                     }
                 }
             }
@@ -82,12 +177,14 @@ exports.importGPX = async function (req, res) {
     }
 
 
+    let activitiesSaved;
     for (let activityData of activities) {
         if (!req.user) {
             Log.error(TAG, 'No user logged in, cannot save activity');
             return;
         }
         gpxParse.parseGpx(activityData, async function (error, data) {
+            Log.debug(TAG, 'Here');
             let activityGPX = data.tracks[0];
             if (activityGPX) {
                 let activity = await Activity.load_options({criteria: {title: activityGPX.name}});
@@ -107,9 +204,10 @@ exports.importGPX = async function (req, res) {
                     let user = await User.load(req.user._id);
                     if (user) {
                         user.activities = user.activities.concat([activity]);
-                        await user.save();
+                        await user.save().catch((e) => Log.error(TAG, 'Error while saving user', e));
                         Log.log(TAG, 'New Activity with ' + activity.geo.length + ' geos successfully imported');
-                        if (!headersSent) {
+                        activitiesSaved++;
+                        if (!headersSent && activitiesSaved === activities.length) {
                             res.writeHead(302, {
                                 'Location': 'http://localhost:3000/users/' + req.user._id
                             });

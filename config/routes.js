@@ -60,6 +60,7 @@ module.exports = function (app, passport) {
 
     app.post('/routes/generated', routes.userSavedChoice);
     app.get('/users/:userId', users.show);
+    app.get('/users/:userId/export/gpx', importexport.exportAllActivitiesGPX);
     app.get('/users/:userId/update', strava.updateUser);
 
     /* app.get('/auth/facebook',
