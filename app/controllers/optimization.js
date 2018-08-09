@@ -12,5 +12,5 @@ const Geo = mongoose.model('Geo');
 
 exports.prune = async(function* (req, res) {
     let geos = yield Geo.prune({});
-    Log.debug(TAG, 'ok');
+    res.json({});
 });

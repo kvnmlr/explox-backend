@@ -13,7 +13,7 @@ const Log = require('../utils/logger');
  */
 
 exports.load_options = function (req, res, next, id) {
-    req.comment = req.article.comments
+    req.comment = req.routeData.comments
         .find(comment => comment.id === id);
 
     if (!req.comment) return next(new Error('Comment not found'));
@@ -25,10 +25,9 @@ exports.load_options = function (req, res, next, id) {
  */
 
 exports.create = async(function* (req, res) {
-    Log.debug('Comments', 'hi');
-    const article = req.article;
-    yield article.addComment(req.user, req.body);
-    respondOrRedirect({res}, `/routes/${article._id}`, article.comments[0]);
+    const route = req.routeData;
+    yield route.addComment(req.user, req.body.comment);
+    res.json({});
 });
 
 /**
@@ -36,11 +35,11 @@ exports.create = async(function* (req, res) {
  */
 
 exports.destroy = async(function* (req, res) {
-    yield req.article.removeComment(req.params.commentId);
+    yield req.routeData.removeComment(req.body.commentId);
     req.flash('info', 'Removed comment');
-    res.redirect('/routes/' + req.article.id);
-    respondOrRedirect({req, res}, `/routes/${req.article.id}`, {}, {
-        type: 'info',
-        text: 'Removed comment'
+    res.redirect('/routes/' + req.routeData.id);
+    res.json({
+        flash: 'Your comment has been removed.'
     });
+
 });

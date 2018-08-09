@@ -37,8 +37,9 @@ exports.load_options = async(function* (req, res, next, _id) {
 /**
  * Create user
  */
-
-exports.create = async(function* (req, res) {
+exports.signup = async(function* (req, res) {
+    console.log(req.body);
+    req.body.email = (req.body.email).toLowerCase();
     const user = new User(req.body);
     user.provider = 'local';
     user.role = 'user';
@@ -48,16 +49,15 @@ exports.create = async(function* (req, res) {
             if (err) req.flash('info', 'Sorry! We are not able to log you in!');
             mailer.registeredConfirmation(user);
             Log.log(TAG, 'User ' + user.username + ' has registered');
-            return res.redirect('/');
+            res.json({
+                errors: null,
+                user: user,
+            });
         });
     } catch (err) {
-        const errors = Object.keys(err.errors)
-            .map(field => err.errors[field].message);
-
-        res.render('users/signup', {
-            title: 'Sign up',
-            errors,
-            user
+        res.status(400).json({
+            errors: err,
+            user: null
         });
     }
 });
@@ -65,7 +65,6 @@ exports.create = async(function* (req, res) {
 /**
  *  Show profile
  */
-
 exports.show = async(function* (req, res) {
     const user = req.profile;
     if (req.user === undefined) {
@@ -160,14 +159,9 @@ exports.login = function (req, res) {
     });
 };
 
-/**
- * Show sign up form
- */
-
-exports.signup = function (req, res) {
-    res.render('users/signup', {
-        title: 'Sign up',
-        user: new User()
+exports.getCsrfToken = function (req, res) {
+    res.json({
+        csrfToken: res.locals.csrf_token
     });
 };
 
@@ -177,7 +171,13 @@ exports.signup = function (req, res) {
 
 exports.logout = function (req, res) {
     req.logout();
-    res.redirect('/login');
+    res.json();
+};
+
+exports.authorize = function (req, res) {
+    res.json({
+        user: req.user
+    });
 };
 
 /**
@@ -191,11 +191,7 @@ exports.session = login;
  */
 
 function login (req, res) {
-    Log.debug(TAG, 'Login');
     User.update_user(req.user._id, {lastLogin: Date.now()});
-    const redirectTo = req.session.returnTo
-        ? req.session.returnTo
-        : '/';
     delete req.session.returnTo;
-    res.redirect(redirectTo);
+    res.json();
 }

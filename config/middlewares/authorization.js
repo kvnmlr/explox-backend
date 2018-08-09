@@ -6,8 +6,11 @@
 
 exports.requiresLogin = function (req, res, next) {
     if (req.isAuthenticated()) return next();
-    if (req.method == 'GET') req.session.returnTo = req.originalUrl;
-    res.redirect('/login');
+    if (req.method === 'GET') req.session.returnTo = req.originalUrl;
+    res.status(400).json({
+        errors: 'No user logged in',
+        flash: 'Action requires logged in user, please log in'
+    });
 };
 
 /*
@@ -33,11 +36,17 @@ exports.article = {
         // if it is a segment, it does not have a user. Still nobody should be able to delete segments
         if (!req.article.user) {
             req.flash('info', 'You are not authorized');
-            return res.redirect('/routes/' + req.article.id);
+            res.status(400).json({
+                errors: 'Unauthorized action',
+                flash: 'You are not authorized'
+            });
         }
         if (req.article.user.id !== req.user.id) {
             req.flash('info', 'You are not authorized');
-            return res.redirect('/routes/' + req.article.id);
+            res.status(400).json({
+                errors: 'Unauthorized action',
+                flash: 'You are not authorized'
+            });
         }
         next();
     }

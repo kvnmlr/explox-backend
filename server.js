@@ -5,6 +5,8 @@ require('dotenv').config();
 const fs = require('fs');
 const join = require('path').join;
 const express = require('express');
+const app = express();
+
 const mongoose = require('mongoose');
 const cluster = require('cluster');
 const favicon = require('serve-favicon')
@@ -15,7 +17,6 @@ const init = require('./init');
 
 const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
-const app = express();
 process.setMaxListeners(0);
 
 app.use(favicon(join(__dirname, 'public', 'favicon.ico')));

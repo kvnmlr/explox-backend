@@ -74,8 +74,5 @@ exports.crawlSegments = async(function (req, res) {
             }
         }
     }
-    res.writeHead(302, {
-        'Location': 'http://localhost:3000/routes'
-    });
-    res.end();
+    res.json({});
 });

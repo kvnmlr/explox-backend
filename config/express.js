@@ -10,9 +10,12 @@ const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-const bodyParser = require('body-parser');
+
 const methodOverride = require('method-override');
 const csrf = require('csurf');
+const bodyParser = require('body-parser');
+const parseForm = bodyParser.urlencoded({ extended: false });
+
 const cors = require('cors');
 const upload = require('multer')({
     dest: 'uploads/'
@@ -32,16 +35,25 @@ const env = process.env.NODE_ENV || 'development';
  */
 
 module.exports = function (app, passport) {
-
+    app.use(parseForm);
+    app.use(function (req, res, next) {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Credentials', true);
+        res.header('Access-Control-Allow-Headers', 'Origin, ' +
+            'Cookie' +
+            'X-Requested-With, ' +
+            'Content-Type, ' +
+            'Content-Length, ' +
+            'Accept');
+        next();
+    });
     // Compression middleware (should be placed before express.static)
     app.use(compression({
         threshold: 512
     }));
 
     app.use(cors({
-        origin: ['http://localhost:3000', 'https://reboil-demo.herokuapp.com'],
-        optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
-        credentials: true
+        origin: ['http://localhost:3000', 'http://localhost:8080'],
     }));
 
     // Static files middleware
@@ -87,7 +99,7 @@ module.exports = function (app, passport) {
 
     // CookieParser should be above session
     app.use(cookieParser());
-    app.use(cookieSession({secret: 'secret'}));
+    // app.use(cookieSession({secret: 'secret'}));
     app.use(session({
         resave: false,
         saveUninitialized: true,
@@ -109,7 +121,7 @@ module.exports = function (app, passport) {
     app.use(helpers(pkg.name));
 
     if (env !== 'test') {
-        app.use(csrf());
+        app.use(csrf({cookie: true, ignoreMethods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'DELETE']}));
 
         // This could be moved to view-helpers :-)
         app.use(function (req, res, next) {

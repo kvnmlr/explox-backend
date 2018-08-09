@@ -22,11 +22,22 @@ const User = mongoose.model('User');
  */
 
 exports.home = async(function (req, res) {
-    respond(res, 'home', {});
+    res.json({
+        text: 'Home text',
+    });
+});
+
+exports.hub = async(function (req, res) {
+    res.json({
+        text: 'Hub text',
+    });
 });
 
 exports.about = async(function (req, res) {
-    respond(res, 'about', {});
+    res.json({
+        version: '0.1',
+        text: 'About text'
+    });
 });
 
 
@@ -36,8 +47,8 @@ exports.about = async(function (req, res) {
 
 exports.load_options = async(function* (req, res, next, id) {
     try {
-        req.article = yield Route.load(id);
-        if (!req.article) return next(new Error('Route not found'));
+        req.routeData = yield Route.load(id);
+        if (!req.routeData) return next(new Error('Route not found'));
     } catch (err) {
         return next(err);
     }
@@ -51,20 +62,27 @@ exports.load_options = async(function* (req, res, next, id) {
 exports.index = async(function* (req, res) {
     const page = (req.query.page > 0 ? req.query.page : 1) - 1;
     const _id = req.query.item;
+    const tag = req.query.tag;
+    const segments = req.query.segments === 'true';
     const limit = 30;
     const options = {
         limit: limit,
         page: page,
+        detailed: false,
         criteria: {
-            isRoute: true,
+            isRoute: (!segments),
         }
     };
 
+    console.log(options);
+
     if (_id) options.criteria._id = {_id};
+    if (tag) options.criteria.tags = tag;
 
     const routes = yield Route.list(options);
     const count = yield Route.count();
-    respond(res, 'routes/index', {
+
+    res.json({
         title: 'Routes',
         routes: routes,
         page: page + 1,
@@ -73,66 +91,63 @@ exports.index = async(function* (req, res) {
 });
 
 /**
- * New article
+ * New route
  */
 
 exports.new = function (req, res) {
     res.render('routes/new', {
         title: 'New Route',
-        article: new Route()
+        route: new Route()
     });
 };
 
 /**
- * Create an article
+ * Create an route
  * Upload an image
  */
 
 exports.create = async(function* (req, res) {
-    const article = new Route(only(req.body, 'title body tags'));
-    article.user = req.user;
+    const route = new Route(only(req.body, 'title body tags'));
+    route.user = req.user;
     try {
-        yield article.uploadAndSave(req.file);
-        respondOrRedirect({req, res}, `/routes/${article._id}`, article, {
+        yield route.uploadAndSave(req.file);
+        respondOrRedirect({req, res}, `/routes/${route._id}`, route, {
             type: 'success',
-            text: 'Successfully created article!'
+            text: 'Successfully created route!'
         });
     } catch (err) {
         respond(res, 'routes/new', {
-            title: article.title || 'New Route',
+            title: route.title || 'New Route',
             errors: [err.toString()],
-            article
+            route
         }, 422);
     }
 });
 
 /**
- * Edit an article
+ * Edit an route
  */
 
 exports.edit = function (req, res) {
     res.render('routes/edit', {
-        title: 'Edit ' + req.article.title,
-        article: req.article
+        title: 'Edit ' + req.routeData.title,
+        route: req.routeData
     });
 };
 
 /**
- * Update article
+ * Update route
  */
 
 exports.update = async(function* (req, res) {
-    const article = req.article;
-    assign(article, only(req.body, 'title body tags'));
+    let route = req.routeData;
+    assign(route, only(req.body, 'title body tags'));
     try {
-        yield article.uploadAndSave(req.file);
-        respondOrRedirect({res}, `/routes/${article._id}`, article);
+        yield route.save();
+        res.json({});
     } catch (err) {
-        respond(res, 'routes/edit', {
-            title: 'Edit ' + article.title,
-            errors: [err.toString()],
-            article
-        }, 422);
+        console.log(err);
+        res.status(500).json({});
     }
 });
 
@@ -146,11 +161,11 @@ exports.show = async(function* (req, res) {
         if (user) {
             const geos = Strava.activitiesToGeos(user.activities);
             const exploredMap = Map.generateExploredMapData(geos);
-            const map = Map.generateRouteMap(req.article.geo);
-            map.distance = req.article.distance;
-            respond(res, 'routes/show', {
-                title: req.article.title,
-                article: req.article,
+            const map = Map.generateRouteMap(req.routeData.geo);
+            map.distance = req.routeData.distance;
+            res.json({
+                title: req.routeData.title,
+                route: req.routeData,
                 map: exploredMap,
                 routeMaps: [
                     map,
@@ -166,19 +181,19 @@ exports.show = async(function* (req, res) {
             });
         }
     } else {
-        const exploredMap = Map.generateExploredMapData([]);
-        const map = Map.generateRouteMap(req.article.geo, null);
-        respond(res, 'routes/show', {
-            title: req.article.title,
-            article: req.article,
-            map: exploredMap,
+        // const exploredMap = Map.generateExploredMapData([]);
+        // const map = Map.generateRouteMap(req.route.geo, null);
+        res.json({
+            title: req.routeData.title,
+            route: req.routeData,
+            /* map: exploredMap,
             routeMaps: [
                 map,
                 {routeData: ['0', '0']},
                 {routeData: ['0', '0']},
                 {routeData: ['0', '0']},
                 {routeData: ['0', '0']}
-            ],
+            ], */
             hasRoute: true,
             foundRoutes: false,
             numRoutes: 0,
@@ -220,15 +235,12 @@ exports.userSavedChoice = async(function* (req, res) {
 });
 
 /**
- * Delete an article
+ * Delete an route
  */
 
 exports.destroy = async(function* (req, res) {
-    yield req.article.remove();
-    respondOrRedirect({req, res}, '/routes', {}, {
-        type: 'info',
-        text: 'Deleted successfully'
-    });
+    yield req.routeData.remove();
+    res.json({});
 });
 
 

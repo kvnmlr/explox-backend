@@ -143,6 +143,11 @@ RouteSchema.statics = {
         if (criteria._id) {
             criteria._id = ObjectId(criteria._id);
         }
+        if (!options.detailed) {
+            return this.find(criteria)
+                .sort({createdAt: -1})
+                .exec();
+        }
         return this.find(criteria)
             .populate('user', 'name username')
             .populate('geo', 'name location')

@@ -24,6 +24,7 @@ exports.init = async function () {
         if (!initialized) {
             await createDefaultUsers();
             await createDefaultSettings();
+            await createSampleRoute();
         }
         finished();
     } catch (e) {
