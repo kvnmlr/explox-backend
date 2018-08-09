@@ -9,7 +9,7 @@ const generate = require('../app/controllers/generate');
 const importexport = require('../app/controllers/importexport');
 const auth = require('./middlewares/authorization');
 
-const routeAuth = [auth.requiresLogin, auth.article.hasAuthorization];
+const routeAuth = [auth.requiresLogin, auth.route.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
 
 const fail = {

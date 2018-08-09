@@ -70,7 +70,7 @@ exports.exportAllActivitiesGPX = async function (req, res) {
 };
 
 exports.exportGPX = async function (req, res) {
-    const route = req.article;
+    const route = req.routeData;
     Log.debug(TAG, 'Export GPX for route ' + route.title);
 
     let data = {
@@ -87,11 +87,14 @@ exports.exportGPX = async function (req, res) {
         data.waypoints.push(geoObject);
     }
 
+    if (data.waypoints.length === 0) {
+        return res.status(400).json({
+            error: "Route doesn't have waypoints"
+        });
+    }
     const gpx = gpxWrite(data.waypoints, {
         activityName: data.activityType,
     });
-
-    Log.debug(TAG, gpx);
 
     const file = __dirname + '../../../gpx/route_' + route._id + '.gpx';
 

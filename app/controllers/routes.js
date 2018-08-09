@@ -141,7 +141,8 @@ exports.edit = function (req, res) {
 
 exports.update = async(function* (req, res) {
     let route = req.routeData;
-    assign(route, only(req.body, 'title body tags'));
+    assign(route, only(req.body, 'title body'));
+    route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
     try {
         yield route.save();
         res.json({});
