@@ -34,9 +34,13 @@ exports.user = {
             // admin can do anything with any user
             return next();
         }
-        if (req.profile.id !== req.user.id) {
-            req.flash('info', 'You are not authorized');
-            return res.status(401).json({error: 'You are not authorized'});
+        if (req.profile) {
+            if (req.profile.id !== req.user.id) {
+                return res.status(401).json({
+                    error: 'Unauthorized action',
+                    flash: 'You are not authorized'
+                });
+            }
         }
         next();
     }

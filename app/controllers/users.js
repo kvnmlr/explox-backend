@@ -39,7 +39,6 @@ exports.load_options = async(function* (req, res, next, _id) {
  * Create user
  */
 exports.signup = async(function* (req, res) {
-    console.log(req.body);
     req.body.email = (req.body.email).toLowerCase();
     const user = new User(req.body);
     user.provider = 'local';
@@ -57,7 +56,7 @@ exports.signup = async(function* (req, res) {
         });
     } catch (err) {
         res.status(400).json({
-            errors: err,
+            error: err,
             user: null
         });
     }
@@ -66,14 +65,14 @@ exports.signup = async(function* (req, res) {
 /**
  * Show Dashboard
  */
-exports.dashboard = async(function* (req, res) {
+exports.dashboard = async function (req, res) {
     if (req.user.role === 'admin') {
-        yield showAdminDashboard(req, res);
+        await showAdminDashboard(req, res);
     }
     else {
-        yield showUserDashboard(req, res);
+        await showUserDashboard(req, res);
     }
-});
+};
 
 
 exports.show = async function (req, res) {
@@ -148,11 +147,15 @@ exports.logout = function (req, res) {
 };
 
 exports.update = async function (req, res) {
-    let user = req.profile;
+    let user = req.user;
+    console.log(user);
+    console.log(req.body);
     assign(user, only(req.body, 'name email username'));
     try {
         await user.save();
-        res.json({});
+        res.json({
+            user: user,
+        });
     } catch (err) {
         console.log(err);
         res.status(500).json({
@@ -192,7 +195,7 @@ async function showAdminDashboard (req, res) {
         title: req.user.name,
         user: req.user,
         data: 'Admin data goes here',
-        all: users,
+        users: users,
         routes: routes,
         generated: generated,
         segments: segments,
