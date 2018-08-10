@@ -41,7 +41,7 @@ const updateLimits = function (limit) {
  */
 
 exports.updateUser = async function (req, res) {
-    const id = req.user._id;
+    const id = req.profile._id;
     let user = await User.load(id);
     if (user) {
         const token = user.authToken;

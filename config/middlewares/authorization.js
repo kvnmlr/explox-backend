@@ -13,15 +13,30 @@ exports.requiresLogin = function (req, res, next) {
     });
 };
 
+exports.adminOnly = function (req, res, next) {
+    if (req.user.role === 'admin') {
+        return next();
+    } else {
+        return res.status(401).json({
+            error: 'Unauthorized action',
+            flash: 'This action is allowed by system admins only'
+        });
+    }
+};
+
 /*
  *  User authorization routing middleware
  */
 
 exports.user = {
     hasAuthorization: function (req, res, next) {
+        if (req.user.role === 'admin') {
+            // admin can do anything with any user
+            return next();
+        }
         if (req.profile.id !== req.user.id) {
             req.flash('info', 'You are not authorized');
-            return res.status(400).json({error: 'You are not authorized'});
+            return res.status(401).json({error: 'You are not authorized'});
         }
         next();
     }
@@ -33,17 +48,20 @@ exports.user = {
 
 exports.route = {
     hasAuthorization: function (req, res, next) {
-        // if it is a segment, it does not have a user. Still nobody should be able to delete segments
+        if (req.user.role === 'admin') {
+            // admin can do anything with any route
+            return next();
+        }
         if (!req.routeData.user) {
             req.flash('info', 'You are not authorized');
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Unauthorized action',
                 flash: 'You are not authorized'
             });
         }
         if (req.routeData.user.id !== req.user.id) {
             req.flash('info', 'You are not authorized');
-            return res.status(400).json({
+            return res.status(401).json({
                 error: 'Unauthorized action',
                 flash: 'You are not authorized'
             });
@@ -58,8 +76,10 @@ exports.route = {
 
 exports.comment = {
     hasAuthorization: function (req, res, next) {
-        // if the current user is comment owner or article owner
-        // give them authority to delete
+        if (req.user.role === 'admin') {
+            // admin can do anything with any comment
+            return next();
+        }
         if (req.user.id === req.comment.user.id || req.user.id === req.routeData.user.id) {
             next();
         } else {

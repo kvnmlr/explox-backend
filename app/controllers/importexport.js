@@ -12,68 +12,20 @@ const User = mongoose.model('User');
 const Log = require('../utils/logger');
 const TAG = 'controllers/importexport';
 
-exports.exportAllActivitiesGPX = async function (req, res) {
-    const user = req.user;
-    Log.debug(TAG, 'Export GPX for user ' + user.name);
-
-    // create a file to stream archive data to.
-    const zipFile = __dirname + '../../../gpx/activity_export_' + (user.username).toLowerCase() + '.zip';
-    let output = fs.createWriteStream(zipFile);
-    let archive = archiver('zip', {
-        zlib: {level: 9} // Sets the compression level.
-    });
-    archive.pipe(output);
-
-    archive.on('error', function (err) {
-        Log.error(TAG, 'Error while zipping gpx activities', err);
-    });
-
-    // the zip file was written, respond it to the user
-    output.on('close', function () {
-        res.download(zipFile);
-    });
-
-    let activities;
-    activities = user.activities;
-    for (let i = 0; i < activities.length; ++i) {
-        let activity = activities[i];
-        let queriedActivity = await Activity.load(activity._id);
-
-        let data = {
-            activityType: activity._id,
-            waypoints: []
-        };
-
-        for (let geo of queriedActivity.geo) {
-            let geoObject = {
-                'latitude': geo.location.coordinates[1],
-                'longitude': geo.location.coordinates[0],
-                'elevation': 0,
-            };
-            data.waypoints.push(geoObject);
-        }
-
-        const gpx = gpxWrite(data.waypoints, {
-            activityName: data.activityType,
-        });
-
-        // append the current activity gpx to the archive
-        const file = 'activities/activity_' + activity._id + '.gpx';
-        archive.append(gpx, {name: file});
-        Log.debug(TAG, 'Appended activity ' + activity._id + ' to archiever');
-
-        // if this was the last activity, finalize the archiver (i.e. write the zip file)
-        if (i === activities.length - 1) {
-            archive.finalize();
-            Log.debug(TAG, 'Archiver finalized');
-        }
+exports.exportUser = async function (req, res) {
+    Log.debug(TAG, 'Export GPX for user ' + req.profile.name);
+    const all = req.query.all || false;
+    if (all) {
+        await exportUserAll(req, res);
+    } else {
+        await exportUserSingle(req, res);
     }
 };
 
-exports.export = async function (req, res) {
+exports.exportRoute = async function (req, res) {
+    Log.debug(TAG, 'Export GPX for route ' + req.routeData.title);
     const route = req.routeData;
     const format = req.query.format || 'gpx';
-    Log.debug(TAG, 'Export GPX for route ' + route.title);
 
     let data = {
         activityType: route.title,
@@ -90,7 +42,7 @@ exports.export = async function (req, res) {
     }
 
     if (data.waypoints.length === 0) {
-        return res.status(400).json({
+        return res.status(401).json({
             error: "Route doesn't have waypoints"
         });
     }
@@ -113,8 +65,8 @@ exports.export = async function (req, res) {
 
 exports.import = async function (req, res) {
     Log.debug(TAG, 'Import GPX for route');
-
     const format = req.body.format | 'gpx';
+    const type = req.body.type | 'route';
 
     if (format !== 'gpx') {
         res.status(401).json({
@@ -123,7 +75,6 @@ exports.import = async function (req, res) {
         });
     }
 
-    const type = req.body.type | 'route';
     if (req.files.length === 0) {
         Log.error(TAG, 'Import form was submitted without files');
         res.status(400).json({
@@ -162,7 +113,7 @@ exports.import = async function (req, res) {
                             title: routeGPX.name,
                             body: data.metadata.description || 'Imported Route',
                             location: '',
-                            user: req.user ? req.user : null,
+                            user: req.profile ? req.profile : null,
                             comments: [],
                             tags: tags,
                             geo: [],
@@ -197,7 +148,7 @@ exports.import = async function (req, res) {
 
     let activitiesSaved;
     for (let activityData of activities) {
-        if (!req.user) {
+        if (!req.profile) {
             Log.error(TAG, 'No user logged in, cannot save activity');
             return;
         }
@@ -220,7 +171,7 @@ exports.import = async function (req, res) {
                         activity.geo = await extractGeosFromGPX(data, null, activity);
                         await activity.save();
 
-                        let user = await User.load(req.user._id);
+                        let user = await User.load(req.profile._id);
                         if (user) {
                             user.activities = user.activities.concat([activity]);
                             await user.save().catch((e) => Log.error(TAG, 'Error while saving user', e));
@@ -246,7 +197,7 @@ exports.import = async function (req, res) {
     }
 };
 
-const extractGeosFromGPX = async function (gpx, route, activity) {
+async function extractGeosFromGPX (gpx, route, activity) {
     return new Promise(async function (resolve) {
 
         const pl = gpx.tracks[0].segments[0];
@@ -327,4 +278,76 @@ const extractGeosFromGPX = async function (gpx, route, activity) {
         }
         resolve([]);
     });
-};
+}
+
+async function exportUserSingle (req, res) {
+    const user = req.profile;
+    const format = req.query.format || 'gpx';
+    const id = req.query.activityId || '0';
+
+    res.json({
+        ok: 'Not implemented'
+    });
+}
+
+async function exportUserAll (req, res) {
+    const user = req.profile;
+    const format = req.query.format || 'gpx';
+    const id = req.query.activityId || '0';
+
+    // create a file to stream archive data to.
+    const zipFile = __dirname + '../../../gpx/activity_export_' + (user.username).toLowerCase() + '.zip';
+    let output = fs.createWriteStream(zipFile);
+    let archive = archiver('zip', {
+        zlib: {level: 9} // Sets the compression level.
+    });
+    archive.pipe(output);
+
+    archive.on('error', function (err) {
+        Log.error(TAG, 'Error while zipping gpx activities', err);
+        res.status(500).json({
+            error: 'Error while zipping files'
+        });
+    });
+
+    // the zip file was written, respond it to the user
+    output.on('close', function () {
+        res.download(zipFile);
+    });
+
+    let activities;
+    activities = user.activities;
+    for (let i = 0; i < activities.length; ++i) {
+        let activity = activities[i];
+        let queriedActivity = await Activity.load(activity._id);
+
+        let data = {
+            activityType: activity._id,
+            waypoints: []
+        };
+
+        for (let geo of queriedActivity.geo) {
+            let geoObject = {
+                'latitude': geo.location.coordinates[1],
+                'longitude': geo.location.coordinates[0],
+                'elevation': 0,
+            };
+            data.waypoints.push(geoObject);
+        }
+
+        const gpx = gpxWrite(data.waypoints, {
+            activityName: data.activityType,
+        });
+
+        // append the current activity gpx to the archive
+        const file = 'activities/activity_' + activity._id + '.gpx';
+        archive.append(gpx, {name: file});
+        Log.debug(TAG, 'Appended activity ' + activity._id + ' to archiever');
+
+        // if this was the last activity, finalize the archiver (i.e. write the zip file)
+        if (i === activities.length - 1) {
+            archive.finalize();
+            Log.debug(TAG, 'Archiver finalized');
+        }
+    }
+}

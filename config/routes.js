@@ -11,6 +11,7 @@ const auth = require('./middlewares/authorization');
 
 const routeAuth = [auth.requiresLogin, auth.route.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
+const userAuth = [auth.requiresLogin, auth.user.hasAuthorization];
 
 const fail = {
     failureRedirect: '/',
@@ -36,19 +37,20 @@ module.exports = function (app, passport) {
 
     // User Routes
     app.param('userId', users.load_options);
-    app.get('/users/:userId', users.show);                                   // TODO
-    app.get('/users/:userId/export', importexport.exportAllActivitiesGPX);   // TODO
-    app.get('/users/:userId/import', users.show);                            // TODO
-    app.get('/users/:userId/update', strava.updateUser);                     // TODO
-    app.put('/users/:userId', users.show);                                   // TODO
-    app.delete('/users/:userId', users.show);                                // TODO
+    app.get('/users/:userId',  auth.requiresLogin, users.show);
+    app.get('/dashboard', userAuth, users.dashboard);
+    app.get('/users/:userId/export', userAuth, importexport.exportUser);
+    app.get('/users/:userId/import', userAuth, importexport.import);
+    app.get('/users/:userId/update', userAuth, strava.updateUser);
+    app.put('/users/:userId', userAuth, users.update);
+    app.delete('/users/:userId', userAuth, users.destroy);
 
     // Route Routes
     app.param('id', routes.load_options);
     app.param('commentId', comments.load_options);
     app.get('/routes', routes.index);
     app.get('/routes/:id', routes.show);                                    // TODO
-    app.get('/routes/:id/export', importexport.export);
+    app.get('/routes/:id/export', importexport.exportRoute);
     app.post('/routes/generate', generate.generate);
     app.post('/routes/import', auth.requiresLogin, importexport.import);
     app.post('/routes', auth.requiresLogin, routes.create);
@@ -58,9 +60,9 @@ module.exports = function (app, passport) {
     app.delete('/routes/:id', routeAuth, routes.destroy);
     app.delete('/routes/:id/comments', commentAuth, comments.destroy);      // TODO test
 
-    // Testing Routes
-    app.get('/crawl', crawler.crawlSegments);
-    app.get('/optimize', optimization.prune);
+    // Admin Routes
+    app.get('/crawl', auth.adminOnly, crawler.crawlSegments);
+    app.get('/optimize', auth.adminOnly, optimization.prune);
 
     // Error Handling
     app.use(function (err, req, res, next) {

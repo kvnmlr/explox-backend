@@ -12,7 +12,8 @@ const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Settings = mongoose.model('Settings');
-
+const only = require('only');
+const assign = Object.assign;
 const mailer = require('../mailer/index');
 
 const Strava = require('./strava');
@@ -63,95 +64,71 @@ exports.signup = async(function* (req, res) {
 });
 
 /**
- *  Show profile
+ * Show Dashboard
  */
-exports.show = async(function* (req, res) {
+exports.dashboard = async(function* (req, res) {
+    if (req.user.role === 'admin') {
+        yield showAdminDashboard(req, res);
+    }
+    else {
+        yield showUserDashboard(req, res);
+    }
+});
+
+
+exports.show = async function (req, res) {
     const user = req.profile;
-    if (req.user === undefined) {
-        res.render('users/login', {
-            title: 'Login'
+    if (!user) {
+        return res.status(400).json({
+            error: 'The given id does not belong to a user',
+            flash: 'This user does not exist anymore'
         });
     }
 
-    if (req.user.role === 'admin' && req.profile.role === 'admin') {
-        let users = yield User.list({});
-        let routes = yield Route.list({criteria: {isRoute: true, isGenerated: false}});
-        let generated = yield Route.list({criteria: {isRoute: true, isGenerated: true}});
-        let activities = yield Activity.list({});
-        let segments = yield Route.list({criteria: {isRoute: false}});
-        let apiLimits = yield Strava.getLimits();
-            respond(res, 'users/show_admin', {
-                title: user.name,
-                user: user,
-                data: 'Admin data goes here',
-                all: users,
-                routes: routes,
-                generated: generated,
-                segments: segments,
-                activities: activities,
-                limits: apiLimits
-            });
-    }
-    else {
-        // Show user profile
-        if (req.params.userId === undefined) {
-            req.params.userId = req.user._id;
-        }
-        let user = yield User.load_full(req.params.userId, {});
-        if (user) {
-            const geos = Strava.activitiesToGeos(user.activities);
-            const generatedRoutes = req.generatedRoutes || [];
-            const foundRoutes = generatedRoutes.length > 0;
-            const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
-            const exploredMap = Map.generateExploredMapData(geos);
-            let routeMaps = [
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-            ];
+    const geos = Strava.activitiesToGeos(user.activities);
+    const generatedRoutes = req.generatedRoutes || [];
+    const foundRoutes = generatedRoutes.length > 0;
+    const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
+    const exploredMap = Map.generateExploredMapData(geos);
+    let routeMaps = [
+        {routeData: ['0', '0']},
+        {routeData: ['0', '0']},
+        {routeData: ['0', '0']},
+        {routeData: ['0', '0']},
+        {routeData: ['0', '0']},
+    ];
 
-            if (hasGeneratedRoutes) {
-                if (generatedRoutes.length > 0) {
-                    generatedRoutes.forEach(function (route, index) {
-                        routeMaps[index] = Map.generateRouteMap(route.geo);
-                        routeMaps[index].distance = route.distance;
-                        routeMaps[index].id = route._id;
-                        routeMaps[index].parts = route.parts;
-                        routeMaps[index].familiarityScore = route.familiarityScore;
-                    });
-                }
-            }
-
-            respond(res, 'users/show', {
-                title: user.name,
-                user: user,
-                map: exploredMap,
-                routeMaps: routeMaps,
-                userData: 'User data goes here',
-                hasGeneratedRoutes: hasGeneratedRoutes,
-                hasRoute: false,
-                foundRoutes: foundRoutes,
-                numRoutes: generatedRoutes.length,
-                generatedRoutes: generatedRoutes
+    if (hasGeneratedRoutes) {
+        if (generatedRoutes.length > 0) {
+            generatedRoutes.forEach(function (route, index) {
+                routeMaps[index] = Map.generateRouteMap(route.geo);
+                routeMaps[index].distance = route.distance;
+                routeMaps[index].id = route._id;
+                routeMaps[index].parts = route.parts;
+                routeMaps[index].familiarityScore = route.familiarityScore;
             });
         }
     }
-});
+
+    return res.json({
+        title: user.name,
+        user: user,
+        map: exploredMap,
+        routeMaps: routeMaps,
+        userData: 'User data goes here',
+        hasGeneratedRoutes: hasGeneratedRoutes,
+        hasRoute: false,
+        foundRoutes: foundRoutes,
+        numRoutes: generatedRoutes.length,
+        generatedRoutes: generatedRoutes,
+        isUserProfile: req.profile._id === user._id
+    });
+};
 
 exports.signin = function () {
 };
 
-/**
- * Auth callback
- */
-
 exports.authCallback = login;
-
-/**
- * Show login form
- */
 
 exports.login = function (req, res) {
     res.render('users/login', {
@@ -165,13 +142,29 @@ exports.getCsrfToken = function (req, res) {
     });
 };
 
-/**
- * Logout
- */
-
 exports.logout = function (req, res) {
     req.logout();
     res.json();
+};
+
+exports.update = async function (req, res) {
+    let user = req.profile;
+    assign(user, only(req.body, 'name email username'));
+    try {
+        await user.save();
+        res.json({});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({
+            error: 'Error while updating user data',
+            flash: 'User data could not be updated'
+        });
+    }
+};
+
+exports.destroy = async function (req, res) {
+    await req.profile.remove();
+    res.json({});
 };
 
 exports.authorize = function (req, res) {
@@ -180,18 +173,73 @@ exports.authorize = function (req, res) {
     });
 };
 
-/**
- * Session
- */
-
 exports.session = login;
-
-/**
- * Login
- */
 
 function login (req, res) {
     User.update_user(req.user._id, {lastLogin: Date.now()});
     delete req.session.returnTo;
     res.json();
+}
+
+async function showAdminDashboard (req, res) {
+    let users = await User.list({});
+    let routes = await Route.list({criteria: {isRoute: true, isGenerated: false}});
+    let generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
+    let activities = await Activity.list({});
+    let segments = await Route.list({criteria: {isRoute: false}});
+    let apiLimits = await Strava.getLimits();
+    respond(res, 'users/show_admin', {
+        title: req.user.name,
+        user: req.user,
+        data: 'Admin data goes here',
+        all: users,
+        routes: routes,
+        generated: generated,
+        segments: segments,
+        activities: activities,
+        limits: apiLimits
+    });
+}
+
+async function showUserDashboard (req, res) {
+    let user = await User.load_full(req.user._id, {});
+    if (user) {
+        const geos = Strava.activitiesToGeos(user.activities);
+        const generatedRoutes = req.generatedRoutes || [];
+        const foundRoutes = generatedRoutes.length > 0;
+        const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
+        const exploredMap = Map.generateExploredMapData(geos);
+        let routeMaps = [
+            {routeData: ['0', '0']},
+            {routeData: ['0', '0']},
+            {routeData: ['0', '0']},
+            {routeData: ['0', '0']},
+            {routeData: ['0', '0']},
+        ];
+
+        if (hasGeneratedRoutes) {
+            if (generatedRoutes.length > 0) {
+                generatedRoutes.forEach(function (route, index) {
+                    routeMaps[index] = Map.generateRouteMap(route.geo);
+                    routeMaps[index].distance = route.distance;
+                    routeMaps[index].id = route._id;
+                    routeMaps[index].parts = route.parts;
+                    routeMaps[index].familiarityScore = route.familiarityScore;
+                });
+            }
+        }
+
+        res.json({
+            title: user.name,
+            user: user,
+            map: exploredMap,
+            routeMaps: routeMaps,
+            userData: 'User data goes here',
+            hasGeneratedRoutes: hasGeneratedRoutes,
+            hasRoute: false,
+            foundRoutes: foundRoutes,
+            numRoutes: generatedRoutes.length,
+            generatedRoutes: generatedRoutes,
+        });
+    }
 }
