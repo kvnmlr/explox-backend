@@ -14,7 +14,7 @@ const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 
-let preference, distance, radius, difficulty, start;
+let preference, distance, duration, radius, difficulty, start, end;
 let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [], candidates = [], resultRoutes = [];
 let request, response;
 
@@ -29,14 +29,16 @@ let request, response;
  */
 exports.generate = async function (req, res) {
     Log.log(TAG, 'Generate');
-    preference = req.query.preference || 'discover';
-    distance = req.query.distance * 1000 || '5000';
+    preference = req.body.preference || 'discover';
+    duration = req.body.duration || 0;
+    distance = req.body.distance * 1000 || '5000';
     radius = distance / 2.0;
-    difficulty = req.query.difficulty || 'advanced';
+    difficulty = req.body.difficulty || 'advanced';
     start = {
         lat: req.query.lat,
         lng: req.query.lng
     };
+    end = start;
     request = req;
     response = res;
 

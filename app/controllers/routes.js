@@ -107,20 +107,19 @@ exports.new = function (req, res) {
  */
 
 exports.create = async(function* (req, res) {
-    const route = new Route(only(req.body, 'title body tags'));
-    route.user = req.user;
+    const route = new Route();
+    assign(route, only(req.body, 'title body'));
+    route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
+
     try {
-        yield route.uploadAndSave(req.file);
-        respondOrRedirect({req, res}, `/routes/${route._id}`, route, {
-            type: 'success',
-            text: 'Successfully created route!'
-        });
+        yield route.save();
+        res.json({});
     } catch (err) {
-        respond(res, 'routes/new', {
-            title: route.title || 'New Route',
-            errors: [err.toString()],
-            route
-        }, 422);
+        console.log(err);
+        res.status(500).json({
+            error: 'Error while creating the route',
+            flash: 'Route could not be created'
+        });
     }
 });
 
@@ -148,7 +147,10 @@ exports.update = async(function* (req, res) {
         res.json({});
     } catch (err) {
         console.log(err);
-        res.status(500).json({});
+        res.status(500).json({
+            error: 'Error while updating the route',
+            flash: 'Route could not be updated'
+        });
     }
 });
 

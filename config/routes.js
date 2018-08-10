@@ -48,11 +48,11 @@ module.exports = function (app, passport) {
     app.param('commentId', comments.load_options);
     app.get('/routes', routes.index);
     app.get('/routes/:id', routes.show);                                    // TODO
-    app.get('/generate', generate.generate);                                // TODO
-    app.get('/routes/:id/export', importexport.exportGPX);                  // TODO
-    app.post('/routes/import', importexport.importGPX);                     // TODO
-    app.post('/routes', auth.requiresLogin, routes.create);                 // TODO
-    app.post('/routes/generated', routes.userSavedChoice);                  // TODO
+    app.get('/routes/:id/export', importexport.export);
+    app.post('/routes/generate', generate.generate);
+    app.post('/routes/import', auth.requiresLogin, importexport.import);
+    app.post('/routes', auth.requiresLogin, routes.create);
+    // app.post('/routes/generated', routes.userSavedChoice);                  // TODO
     app.post('/routes/:id/comments', auth.requiresLogin, comments.create);  // TODO test
     app.put('/routes/:id', routeAuth, routes.update);
     app.delete('/routes/:id', routeAuth, routes.destroy);

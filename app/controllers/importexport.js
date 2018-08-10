@@ -33,7 +33,8 @@ exports.exportAllActivitiesGPX = async function (req, res) {
         res.download(zipFile);
     });
 
-    let activities = user.activities;
+    let activities;
+    activities = user.activities;
     for (let i = 0; i < activities.length; ++i) {
         let activity = activities[i];
         let queriedActivity = await Activity.load(activity._id);
@@ -58,7 +59,7 @@ exports.exportAllActivitiesGPX = async function (req, res) {
 
         // append the current activity gpx to the archive
         const file = 'activities/activity_' + activity._id + '.gpx';
-        archive.append(gpx, { name: file });
+        archive.append(gpx, {name: file});
         Log.debug(TAG, 'Appended activity ' + activity._id + ' to archiever');
 
         // if this was the last activity, finalize the archiver (i.e. write the zip file)
@@ -69,8 +70,9 @@ exports.exportAllActivitiesGPX = async function (req, res) {
     }
 };
 
-exports.exportGPX = async function (req, res) {
+exports.export = async function (req, res) {
     const route = req.routeData;
+    const format = req.query.format || 'gpx';
     Log.debug(TAG, 'Export GPX for route ' + route.title);
 
     let data = {
@@ -109,11 +111,25 @@ exports.exportGPX = async function (req, res) {
     });
 };
 
-exports.importGPX = async function (req, res) {
+exports.import = async function (req, res) {
     Log.debug(TAG, 'Import GPX for route');
 
+    const format = req.body.format | 'gpx';
+
+    if (format !== 'gpx') {
+        res.status(401).json({
+            flash: 'Only GPX file format supported',
+            error: 'Unsupported file format: ' + format,
+        });
+    }
+
+    const type = req.body.type | 'route';
     if (req.files.length === 0) {
         Log.error(TAG, 'Import form was submitted without files');
+        res.status(400).json({
+            flash: 'No files have been selected for upload',
+            error: 'No files in request body'
+        });
         return;
     }
 
@@ -121,64 +137,63 @@ exports.importGPX = async function (req, res) {
     let routes = [];
     let activities = [];
     for (let file of req.files) {
-        if (file.fieldname === 'route') {
+        if (type === 'route') {
             routes.push(fs.readFileSync(file.path, 'utf8'));
         }
-        if (file.fieldname === 'activity') {
+        if (type === 'activity') {
             activities.push(fs.readFileSync(file.path, 'utf8'));
         }
     }
 
     let routesSaved = 0;
     for (let routeData of routes) {
-        gpxParse.parseGpx(routeData, async function (error, data) {
-            let routeGPX = data.tracks[0];
-            if (routeGPX) {
-                let route = await Route.load_options({criteria: {title: routeGPX.name}});
-                // If this segment does not exist, create a new one
-                if (!route) {
-                    Log.log(TAG, 'Creating new Route');
+        try {
+            gpxParse.parseGpx(routeData, async function (error, data) {
+                let routeGPX = data.tracks[0];
+                if (routeGPX) {
+                    let route = await Route.load_options({criteria: {title: routeGPX.name}});
+                    // If this segment does not exist, create a new one
+                    if (!route) {
+                        Log.log(TAG, 'Creating new Route');
 
-                    let tags = '';
-                    route = new Route({
-                        stravaId: routeGPX.name.length,
-                        title: routeGPX.name,
-                        body: data.metadata.description || 'Imported Route',
-                        location: '',
-                        user: req.user ? req.user : null,
-                        comments: [],
-                        tags: tags,
-                        geo: [],
-                        distance: 0,
-                        isRoute: true
-                    });
+                        let tags = '';
+                        route = new Route({
+                            stravaId: routeGPX.name.length,
+                            title: routeGPX.name,
+                            body: data.metadata.description || 'Imported Route',
+                            location: '',
+                            user: req.user ? req.user : null,
+                            comments: [],
+                            tags: tags,
+                            geo: [],
+                            distance: 0,
+                            isRoute: true
+                        });
 
-                    await route.save();
-                    route.geo = await extractGeosFromGPX(data, route, null);
-                    await route.save();
-                    Log.log(TAG, 'New Route with ' + route.geo.length + ' geos successfully imported');
-                    routesSaved++;
-                    if (!headersSent) {
-                        if (routes.length === 1) {
-                            res.writeHead(302, {
-                                'Location': 'http://localhost:3000/routes/' + route._id
-                            });
-                            res.end();
-                            headersSent = true;
-                        }
-                        else if (routesSaved === routes.length) {
-                            res.writeHead(302, {
-                                'Location': 'http://localhost:3000/routes/'
-                            });
-                            res.end();
-                            headersSent = true;
+                        await route.save();
+                        route.geo = await extractGeosFromGPX(data, route, null);
+                        await route.save();
+                        Log.log(TAG, 'New Route with ' + route.geo.length + ' geos successfully imported');
+                        routesSaved++;
+                        if (!headersSent) {
+                            if (routesSaved === routes.length) {
+                                res.json({
+                                    type: 'route',
+                                    ids: [123, 456]
+                                });
+                                headersSent = true;
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            Log.error(TAG, 'Error while parsing imported route file', e);
+            res.status(402).json({
+                error: 'Error while parsing data file',
+            });
+        }
     }
-
 
     let activitiesSaved;
     for (let activityData of activities) {
@@ -186,48 +201,49 @@ exports.importGPX = async function (req, res) {
             Log.error(TAG, 'No user logged in, cannot save activity');
             return;
         }
-        gpxParse.parseGpx(activityData, async function (error, data) {
-            Log.debug(TAG, 'Here');
-            let activityGPX = data.tracks[0];
-            if (activityGPX) {
-                let activity = await Activity.load_options({criteria: {title: activityGPX.name}});
-                // If this segment does not exist, create a new one
-                if (!activity) {
-                    Log.log(TAG, 'Creating new Activity');
+        try {
+            gpxParse.parseGpx(activityData, async function (error, data) {
+                Log.debug(TAG, 'Here');
+                let activityGPX = data.tracks[0];
+                if (activityGPX) {
+                    let activity = await Activity.load_options({criteria: {title: activityGPX.name}});
+                    // If this segment does not exist, create a new one
+                    if (!activity) {
+                        Log.log(TAG, 'Creating new Activity');
 
-                    activity = new Activity({
-                        activityId: 0,      // the activity id from Strava
-                        geo: []             // array of database geo references, to be filled
-                    });
+                        activity = new Activity({
+                            activityId: 0,      // the activity id from Strava
+                            geo: []             // array of database geo references, to be filled
+                        });
 
-                    await activity.save();
-                    activity.geo = await extractGeosFromGPX(data, null, activity);
-                    await activity.save();
+                        await activity.save();
+                        activity.geo = await extractGeosFromGPX(data, null, activity);
+                        await activity.save();
 
-                    let user = await User.load(req.user._id);
-                    if (user) {
-                        user.activities = user.activities.concat([activity]);
-                        await user.save().catch((e) => Log.error(TAG, 'Error while saving user', e));
-                        Log.log(TAG, 'New Activity with ' + activity.geo.length + ' geos successfully imported');
-                        activitiesSaved++;
-                        if (!headersSent && activitiesSaved === activities.length) {
-                            res.writeHead(302, {
-                                'Location': 'http://localhost:3000/users/' + req.user._id
-                            });
-                            res.end();
-                            headersSent = true;
+                        let user = await User.load(req.user._id);
+                        if (user) {
+                            user.activities = user.activities.concat([activity]);
+                            await user.save().catch((e) => Log.error(TAG, 'Error while saving user', e));
+                            Log.log(TAG, 'New Activity with ' + activity.geo.length + ' geos successfully imported');
+                            activitiesSaved++;
+                            if (!headersSent && activitiesSaved === activities.length) {
+                                res.json({
+                                    type: 'activity',
+                                    ids: [123, 456]
+                                });
+                                headersSent = true;
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            Log.error(TAG, 'Error while parsing imported activity file', e);
+            res.status(402).json({
+                error: 'Error while parsing data file',
+            });
+        }
     }
-};
-
-exports.import = async function (req, res) {
-    res.render('import', {
-        title: 'Import'
-    });
 };
 
 const extractGeosFromGPX = async function (gpx, route, activity) {
