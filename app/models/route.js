@@ -66,7 +66,7 @@ RouteSchema.methods = {
      * @api private
      */
 
-    addComment: function (user, comment) {
+        addComment: function (user, comment) {
         this.comments.push({
             body: comment.body,
             user: user._id
@@ -83,7 +83,7 @@ RouteSchema.methods = {
 
     removeComment: function (commentId) {
         const index = this.comments
-            .map(comment => comment.id)
+            .map(comment => comment._id)
             .indexOf(commentId);
 
         if (~index) this.comments.splice(index, 1);

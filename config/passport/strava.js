@@ -29,6 +29,8 @@ module.exports = new StravaStrategy({
             if (err) return done(err);
             if (!user) {
                 user = new User({
+                    activities: [],
+                    routes: [],
                     name: profile.displayName,
                     email: profile._json.email,
                     username: profile.name.first,

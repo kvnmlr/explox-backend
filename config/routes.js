@@ -22,7 +22,7 @@ module.exports = function (app, passport) {
     const pauth = passport.authenticate.bind(passport);
 
     // Auth Routes
-    app.get('/auth/strava/callback', pauth('strava', fail), users.authCallback, strava.authCallback);
+    app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.authCallback);
     app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // General Routes
@@ -55,10 +55,10 @@ module.exports = function (app, passport) {
     app.post('/routes/import', auth.requiresLogin, importexport.import);
     app.post('/routes', auth.requiresLogin, routes.create);
     // app.post('/routes/generated', routes.userSavedChoice);                  // TODO
-    app.post('/routes/:id/comments', auth.requiresLogin, comments.create);  // TODO test
+    app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.put('/routes/:id', routeAuth, routes.update);
     app.delete('/routes/:id', routeAuth, routes.destroy);
-    app.delete('/routes/:id/comments', commentAuth, comments.destroy);      // TODO test
+    app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);      // TODO test
 
     // Admin Routes
     app.get('/crawl', auth.adminOnly, crawler.crawlSegments);

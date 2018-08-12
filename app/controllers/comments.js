@@ -24,22 +24,33 @@ exports.load_options = function (req, res, next, id) {
  * Create comment
  */
 
-exports.create = async(function* (req, res) {
+exports.create = async function (req, res) {
     const route = req.routeData;
-    yield route.addComment(req.user, req.body.comment);
-    res.json({});
-});
+
+    await route.addComment(req.user, req.body.comment);
+    res.json({
+        comment: {
+            body: req.body.comment.body,
+            user: req.user,
+        },
+        flash: {
+            text: 'Your comment has been posted',
+            type: 'success'
+        },
+    });
+};
 
 /**
  * Delete comment
  */
 
 exports.destroy = async(function* (req, res) {
-    yield req.routeData.removeComment(req.body.commentId);
-    req.flash('info', 'Removed comment');
-    res.redirect('/routes/' + req.routeData.id);
+    yield req.routeData.removeComment(req.comment._id);
     res.json({
-        flash: 'Your comment has been removed.'
+        flash: {
+            text: 'Your comment has been removed.',
+            type: 'success'
+        }
     });
 
 });

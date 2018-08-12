@@ -531,15 +531,7 @@ exports.authCallback = function (req, res, next) {
         json: true,
         body: myJSONObject
     }, async function (error, response) {
-        const id = response.body.athlete.id;
-        const token = response.body.access_token;
-
-        await exports.getAthlete(id, token);
-        await exports.getFriends(id, token);
-        await exports.getStats(id, token);
-        await exports.getRoutes(id, token);
-        await exports.getActivities(id, token);
-
+        req.oauth = true;
         next(null, response);
     });
 };

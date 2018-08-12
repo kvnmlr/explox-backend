@@ -9,7 +9,10 @@ exports.requiresLogin = function (req, res, next) {
     if (req.method === 'GET') req.session.returnTo = req.originalUrl;
     res.status(400).json({
         error: 'No user logged in',
-        flash: 'Action requires logged in user, please log in'
+        flash: {
+            text: 'Action requires logged in user, please log in',
+            type: 'info'
+        }
     });
 };
 
@@ -19,7 +22,10 @@ exports.adminOnly = function (req, res, next) {
     } else {
         return res.status(401).json({
             error: 'Unauthorized action',
-            flash: 'This action is allowed by system admins only'
+            flash: {
+                text: 'This action is allowed by system admins only',
+                type: 'error'
+            }
         });
     }
 };
@@ -38,7 +44,10 @@ exports.user = {
             if (req.profile.id !== req.user.id) {
                 return res.status(401).json({
                     error: 'Unauthorized action',
-                    flash: 'You are not authorized'
+                    flash: {
+                        text: 'You are not authorized',
+                        type: 'error'
+                    }
                 });
             }
         }
@@ -60,14 +69,20 @@ exports.route = {
             req.flash('info', 'You are not authorized');
             return res.status(401).json({
                 error: 'Unauthorized action',
-                flash: 'You are not authorized'
+                flash: {
+                    text: 'You are not authorized',
+                    type: 'error'
+                }
             });
         }
         if (req.routeData.user.id !== req.user.id) {
             req.flash('info', 'You are not authorized');
             return res.status(401).json({
                 error: 'Unauthorized action',
-                flash: 'You are not authorized'
+                flash: {
+                    text: 'You are not authorized',
+                    type: 'error'
+                }
             });
         }
         next();

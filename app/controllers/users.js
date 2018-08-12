@@ -148,19 +148,24 @@ exports.logout = function (req, res) {
 
 exports.update = async function (req, res) {
     let user = req.user;
-    console.log(user);
-    console.log(req.body);
     assign(user, only(req.body, 'name email username'));
     try {
         await user.save();
         res.json({
             user: user,
+            flash: {
+                text: 'Your data has been successfully updated',
+                type: 'success'
+            }
         });
     } catch (err) {
         console.log(err);
         res.status(500).json({
             error: 'Error while updating user data',
-            flash: 'User data could not be updated'
+            flash: {
+                text: 'User data could not be updated',
+                type: 'error'
+            }
         });
     }
 };
@@ -181,7 +186,11 @@ exports.session = login;
 function login (req, res) {
     User.update_user(req.user._id, {lastLogin: Date.now()});
     delete req.session.returnTo;
-    res.json();
+    if (req.oauth) {
+        res.redirect('http://localhost:8080/dashboard');
+    } else {
+        res.json({});
+    }
 }
 
 async function showAdminDashboard (req, res) {

@@ -74,8 +74,6 @@ exports.index = async(function* (req, res) {
         }
     };
 
-    console.log(options);
-
     if (_id) options.criteria._id = {_id};
     if (tag) options.criteria.tags = tag;
 
@@ -144,12 +142,20 @@ exports.update = async function (req, res) {
     route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
     try {
         await route.save();
-        res.json({});
+        res.json({
+            flash: {
+                type: 'success',
+                text: 'The route details have been updated.'
+            }
+        });
     } catch (err) {
         console.log(err);
         res.status(500).json({
             error: 'Error while updating the route',
-            flash: 'Route could not be updated'
+            flash: {
+                type: 'error',
+                text: 'Route could not be updated'
+            }
         });
     }
 };
