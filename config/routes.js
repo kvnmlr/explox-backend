@@ -7,6 +7,7 @@ const crawler = require('../app/controllers/crawler');
 const optimization = require('../app/controllers/optimization');
 const generate = require('../app/controllers/generate');
 const importexport = require('../app/controllers/importexport');
+const general = require('../app/controllers/general');
 const auth = require('./middlewares/authorization');
 
 const routeAuth = [auth.requiresLogin, auth.route.hasAuthorization];
@@ -26,14 +27,19 @@ module.exports = function (app, passport) {
     app.get('/auth/strava', pauth('strava', fail), users.signin);
 
     // General Routes
+    app.param('feedbackId', general.load_feedback_options);
     app.get('/', routes.home);
     app.get('/hub', routes.hub);
+    app.get('/creator', auth.requiresLogin, routes.creator);
+    app.get('/feedback', general.feedback);
     app.get('/about', routes.about);
     app.get('/logout', users.logout);
     app.get('/authorize', users.authorize);
     app.get('/csrf', users.getCsrfToken);
     app.post('/login', pauth('local', fail), users.session);
     app.post('/signup', users.signup);
+    app.post('/feedback', general.submitFeedback);
+    app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
 
     // User Routes
     app.param('userId', users.load_options);

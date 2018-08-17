@@ -11,7 +11,7 @@ const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
-const Settings = mongoose.model('Settings');
+const Feedbacks = mongoose.model('Feedback');
 const only = require('only');
 const assign = Object.assign;
 const mailer = require('../mailer/index');
@@ -199,6 +199,8 @@ async function showAdminDashboard (req, res) {
     let generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
     let activities = await Activity.list({});
     let segments = await Route.list({criteria: {isRoute: false}});
+    let feedbacks = await Feedbacks.list();
+
     let apiLimits = await Strava.getLimits();
     respond(res, 'users/show_admin', {
         title: req.user.name,
@@ -209,7 +211,8 @@ async function showAdminDashboard (req, res) {
         generated: generated,
         segments: segments,
         activities: activities,
-        limits: apiLimits
+        limits: apiLimits,
+        feedbacks: feedbacks,
     });
 }
 

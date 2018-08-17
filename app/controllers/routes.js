@@ -33,6 +33,12 @@ exports.hub = async(function (req, res) {
     });
 });
 
+exports.creator = async(function (req, res) {
+    res.json({
+        text: 'Creator text',
+    });
+});
+
 exports.about = async(function (req, res) {
     res.json({
         version: '0.1',
