@@ -175,7 +175,7 @@ exports.destroy = async function (req, res) {
     res.json({});
 };
 
-exports.authorize = function (req, res) {
+exports.authenticate = function (req, res) {
     res.json({
         user: req.user
     });

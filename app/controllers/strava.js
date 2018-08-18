@@ -46,16 +46,18 @@ exports.updateUser = async function (req, res) {
     if (user) {
         const token = user.authToken;
         const id = user.stravaId;
-        await exports.getAthlete(id, token);
-        await exports.getFriends(id, token);
-        await exports.getStats(id, token);
+        // await exports.getAthlete(id, token);
+        // await exports.getFriends(id, token);
+        // await exports.getStats(id, token);
         await exports.getRoutes(id, token);
         await exports.getActivities(id, token);
 
-        res.writeHead(302, {
-            'Location': 'http://localhost:3000/users/' + user._id
+        res.json({
+            flash: {
+                text: 'Your profile, routes and activities have been syncronized',
+                type: 'success'
+            }
         });
-        res.end();
     }
 };
 
@@ -172,7 +174,7 @@ exports.getActivities = function (id, token) {
                 return;
             }
             if (payload) {
-                const max = 10;
+                const max = 5;
                 let numActivities = payload.length;
 
                 if (numActivities > max) numActivities = max;

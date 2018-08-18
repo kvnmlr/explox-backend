@@ -5,9 +5,25 @@ const Log = require('../utils/logger');
 const TAG = 'controllers/general';
 const mongoose = require('mongoose');
 const Feedback = mongoose.model('Feedback');
-/**
- * Module dependencies.
- */
+
+exports.home = async(function (req, res) {
+    res.json({
+        text: 'Home text',
+    });
+});
+
+exports.hub = async(function (req, res) {
+    res.json({
+        text: 'Hub text',
+    });
+});
+
+exports.about = async(function (req, res) {
+    res.json({
+        version: '0.1',
+        text: 'About text'
+    });
+});
 
 exports.feedback = async function (req, res) {
     const feedback = await Feedback.list();

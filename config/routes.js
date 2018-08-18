@@ -28,13 +28,13 @@ module.exports = function (app, passport) {
 
     // General Routes
     app.param('feedbackId', general.load_feedback_options);
-    app.get('/', routes.home);
-    app.get('/hub', routes.hub);
+    app.get('/', general.home);
+    app.get('/hub', general.hub);
     app.get('/creator', auth.requiresLogin, routes.creator);
     app.get('/feedback', general.feedback);
-    app.get('/about', routes.about);
+    app.get('/about', general.about);
     app.get('/logout', users.logout);
-    app.get('/authorize', users.authorize);
+    app.get('/authenticate', users.authenticate);
     app.get('/csrf', users.getCsrfToken);
     app.post('/login', pauth('local', fail), users.session);
     app.post('/signup', users.signup);
@@ -55,7 +55,7 @@ module.exports = function (app, passport) {
     app.param('id', routes.load_options);
     app.param('commentId', comments.load_options);
     app.get('/routes', routes.index);
-    app.get('/routes/:id', routes.show);                                    // TODO
+    app.get('/routes/:id', routes.routeData);
     app.get('/routes/:id/export', importexport.exportRoute);
     app.post('/routes/generate', generate.generate);
     app.post('/routes/import', auth.requiresLogin, importexport.import);

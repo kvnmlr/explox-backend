@@ -183,6 +183,9 @@ UserSchema.statics = {
                     model: 'Geo'
                 }
             })
+            .populate({
+                path: 'routes',
+            })
             .select(options.select)
             .exec();
     },    /**

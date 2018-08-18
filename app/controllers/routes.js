@@ -21,31 +21,11 @@ const User = mongoose.model('User');
  * Home Page
  */
 
-exports.home = async(function (req, res) {
-    res.json({
-        text: 'Home text',
-    });
-});
-
-exports.hub = async(function (req, res) {
-    res.json({
-        text: 'Hub text',
-    });
-});
-
 exports.creator = async(function (req, res) {
     res.json({
         text: 'Creator text',
     });
 });
-
-exports.about = async(function (req, res) {
-    res.json({
-        version: '0.1',
-        text: 'About text'
-    });
-});
-
 
 /**
  * Load
@@ -170,7 +150,7 @@ exports.update = async function (req, res) {
  * Show
  */
 
-exports.show = async(function* (req, res) {
+exports.routeData = async(function* (req, res) {
     if (req.user) {
         let user = yield User.load_full(req.user._id, {});
         if (user) {
@@ -179,19 +159,13 @@ exports.show = async(function* (req, res) {
             const map = Map.generateRouteMap(req.routeData.geo);
             map.distance = req.routeData.distance;
             res.json({
-                title: req.routeData.title,
-                route: req.routeData,
-                map: exploredMap,
-                routeMaps: [
-                    map,
-                    {routeData: ['0', '0']},
-                    {routeData: ['0', '0']},
-                    {routeData: ['0', '0']},
-                    {routeData: ['0', '0']}
+                activityMap: exploredMap,
+                routes: [
+                    req.routeData
                 ],
                 hasRoute: true,
                 foundRoutes: false,
-                numRoutes: 0,
+                numRoutes: 1,
                 hasGeneratedRoutes: false,
             });
         }
