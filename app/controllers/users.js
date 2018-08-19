@@ -74,53 +74,20 @@ exports.dashboard = async function (req, res) {
     }
 };
 
-
-exports.show = async function (req, res) {
-    const user = req.profile;
-    if (!user) {
+exports.activityMap = async function (req, res) {
+    const id = req.profile._id;
+    const userActivities = await User.load_activities(id, {});
+    if (!userActivities) {
         return res.status(400).json({
             error: 'The given id does not belong to a user',
             flash: 'This user does not exist anymore'
         });
     }
+    const geos = Strava.activitiesToGeos(userActivities.activities);
+    Log.debug(TAG, 'actis', geos);
 
-    const geos = Strava.activitiesToGeos(user.activities);
-    const generatedRoutes = req.generatedRoutes || [];
-    const foundRoutes = generatedRoutes.length > 0;
-    const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
-    const exploredMap = Map.generateExploredMapData(geos);
-    let routeMaps = [
-        {routeData: ['0', '0']},
-        {routeData: ['0', '0']},
-        {routeData: ['0', '0']},
-        {routeData: ['0', '0']},
-        {routeData: ['0', '0']},
-    ];
-
-    if (hasGeneratedRoutes) {
-        if (generatedRoutes.length > 0) {
-            generatedRoutes.forEach(function (route, index) {
-                routeMaps[index] = Map.generateRouteMap(route.geo);
-                routeMaps[index].distance = route.distance;
-                routeMaps[index].id = route._id;
-                routeMaps[index].parts = route.parts;
-                routeMaps[index].familiarityScore = route.familiarityScore;
-            });
-        }
-    }
-
-    return res.json({
-        title: user.name,
-        user: user,
-        map: exploredMap,
-        routeMaps: routeMaps,
-        userData: 'User data goes here',
-        hasGeneratedRoutes: hasGeneratedRoutes,
-        hasRoute: false,
-        foundRoutes: foundRoutes,
-        numRoutes: generatedRoutes.length,
-        generatedRoutes: generatedRoutes,
-        isUserProfile: req.profile._id === user._id
+    res.json({
+        activities: userActivities.activities,
     });
 };
 

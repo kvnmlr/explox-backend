@@ -146,50 +146,11 @@ exports.update = async function (req, res) {
     }
 };
 
-/**
- * Show
- */
-
-exports.routeData = async(function* (req, res) {
-    if (req.user) {
-        let user = yield User.load_full(req.user._id, {});
-        if (user) {
-            const geos = Strava.activitiesToGeos(user.activities);
-            const exploredMap = Map.generateExploredMapData(geos);
-            const map = Map.generateRouteMap(req.routeData.geo);
-            map.distance = req.routeData.distance;
-            res.json({
-                activityMap: exploredMap,
-                routes: [
-                    req.routeData
-                ],
-                hasRoute: true,
-                foundRoutes: false,
-                numRoutes: 1,
-                hasGeneratedRoutes: false,
-            });
-        }
-    } else {
-        // const exploredMap = Map.generateExploredMapData([]);
-        // const map = Map.generateRouteMap(req.route.geo, null);
-        res.json({
-            title: req.routeData.title,
-            route: req.routeData,
-            /* map: exploredMap,
-            routeMaps: [
-                map,
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']},
-                {routeData: ['0', '0']}
-            ], */
-            hasRoute: true,
-            foundRoutes: false,
-            numRoutes: 0,
-            hasGeneratedRoutes: false,
-        });
-    }
-});
+exports.routeData = function (req, res) {
+    res.json({
+        route: req.routeData,
+    });
+};
 
 exports.userSavedChoice = async(function* (req, res) {
     let generatedRoutes = JSON.parse(req.body.generatedRoutes);

@@ -43,7 +43,7 @@ module.exports = function (app, passport) {
 
     // User Routes
     app.param('userId', users.load_options);
-    app.get('/users/:userId',  auth.requiresLogin, users.show);
+    app.get('/users/:userId',  auth.requiresLogin, users.activityMap);
     app.get('/dashboard', userAuth, users.dashboard);
     app.get('/users/:userId/export', userAuth, importexport.exportUser);
     app.get('/users/:userId/import', userAuth, importexport.import);

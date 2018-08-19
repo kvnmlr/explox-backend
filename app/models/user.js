@@ -17,20 +17,20 @@ const TAG = 'user';
  */
 
 const UserSchema = new Schema({
-    name: { type: String, default: '' },
-    email: { type: String, default: '', index: { unique: true } },
-    username: { type: String, default: '', trim: true, index: { unique: true } },
-    provider: { type: String, default: '' },
-    hashed_password: { type: String, default: '' },
-    salt: { type: String, default: '' },
-    authToken: { type: String, default: '' },
-    stravaId: { type: String, default: '' },
+    name: {type: String, default: ''},
+    email: {type: String, default: '', index: {unique: true}},
+    username: {type: String, default: '', trim: true, index: {unique: true}},
+    provider: {type: String, default: ''},
+    hashed_password: {type: String, default: ''},
+    salt: {type: String, default: ''},
+    authToken: {type: String, default: ''},
+    stravaId: {type: String, default: ''},
     strava: {},
-    routes: [{ type: Schema.ObjectId, ref: 'Route' }],
-    activities: [{ type: Schema.ObjectId, ref: 'Activity' }],
-    role: { type: String, default: 'user' },
-    createdAt: { type: Date, default: Date.now },
-    lastLogin: { type: Date, default: Date.now }
+    routes: [{type: Schema.ObjectId, ref: 'Route'}],
+    activities: [{type: Schema.ObjectId, ref: 'Activity'}],
+    role: {type: String, default: 'user'},
+    createdAt: {type: Date, default: Date.now},
+    lastLogin: {type: Date, default: Date.now}
 });
 
 const validatePresenceOf = value => value && value.length;
@@ -72,7 +72,7 @@ UserSchema.path('email').validate(function (email) {
 
     // Check only when it is a new user or when email field is modified
     if (this.isNew || this.isModified('email')) {
-        User.find({ email: email }).exec(function (err, users) {
+        User.find({email: email}).exec(function (err, users) {
             return (!err && users.length === 0);
         });
     } else return (true);
@@ -175,7 +175,7 @@ UserSchema.statics = {
      */
     load_full: function (_id, options) {
         options.select = options.select || '';
-        return this.findOne({ _id: ObjectId(_id) })
+        return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',
                 populate: {
@@ -185,10 +185,46 @@ UserSchema.statics = {
             })
             .populate({
                 path: 'routes',
+                populate: {
+                    path: 'geo',
+                    model: 'Geo'
+                }
             })
             .select(options.select)
             .exec();
-    },    /**
+    },
+
+    load_activities: function (_id, options) {
+        options.select = options.select || 'activities';
+        return this.findOne({_id: ObjectId(_id)})
+            .populate({
+                path: 'activities',
+                select: 'title geo',
+                populate: {
+                    path: 'geo',
+                    select: 'location',
+                },
+            })
+            .select(options.select)
+            .exec();
+    },
+
+    load_routes: function (_id, options) {
+        options.select = options.select || 'routes';
+        return this.findOne({_id: ObjectId(_id)})
+            .populate({
+                path: 'routes',
+                select: 'title geo',
+                populate: {
+                    path: 'geo',
+                    select: 'location',
+                },
+            })
+            .select(options.select)
+            .exec();
+    },
+
+    /**
      * Load
      *
      * @param {Object} options
@@ -211,7 +247,7 @@ UserSchema.statics = {
      */
 
     load: function (_id) {
-        return this.load_options({ criteria: { _id: _id } });
+        return this.load_options({criteria: {_id: _id}});
     },
 
     /**
@@ -223,13 +259,13 @@ UserSchema.statics = {
      */
 
     update_user: function (id, data) {
-        return this.update({ _id: ObjectId(id) }, data).exec();
+        return this.update({_id: ObjectId(id)}, data).exec();
     },
 
     list: function (options) {
         const criteria = options.criteria || {};
         return this.find(criteria)
-            .sort({ createdAt: -1 })
+            .sort({createdAt: -1})
             .exec();
     }
 
