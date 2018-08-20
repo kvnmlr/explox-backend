@@ -54,7 +54,13 @@ module.exports = function (app, passport) {
     }));
 
     app.use(cors({
-        origin: ['http://localhost:3000', 'http://localhost:8080', 'https://www.strava.com'],
+        origin: [
+            'http://localhost:3000',
+            'http://localhost:8080',
+            'https://www.strava.com',
+            'http://umtl.dfki.de/explox',
+            'http://umtl.dfki.de/explox/backend',
+        ],
     }));
 
     // Static files middleware

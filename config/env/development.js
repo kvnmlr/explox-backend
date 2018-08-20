@@ -6,6 +6,7 @@
 
 module.exports = {
     db: 'mongodb://localhost/exploxdb_dev',
+    frontend_url: 'http://localhost:8080/',
     email: process.env.EMAIL,
     email_password: process.env.EMAIL_PASSWORD,
     mapbox_token: process.env.MAPBOX_TOKEN,

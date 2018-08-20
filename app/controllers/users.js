@@ -6,6 +6,7 @@ const {respond} = require('../utils');
 const only = require('only');
 const mailer = require('../mailer/index');
 const Strava = require('./strava');
+const config = require('../../server').config;
 
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
@@ -18,7 +19,7 @@ const TAG = 'views/users';
 /**
  * Adds a req.profile attribute containing the user corresponding to the user ID
  */
-exports.loadProfile = async function(req, res, next, _id) {
+exports.loadProfile = async function (req, res, next, _id) {
     const criteria = {_id: _id};
     const select = 'name role authToken';
     try {
@@ -33,13 +34,13 @@ exports.loadProfile = async function(req, res, next, _id) {
 /**
  * Creates a new user and logs them in using passport
  */
-exports.signup = async(function* (req, res) {
+exports.signup = async function (req, res) {
     req.body.email = (req.body.email).toLowerCase();
     const user = new User(req.body);
     user.provider = 'local';
     user.role = 'user';
     try {
-        yield user.save();
+        await user.save();
         req.logIn(user, err => {
             if (err) {
                 res.status(400).json({
@@ -63,7 +64,7 @@ exports.signup = async(function* (req, res) {
             user: null
         });
     }
-});
+};
 
 /**
  * Loads the data relevant for the dashboard of the logged in user
@@ -92,7 +93,7 @@ exports.activityMap = async function (req, res) {
             }
         });
     }
-    const geos = Strava.activitiesToGeos(userActivities.activities);
+    // const geos = Strava.activitiesToGeos(userActivities.activities);
     res.json({
         activities: userActivities.activities,
     });
@@ -182,7 +183,7 @@ exports.session = async function (req, res) {
     User.update_user(req.user._id, {lastLogin: Date.now()});
     delete req.session.returnTo;
     if (req.oauth) {
-        res.redirect('http://localhost:8080/dashboard');
+        res.redirect(config.frontend_url + 'dashboard');
     } else {
         res.json({});
     }
