@@ -12,6 +12,6 @@ module.exports = {
     strava: {
         clientID: process.env.STRAVA_CLIENTID,
         clientSecret: process.env.STRAVA_SECRET,
-        callbackURL: 'http://localhost:3000/auth/strava/callback'
+        callbackURL: 'umtl.dfki.de/auth/strava/callback'
     },
 };
