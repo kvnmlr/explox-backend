@@ -1,6 +1,6 @@
 # ExploX
 
-## Getting Started
+## Getting Started...
 
 What you will need to get the server running on your local machine.
 
