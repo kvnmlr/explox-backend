@@ -1,20 +1,11 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const crypto = require('crypto');
 const ObjectId = require('mongoose').Types.ObjectId;
 const Schema = mongoose.Schema;
 const oAuthTypes = ['strava'];
-const Log = require('../utils/logger');
-const TAG = 'user';
-
-/**
- * User Schema
- */
+const TAG = 'models/user';
 
 const UserSchema = new Schema({
     name: {type: String, default: ''},
@@ -35,10 +26,6 @@ const UserSchema = new Schema({
 
 const validatePresenceOf = value => value && value.length;
 
-/**
- * Virtuals
- */
-
 UserSchema
     .virtual('password')
     .set(function (password) {
@@ -51,11 +38,8 @@ UserSchema
     });
 
 /**
- * Validations
+ * Validations only apply when signing up traditionally
  */
-
-// the below 5 validations only apply if you are signing up traditionally
-
 UserSchema.path('name').validate(function (name) {
     if (this.skipValidation()) return true;
     return name.length;
@@ -103,43 +87,29 @@ UserSchema.pre('save', function (cb) {
     }
 });
 
-/**
- * Methods
- */
-
 UserSchema.methods = {
-
     /**
      * Authenticate - check if the passwords are the same
-     *
      * @param {String} plainText
      * @return {Boolean}
-     * @api public
      */
-
     authenticate: function (plainText) {
         return this.encryptPassword(plainText) === this.hashed_password;
     },
 
     /**
      * Make salt
-     *
      * @return {String}
-     * @api public
      */
-
     makeSalt: function () {
         return Math.round((new Date().valueOf() * Math.random())) + '';
     },
 
     /**
      * Encrypt password
-     *
      * @param {String} password
      * @return {String}
-     * @api public
      */
-
     encryptPassword: function (password) {
         if (!password) return '';
         try {
@@ -155,7 +125,6 @@ UserSchema.methods = {
     /**
      * Validation is not required if using OAuth
      */
-
     skipValidation: function () {
         return ~oAuthTypes.indexOf(this.provider) || !this._password;
     }
@@ -168,13 +137,12 @@ UserSchema.methods = {
 UserSchema.statics = {
 
     /**
-     * Populates all activities, this can get quite large so only use it when all user Geo data is required.
+     * Populates all activities, this can get quite large so only use it when all data is required.
      * @param _id
      * @param options
-     * @returns {Promise}
      */
     load_full: function (_id, options) {
-        options.select = options.select || '';
+        options.select = options.select || '-hashed_password -lastLogin -createdAt -salt';
         return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',
@@ -194,12 +162,17 @@ UserSchema.statics = {
             .exec();
     },
 
+    /**
+     * Returns only the fully populated activities for the given user id
+     * @param _id
+     * @param options
+     */
     load_activities: function (_id, options) {
         options.select = options.select || 'activities';
         return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',
-                select: 'title geo',
+                select: 'title geo createdAt distance',
                 populate: {
                     path: 'geo',
                     select: 'location',
@@ -209,6 +182,11 @@ UserSchema.statics = {
             .exec();
     },
 
+    /**
+     * Returns only the fully populated routes for the given user id
+     * @param _id
+     * @param options
+     */
     load_routes: function (_id, options) {
         options.select = options.select || 'routes';
         return this.findOne({_id: ObjectId(_id)})
@@ -226,49 +204,52 @@ UserSchema.statics = {
 
     /**
      * Load
-     *
      * @param {Object} options
-     * @api private
+     * @param cb
      */
-
     load_options: function (options, cb) {
-        options.select = options.select || '';
+        options.select = options.select || '-hashed_password -lastLogin -createdAt -salt';
         return this.findOne(options.criteria)
-            .populate('activities')
             .select(options.select)
+            .populate({
+                path: 'routes',
+                select: '-geo -parts',
+            })
+            .populate({
+                path: 'activities',
+                select: '-geo',
+            })
             .exec(cb);
     },
 
     /**
      * Find route by id
-     *
      * @param {ObjectId} _id the id
-     * @api private
      */
-
     load: function (_id) {
         return this.load_options({criteria: {_id: _id}});
     },
 
     /**
      * Update user by id
-     *
      * @param {ObjectId} id
      * @param data data to update
-     * @api private
      */
-
     update_user: function (id, data) {
         return this.update({_id: ObjectId(id)}, data).exec();
     },
 
+    /**
+     * Returns all (unpopulated) users matching the given options
+     * @param options
+     * @returns {Promise|*|RegExpExecArray}
+     */
     list: function (options) {
         const criteria = options.criteria || {};
         return this.find(criteria)
             .sort({createdAt: -1})
             .exec();
     }
-
 };
 
 mongoose.model('User', UserSchema);

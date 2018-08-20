@@ -136,7 +136,7 @@ exports.getRoutes = function (id, token) {
                 return;
             }
             if (payload) {
-                let max = 10;
+                let max = 2;
                 if (payload.length < max) max = payload.length;
 
                 for (let i = 0; i < max; ++i) {

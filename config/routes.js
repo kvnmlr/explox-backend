@@ -23,11 +23,11 @@ module.exports = function (app, passport) {
     const pauth = passport.authenticate.bind(passport);
 
     // Auth Routes
-    app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.authCallback);
-    app.get('/auth/strava', pauth('strava', fail), users.signin);
+    app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.session);
+    app.get('/auth/strava', pauth('strava', fail));
 
     // General Routes
-    app.param('feedbackId', general.load_feedback_options);
+    app.param('feedbackId', general.loadFeedbackOptions);
     app.get('/', general.home);
     app.get('/hub', general.hub);
     app.get('/creator', auth.requiresLogin, routes.creator);
@@ -42,7 +42,7 @@ module.exports = function (app, passport) {
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
 
     // User Routes
-    app.param('userId', users.load_options);
+    app.param('userId', users.loadProfile);
     app.get('/users/:userId',  auth.requiresLogin, users.activityMap);
     app.get('/dashboard', userAuth, users.dashboard);
     app.get('/users/:userId/export', userAuth, importexport.exportUser);
@@ -64,7 +64,7 @@ module.exports = function (app, passport) {
     app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
     app.put('/routes/:id', routeAuth, routes.update);
     app.delete('/routes/:id', routeAuth, routes.destroy);
-    app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);      // TODO test
+    app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);
 
     // Admin Routes
     app.get('/crawl', auth.adminOnly, crawler.crawlSegments);
@@ -93,7 +93,7 @@ module.exports = function (app, passport) {
 
 
         // error page
-        res.status(500).json({error: err.stack});
+        // res.status(500).json({error: err.stack});
     });
 
     // assume 404 since no middleware responded

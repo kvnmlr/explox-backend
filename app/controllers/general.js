@@ -56,7 +56,7 @@ exports.destroyFeedback = async function (req, res) {
     });
 };
 
-exports.load_feedback_options = async(function* (req, res, next, _id) {
+exports.loadFeedbackOptions = async(function* (req, res, next, _id) {
     try {
         req.feedback = yield Feedback.load(_id);
         if (!req.feedback) return next(new Error('User not found'));

@@ -1,42 +1,37 @@
 'use strict';
-
-/**
- * Module dependencies.
- */
 const Log = require('../utils/logger');
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const {respond} = require('../utils');
+const only = require('only');
+const mailer = require('../mailer/index');
+const Strava = require('./strava');
+
 const User = mongoose.model('User');
-const Role = mongoose.model('Role');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Feedbacks = mongoose.model('Feedback');
-const only = require('only');
+
 const assign = Object.assign;
-const mailer = require('../mailer/index');
-
-const Strava = require('./strava');
-const Map = require('./map');
-
 const TAG = 'views/users';
-/**
- * Load
- */
 
-exports.load_options = async(function* (req, res, next, _id) {
-    const criteria = {_id};
+/**
+ * Adds a req.profile attribute containing the user corresponding to the user ID
+ */
+exports.loadProfile = async function(req, res, next, _id) {
+    const criteria = {_id: _id};
+    const select = 'name role authToken';
     try {
-        req.profile = yield User.load_options({criteria});
+        req.profile = await User.load_options({criteria: criteria, select: select});
         if (!req.profile) return next(new Error('User not found'));
     } catch (err) {
         return next(err);
     }
     next();
-});
+};
 
 /**
- * Create user
+ * Creates a new user and logs them in using passport
  */
 exports.signup = async(function* (req, res) {
     req.body.email = (req.body.email).toLowerCase();
@@ -46,7 +41,15 @@ exports.signup = async(function* (req, res) {
     try {
         yield user.save();
         req.logIn(user, err => {
-            if (err) req.flash('info', 'Sorry! We are not able to log you in!');
+            if (err) {
+                res.status(400).json({
+                    error: 'User exists but could not be logged in after registration',
+                    flash: {
+                        type: 'info',
+                        text: 'You have been registered, please log in'
+                    }
+                });
+            }
             mailer.registeredConfirmation(user);
             Log.log(TAG, 'User ' + user.username + ' has registered');
             res.json({
@@ -63,7 +66,7 @@ exports.signup = async(function* (req, res) {
 });
 
 /**
- * Show Dashboard
+ * Loads the data relevant for the dashboard of the logged in user
  */
 exports.dashboard = async function (req, res) {
     if (req.user.role === 'admin') {
@@ -74,45 +77,52 @@ exports.dashboard = async function (req, res) {
     }
 };
 
+/**
+ * Collects and responds with the the logged in user's activities
+ */
 exports.activityMap = async function (req, res) {
     const id = req.profile._id;
     const userActivities = await User.load_activities(id, {});
     if (!userActivities) {
         return res.status(400).json({
             error: 'The given id does not belong to a user',
-            flash: 'This user does not exist anymore'
+            flash: {
+                type: 'error',
+                text: 'Could not retrieve data for the given user id'
+            }
         });
     }
     const geos = Strava.activitiesToGeos(userActivities.activities);
-    Log.debug(TAG, 'actis', geos);
-
     res.json({
         activities: userActivities.activities,
     });
 };
 
-exports.signin = function () {
-};
-
-exports.authCallback = login;
-
-exports.login = function (req, res) {
-    res.render('users/login', {
-        title: 'Login'
-    });
-};
-
+/**
+ * Responds the current csrf token
+ */
 exports.getCsrfToken = function (req, res) {
     res.json({
         csrfToken: res.locals.csrf_token
     });
 };
 
+/**
+ * Terminates the currently active session for this user
+ */
 exports.logout = function (req, res) {
     req.logout();
-    res.json();
+    res.json({
+        flash: {
+            type: 'success',
+            text: 'You are now logged out'
+        }
+    });
 };
 
+/**
+ * Updates the current user in database with new data
+ */
 exports.update = async function (req, res) {
     let user = req.user;
     assign(user, only(req.body, 'name email username'));
@@ -126,7 +136,7 @@ exports.update = async function (req, res) {
             }
         });
     } catch (err) {
-        console.log(err);
+        Log.error(TAG, 'Error saving updated user', err);
         res.status(500).json({
             error: 'Error while updating user data',
             flash: {
@@ -137,20 +147,36 @@ exports.update = async function (req, res) {
     }
 };
 
+/**
+ * Removes the current user from the database
+ */
 exports.destroy = async function (req, res) {
     await req.profile.remove();
     res.json({});
 };
 
+/**
+ * Returns the current user if authentication was successful
+ */
 exports.authenticate = function (req, res) {
+    if (!req.user) {
+        res.json({
+            user: null,
+        });
+    }
     res.json({
-        user: req.user
+        user: {
+            name: req.user.name,
+            _id: req.user._id,
+            role: req.user.role,
+        }
     });
 };
 
-exports.session = login;
-
-function login (req, res) {
+/**
+ * After successful passport authentication updates the last logged in attribute for the user
+ */
+exports.session = async function (req, res) {
     User.update_user(req.user._id, {lastLogin: Date.now()});
     delete req.session.returnTo;
     if (req.oauth) {
@@ -158,8 +184,11 @@ function login (req, res) {
     } else {
         res.json({});
     }
-}
+};
 
+/**
+ * Responds data for the admin dashboard
+ */
 async function showAdminDashboard (req, res) {
     let users = await User.list({});
     let routes = await Route.list({criteria: {isRoute: true, isGenerated: false}});
@@ -172,7 +201,6 @@ async function showAdminDashboard (req, res) {
     respond(res, 'users/show_admin', {
         title: req.user.name,
         user: req.user,
-        data: 'Admin data goes here',
         users: users,
         routes: routes,
         generated: generated,
@@ -183,45 +211,22 @@ async function showAdminDashboard (req, res) {
     });
 }
 
+/**
+ * Responds data for the current user dashboard
+ */
 async function showUserDashboard (req, res) {
-    let user = await User.load_full(req.user._id, {});
+    let user = await User.load(req.user._id);
     if (user) {
-        const geos = Strava.activitiesToGeos(user.activities);
-        const generatedRoutes = req.generatedRoutes || [];
-        const foundRoutes = generatedRoutes.length > 0;
-        const hasGeneratedRoutes = req.hasGeneratedRoutes || false;
-        const exploredMap = Map.generateExploredMapData(geos);
-        let routeMaps = [
-            {routeData: ['0', '0']},
-            {routeData: ['0', '0']},
-            {routeData: ['0', '0']},
-            {routeData: ['0', '0']},
-            {routeData: ['0', '0']},
-        ];
-
-        if (hasGeneratedRoutes) {
-            if (generatedRoutes.length > 0) {
-                generatedRoutes.forEach(function (route, index) {
-                    routeMaps[index] = Map.generateRouteMap(route.geo);
-                    routeMaps[index].distance = route.distance;
-                    routeMaps[index].id = route._id;
-                    routeMaps[index].parts = route.parts;
-                    routeMaps[index].familiarityScore = route.familiarityScore;
-                });
-            }
-        }
-
         res.json({
-            title: user.name,
             user: user,
-            map: exploredMap,
-            routeMaps: routeMaps,
-            userData: 'User data goes here',
-            hasGeneratedRoutes: hasGeneratedRoutes,
-            hasRoute: false,
-            foundRoutes: foundRoutes,
-            numRoutes: generatedRoutes.length,
-            generatedRoutes: generatedRoutes,
+        });
+    } else {
+        res.status(400).json({
+            error: 'No user with matching id found in database',
+            flash: {
+                type: 'error',
+                text: 'Could not retrieve data for the given user id'
+            }
         });
     }
 }

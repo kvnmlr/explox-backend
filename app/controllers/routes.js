@@ -1,35 +1,20 @@
 'use strict';
 
-const Log = require('../utils/logger');
-const TAG = 'controllers/routes';
-
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const only = require('only');
-const {respond, respondOrRedirect} = require('../utils');
+const {respond} = require('../utils');
 const Route = mongoose.model('Route');
 const assign = Object.assign;
-const Map = require('./map');
-const Strava = require('./strava');
-const User = mongoose.model('User');
 
-/**
- * Home Page
- */
+const Log = require('../utils/logger');
+const TAG = 'controllers/routes';
 
 exports.creator = async(function (req, res) {
     res.json({
         text: 'Creator text',
     });
 });
-
-/**
- * Load
- */
 
 exports.load_options = async(function* (req, res, next, id) {
     try {
@@ -40,10 +25,6 @@ exports.load_options = async(function* (req, res, next, id) {
     }
     next();
 });
-
-/**
- * List
- */
 
 exports.index = async(function* (req, res) {
     const page = (req.query.page > 0 ? req.query.page : 1) - 1;
@@ -75,21 +56,8 @@ exports.index = async(function* (req, res) {
 });
 
 /**
- * New route
+ * Create a new route
  */
-
-exports.new = function (req, res) {
-    res.render('routes/new', {
-        title: 'New Route',
-        route: new Route()
-    });
-};
-
-/**
- * Create an route
- * Upload an image
- */
-
 exports.create = async(function* (req, res) {
     const route = new Route();
     assign(route, only(req.body, 'title body'));
@@ -99,7 +67,7 @@ exports.create = async(function* (req, res) {
         yield route.save();
         res.json({});
     } catch (err) {
-        console.log(err);
+        Log.error(TAG, 'Error saving newly created route', err);
         res.status(500).json({
             error: 'Error while creating the route',
             flash: 'Route could not be created'
@@ -108,20 +76,8 @@ exports.create = async(function* (req, res) {
 });
 
 /**
- * Edit an route
+ * Updates a route
  */
-
-exports.edit = function (req, res) {
-    res.render('routes/edit', {
-        title: 'Edit ' + req.routeData.title,
-        route: req.routeData
-    });
-};
-
-/**
- * Update route
- */
-
 exports.update = async function (req, res) {
     let route = req.routeData;
     assign(route, only(req.body, 'title body'));
@@ -135,7 +91,7 @@ exports.update = async function (req, res) {
             }
         });
     } catch (err) {
-        console.log(err);
+        Log.error(TAG, 'Error saving updated route', err);
         res.status(500).json({
             error: 'Error while updating the route',
             flash: {
@@ -146,6 +102,9 @@ exports.update = async function (req, res) {
     }
 };
 
+/**
+ * Responds the route data for the requested route
+ */
 exports.routeData = function (req, res) {
     res.json({
         route: req.routeData,
@@ -185,15 +144,16 @@ exports.userSavedChoice = async(function* (req, res) {
 });
 
 /**
- * Delete an route
+ * Delete the given route
  */
-
 exports.destroy = async(function* (req, res) {
     yield req.routeData.remove();
     res.json({});
 });
 
-
+/**
+ * Create a hash of the given route
+ */
 exports.makeid = function (route) {
     let hash = Math.ceil(route.distance * route.start[0] * route.start[1] * route.end[0] * route.end[1] * 1000);
 
