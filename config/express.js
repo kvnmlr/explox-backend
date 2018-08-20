@@ -35,6 +35,7 @@ const env = process.env.NODE_ENV || 'development';
  */
 
 module.exports = function (app, passport) {
+
     app.use(parseForm);
     app.use(function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');

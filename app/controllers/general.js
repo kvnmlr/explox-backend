@@ -8,7 +8,7 @@ const Feedback = mongoose.model('Feedback');
 
 exports.home = async(function (req, res) {
     res.json({
-        text: 'Home text',
+        text: 'Home text!',
     });
 });
 
