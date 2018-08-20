@@ -24,7 +24,7 @@ module.exports = function (app, passport) {
 
     // Auth Routes
     app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.session);
-    app.get('/auth/strava', pauth('strava', fail));
+    app.get('/auth/strava', pauth('strava', fail), users.session);
 
     // General Routes
     app.param('feedbackId', general.loadFeedbackOptions);
