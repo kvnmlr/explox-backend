@@ -161,13 +161,13 @@ exports.destroy = async function (req, res) {
 exports.authenticate = function (req, res) {
     if (!req.user) {
         res.json({
-            deployTest: true,
+            deployTest: false,
             user: null,
         });
     }
     res.json({
         user: {
-            deployTest: true,
+            deployTest: false,
             name: req.user.name,
             _id: req.user._id,
             role: req.user.role,
