@@ -5,10 +5,12 @@ const Log = require('../utils/logger');
 const TAG = 'controllers/general';
 const mongoose = require('mongoose');
 const Feedback = mongoose.model('Feedback');
+const config = require('../../server').config;
 
 exports.home = async(function (req, res) {
     res.json({
-        text: 'Home text!',
+        text: 'Home text',
+        env: config
     });
 });
 
