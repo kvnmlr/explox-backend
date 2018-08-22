@@ -24,11 +24,11 @@ exports.init = async function () {
         if (!initialized) {
             await createDefaultUsers();
             await createDefaultSettings();
-            await createSampleRoute();
+            // await createSampleRoute();
         }
         finished();
     } catch (e) {
-        Log.error(TAG, 'An error occured during initialization', e);
+        Log.error(TAG, 'An error occurred during initialization', e);
     }
 };
 
@@ -71,17 +71,16 @@ const createDefaultGeo = async function (name, lat, long) {
 };
 
 const createDefaultAdmins = async function () {
-
     const options = {
-        criteria: {'email': 'system@explox.de'}
+        criteria: {'email': 'admin@explox.de'}
     };
     let user = await User.load_options(options);
     if (!user) {
         Log.debug(TAG, 'createDefaultAdmins');
         user = new User({
-            name: 'system',
-            email: 'system@explox.de',
-            username: 'sys',
+            name: 'System Admin',
+            email: 'admin@explox.de',
+            username: 'Admin',
             provider: 'local',
             password: 'manager',
             role: adminRole,
@@ -102,12 +101,11 @@ const createDefaultUsers = async function () {
     let user = await User.load_options(options);
     if (!user) {
         user = new User({
-            name: 'user',
+            name: 'System User',
             email: 'user@explox.de',
-            username: 'user',
+            username: 'User',
             provider: 'local',
             password: 'password',
-            geo: geos,
             role: userRole,
             createdAt: Date.now()
         });
@@ -123,7 +121,7 @@ const createDefaultSettings = async function () {
             key: 'api',
             value: {
                 shortTerm: 0,
-                longTerm: 0
+                longTerm: 0,
             }
         });
         await setting.save();

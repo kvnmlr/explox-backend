@@ -10,7 +10,7 @@ const config = require('../');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Log = require('../../app/utils/logger');
-
+const mailer = require('../../app/mailer/index');
 const TAG = 'passport/strava';
 /**
  * Expose
@@ -41,7 +41,10 @@ module.exports = new StravaStrategy({
                     role: 'user'
                 });
                 user.save(function (err) {
-                    if (err) Log.error(TAG, err);
+                    if (err) {
+                        Log.error(TAG, err);
+                    }
+                    mailer.registeredConfirmation(user);
                     return done(err, user);
                 });
             } else {

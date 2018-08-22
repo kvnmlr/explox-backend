@@ -17,10 +17,14 @@ module.exports = new LocalStrategy({
         passwordField: 'password'
     },
     function (email, password, done) {
-        const options = {
-            criteria: {email: email},
+        let options = {
+            criteria: {email: email.toLowerCase()},
             select: 'name username email hashed_password salt'
         };
+        if (!email.includes('@')) {
+            options.criteria = {username: email};
+        }
+
         User.load_options(options, function (err, user) {
             if (err) return done(err);
             if (!user) {

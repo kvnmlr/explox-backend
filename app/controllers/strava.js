@@ -46,9 +46,8 @@ exports.updateUser = async function (req, res) {
     if (user) {
         const token = user.authToken;
         const id = user.stravaId;
-        // await exports.getAthlete(id, token);
-        // await exports.getFriends(id, token);
-        // await exports.getStats(id, token);
+        await exports.getAthlete(user, token);
+        await exports.getStats(user, token);
         await exports.getRoutes(id, token);
         await exports.getActivities(id, token);
 
@@ -62,39 +61,21 @@ exports.updateUser = async function (req, res) {
 };
 
 /**
- * Get the user's friends, updates db.user to include the new friends
- */
-exports.getFriends = function (id, token) {
-    return new Promise(function (resolve, reject) {
-        strava.athletes.listFriends({
-            id: id,
-            access_token: token,
-            page: 1,
-            per_page: 100
-        }, function (err, payload, limits) {
-            updateLimits(limits);
-            if (err) {
-                Log.error(TAG, 'Error while retrieving user friend list', err);
-                reject(new Error(err));
-                return;
-            }
-            resolve(payload);
-        });
-    });
-};
-
-/**
  * Get the users profile data, updates db.user in case something has changes (e.g. e-mail address)
  */
-exports.getAthlete = function (id, token) {
+exports.getAthlete = function (user, token) {
+    const id = user.stravaId;
     return new Promise(function (resolve, reject) {
-        strava.athletes.get({id: id, access_token: token}, function (err, payload, limits) {
+        strava.athletes.get({id: id, access_token: token}, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
                 Log.error(TAG, 'Error while retrieving user data', err);
                 reject(new Error(err));
                 return;
             }
+            user.strava = payload;
+            await user.save();
+            Log.debug(TAG, 'Athlete: ', payload);
             resolve(payload);
         });
     });
@@ -103,15 +84,19 @@ exports.getAthlete = function (id, token) {
 /**
  * Get the users strava statistics, updates the db.user with the new stats
  */
-exports.getStats = function (id, token) {
+exports.getStats = function (user, token) {
+    const id = user.stravaId;
     return new Promise(function (resolve, reject) {
-        strava.athletes.stats({id: id, access_token: token, page: 1, per_page: 100}, function (err, payload, limits) {
+        strava.athletes.stats({id: id, access_token: token, page: 1, per_page: 100}, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
                 Log.error(TAG, 'Error while getting user statistics', err);
                 reject(new Error(err));
                 return;
             }
+            user.stravaStats = payload;
+            await user.save();
+            Log.debug(TAG, 'Stats: ', payload);
             resolve(payload);
         });
     });
@@ -521,7 +506,6 @@ const extractGeosFromPayload = async function (id, payload) {
 };
 
 exports.authCallback = function (req, res, next) {
-    Log.debug(TAG, 'here');
     const myJSONObject = {
         'client_id': config.strava.clientID,
         'client_secret': config.strava.clientSecret,

@@ -1,12 +1,8 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
 const nodemailer = require('nodemailer');
 const Log = require('../utils/logger');
 const config = require('../../server').config;
-
 const TAG = 'Mailer';
 
 const transporter = nodemailer.createTransport({
@@ -24,16 +20,30 @@ let mailOptions = {
     text: 'It works'
 };
 
-
-/**
- * Expose
- */
-
 module.exports = {
-    registeredConfirmation: function (user, cb) {
+    registeredConfirmation: function (user) {
         mailOptions.to = user.email;
-        mailOptions.subject = 'You have been registered!';
-        mailOptions.html = "<h1>Welcome</h1><p>You are now registered!</p>'";
+        mailOptions.subject = 'ExploX Registration Successful';
+        mailOptions.html =
+            '<h2>Welcome to ExploX</h2>' +
+            '<p>You are now registered and can use all functions.</p>' +
+            '<p><b>Visit Your Profile: </b>' + config.frontend_url + 'dashboard</p>';
+        transporter.sendMail(mailOptions, function (error, info){
+            if (error) {
+                Log.error(TAG, error);
+            } else {
+                Log.log(TAG, 'Email sent: ' + info.response);
+            }
+        });
+        this.newUserRegistered(user);
+    },
+
+    feedbackReceived: function (feedback) {
+        mailOptions.subject = '[ExploX] New Feedback Received';
+        mailOptions.html =
+            '<h2>New Feedback:</h2>' +
+            '<p><b>Email: </b>' + feedback.email + '</p>' +
+            '<p><b>Message: </b>' + feedback.body + '</p>';
         transporter.sendMail(mailOptions, function (error, info){
             if (error) {
                 Log.error(TAG, error);
@@ -43,10 +53,14 @@ module.exports = {
         });
     },
 
-    updatedData: function (user, cb) {
-        mailOptions.to = user.email;
-        mailOptions.subject = 'Data updated';
-        mailOptions.html = '<p>Your data has been updated!</p>';
+    newUserRegistered: function (user) {
+        mailOptions.subject = '[ExploX] New User Registered';
+        mailOptions.html =
+            '<h2>New Registration:</h2>' +
+            '<p><b>Name: </b>' + user.name + '</p>' +
+            '<p><b>Username: </b>' + user.username + '</p>' +
+            '<p><b>E-Mail: </b>' + user.email + '</p>' +
+            '<img src="' + user.strava.profile + '"/>';
         transporter.sendMail(mailOptions, function (error, info){
             if (error) {
                 Log.error(TAG, error);
@@ -54,5 +68,5 @@ module.exports = {
                 Log.log(TAG, 'Email sent: ' + info.response);
             }
         });
-    }
+    },
 };

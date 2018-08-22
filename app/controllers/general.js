@@ -6,6 +6,7 @@ const TAG = 'controllers/general';
 const mongoose = require('mongoose');
 const Feedback = mongoose.model('Feedback');
 const config = require('../../server').config;
+const mailer = require('../mailer/index');
 
 exports.home = async(function (req, res) {
     res.json({
@@ -35,8 +36,8 @@ exports.feedback = async function (req, res) {
 
 exports.submitFeedback = async function (req, res) {
     req.body.email = (req.body.email).toLowerCase();
-    // console.log(req.body);
     const feedback = new Feedback(req.body);
+    mailer.feedbackReceived(feedback);
     try {
         await feedback.save();
         res.json({});
