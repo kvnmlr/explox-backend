@@ -38,6 +38,24 @@ module.exports = {
         this.newUserRegistered(user);
     },
 
+    invite: function (invitation) {
+        mailOptions.to = invitation.email;
+        mailOptions.subject = invitation.sender + ' invited you to ExploX';
+        mailOptions.html =
+            '<h2>Invitation to Explox</h2>' +
+            '<p>Hey' + ((invitation.receiver !== '') ? ' ' + invitation.receiver : '') + ',</p>' +
+            '<p>' + invitation.sender + ' wants to use ExploX for Cyclists together with you.</p>' +
+            '<p><b>Find out more: </b><a href="' + config.frontend_url + 'about">ExploX Website</a></p>' +
+            '<p><b>Accept invitation: </b><a href="' + config.frontend_url + 'login">Register and Login</a></p>';
+        transporter.sendMail(mailOptions, function (error, info){
+            if (error) {
+                Log.error(TAG, error);
+            } else {
+                Log.log(TAG, 'Email sent: ' + info.response);
+            }
+        });
+    },
+
     feedbackReceived: function (feedback) {
         mailOptions.subject = '[ExploX] New Feedback Received';
         mailOptions.html =

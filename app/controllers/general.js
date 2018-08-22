@@ -5,6 +5,7 @@ const Log = require('../utils/logger');
 const TAG = 'controllers/general';
 const mongoose = require('mongoose');
 const Feedback = mongoose.model('Feedback');
+const Invitation = mongoose.model('Invitation');
 const config = require('../../server').config;
 const mailer = require('../mailer/index');
 
@@ -30,7 +31,6 @@ exports.about = async(function (req, res) {
 
 exports.feedback = async function (req, res) {
     const feedback = await Feedback.list();
-    console.log(feedback);
     res.json(feedback);
 };
 
@@ -48,6 +48,37 @@ exports.submitFeedback = async function (req, res) {
         });
     }
 };
+
+exports.invitation = async function (req, res) {
+    const invitations = await Invitation.list();
+    console.log(invitations);
+    res.json(invitations);
+};
+
+exports.submitInvitation = async function (req, res) {
+    const invite = {
+        user: req.user,
+        sender: req.user.name,
+        receiver: req.body.name,
+        email: req.body.email.toLowerCase(),
+    };
+    mailer.invite(invite);
+    const invitation = new Invitation(invite);
+    try {
+        await invitation.save();
+        res.json({
+            flash: {
+                type: 'success',
+                text: 'Thanks! An invitation e-mail has been sent' + ((invite.receiver === '') ? '.' : (' to ' + invite.receiver + '.')),
+            }
+        });    } catch (err) {
+        res.status(400).json({
+            error: err,
+            user: null
+        });
+    }
+};
+
 
 exports.destroyFeedback = async function (req, res) {
     await req.feedback.remove();

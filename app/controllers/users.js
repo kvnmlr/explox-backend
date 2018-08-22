@@ -12,6 +12,7 @@ const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Feedbacks = mongoose.model('Feedback');
+const Invitations = mongoose.model('Invitation');
 
 const assign = Object.assign;
 const TAG = 'views/users';
@@ -199,6 +200,9 @@ async function showAdminDashboard (req, res) {
     let activities = await Activity.list({});
     let segments = await Route.list({criteria: {isRoute: false}});
     let feedbacks = await Feedbacks.list();
+    let invitations = await Invitations.list();
+
+    console.log(invitations);
 
     let apiLimits = await Strava.getLimits();
     respond(res, 'users/show_admin', {
@@ -211,6 +215,7 @@ async function showAdminDashboard (req, res) {
         activities: activities,
         limits: apiLimits,
         feedbacks: feedbacks,
+        invitations: invitations,
     });
 }
 

@@ -9,7 +9,9 @@ const StravaStrategy = require('passport-strava').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
 const Role = mongoose.model('Role');
+const Invitation = mongoose.model('Invitation');
 const Log = require('../../app/utils/logger');
+
 const mailer = require('../../app/mailer/index');
 const TAG = 'passport/strava';
 /**
@@ -40,9 +42,15 @@ module.exports = new StravaStrategy({
                     stravaId: profile.id,
                     role: 'user'
                 });
-                user.save(function (err) {
+                user.save(async function (err, user) {
                     if (err) {
                         Log.error(TAG, err);
+                    }
+                    const invitation = await Invitation.load_options({email: user.email});
+                    if (invitation) {
+                        invitation.accepted = true;
+                        invitation.receiverUser = user;
+                        await invitation.save();
                     }
                     mailer.registeredConfirmation(user);
                     return done(err, user);

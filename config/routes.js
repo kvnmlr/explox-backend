@@ -32,6 +32,7 @@ module.exports = function (app, passport) {
     app.get('/hub', general.hub);
     app.get('/creator', auth.requiresLogin, routes.creator);
     app.get('/feedback', general.feedback);
+    app.get('/invitation', general.invitation);
     app.get('/about', general.about);
     app.get('/logout', users.logout);
     app.get('/authenticate', users.authenticate);
@@ -39,6 +40,7 @@ module.exports = function (app, passport) {
     app.post('/login', pauth('local', fail), users.session);
     app.post('/signup', users.signup);
     app.post('/feedback', general.submitFeedback);
+    app.post('/invite', general.submitInvitation);
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
 
     // User Routes
