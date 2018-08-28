@@ -31,26 +31,23 @@ exports.generate = async function (req, res) {
     Log.log(TAG, 'Generate');
     preference = req.body.preference || 'discover';
     duration = req.body.duration || 0;
-    distance = req.body.distance * 1000 || '5000';
+    distance = parseFloat(req.body.distance) * 1000 || 5000;
     radius = distance / 2.0;
     difficulty = req.body.difficulty || 'advanced';
-    start = {
-        lat: req.query.lat,
-        lng: req.query.lng
-    };
+    start = req.body.start;
     end = start;
     request = req;
     response = res;
 
     await initSearch();
     await distanceFilter();
-    await lowerBoundsFilter();
+    /* await lowerBoundsFilter();
     await combine();
     await sortAndReduce();
     await generateCandidates();
     await familiarityFilter();
     await createRoutes();
-    logAll();
+    logAll(); */
     respond();
 };
 
@@ -124,9 +121,9 @@ const respond = function () {
         });
     }
 
-    request.generatedRoutes = resultRoutes;//
-    request.hasGeneratedRoutes = true;
-    users.show(request, response);
+    response.json({
+        generatedRoutes: goodRoutes,
+    });
 };
 
 /**
@@ -143,12 +140,12 @@ const distanceFilter = async function () {
         isGenerated: false
     };
     // get all routes that are shorter than the route should-distance
-    const routes = await Route.list({criteria});
+    const routes = await Route.list({criteria: criteria, detailed: true});
     goodRoutes = routes;
 
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
-    const segments = await Route.list({criteria});
+    const segments = await Route.list({criteria: criteria, detailed: true});
     goodSegments = segments;
 
     Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
