@@ -1,5 +1,3 @@
-# hallihah
-# DEPLOY
 # ExploX
 
 ## Getting Started
