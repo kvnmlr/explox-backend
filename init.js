@@ -78,13 +78,15 @@ const createDefaultAdmins = async function () {
     if (!user) {
         Log.debug(TAG, 'createDefaultAdmins');
         user = new User({
-            name: 'System Admin',
+            firstName: 'System',
+            lastName: 'Admin',
             email: 'admin@explox.de',
-            username: 'Admin',
+            username: 'System Admin',
             provider: 'local',
             password: 'manager',
             role: adminRole,
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            fullyRegistered: true,
         });
         await user.save();
         Log.debug(TAG, 'createDefaultAdmins done');
@@ -101,13 +103,15 @@ const createDefaultUsers = async function () {
     let user = await User.load_options(options);
     if (!user) {
         user = new User({
-            name: 'System User',
+            firstName: 'System',
+            lastName: 'User',
             email: 'user@explox.de',
-            username: 'User',
+            username: 'System User',
             provider: 'local',
             password: 'password',
             role: userRole,
-            createdAt: Date.now()
+            createdAt: Date.now(),
+            fullyRegistered: true,
         });
         await user.save();
     }

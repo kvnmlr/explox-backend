@@ -11,8 +11,6 @@ const User = mongoose.model('User');
 const Role = mongoose.model('Role');
 const Invitation = mongoose.model('Invitation');
 const Log = require('../../app/utils/logger');
-
-const mailer = require('../../app/mailer/index');
 const TAG = 'passport/strava';
 /**
  * Expose
@@ -33,9 +31,11 @@ module.exports = new StravaStrategy({
                 user = new User({
                     activities: [],
                     routes: [],
-                    name: profile.displayName,
+                    fullyRegistered: false,
+                    firstName: profile.name.first,
+                    lastName: profile.name.last,
                     email: profile._json.email,
-                    username: profile.name.first,
+                    username: profile.displayName,
                     provider: 'strava',
                     strava: profile._json,
                     authToken: accessToken,
@@ -52,7 +52,6 @@ module.exports = new StravaStrategy({
                         invitation.receiverUser = user;
                         await invitation.save();
                     }
-                    mailer.registeredConfirmation(user);
                     return done(err, user);
                 });
             } else {

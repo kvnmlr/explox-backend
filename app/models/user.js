@@ -8,10 +8,12 @@ const oAuthTypes = ['strava'];
 const TAG = 'models/user';
 
 const UserSchema = new Schema({
-    name: {type: String, default: ''},
+    firstName: {type: String, default: ''},
+    lastName: {type: String, default: ''},
     email: {type: String, default: '', index: {unique: true}},
     username: {type: String, default: '', trim: true, index: {unique: true}},
     provider: {type: String, default: ''},
+    fullyRegistered: {type: Boolean, default: false},
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
     authToken: {type: String, default: ''},
@@ -41,11 +43,14 @@ UserSchema
 /**
  * Validations only apply when signing up traditionally
  */
-UserSchema.path('name').validate(function (name) {
+UserSchema.path('firstName').validate(function (name) {
     if (this.skipValidation()) return true;
     return name.length;
-}, 'Name cannot be blank');
-
+}, 'First name cannot be blank');
+UserSchema.path('lastName').validate(function (name) {
+    if (this.skipValidation()) return true;
+    return name.length;
+}, 'Last name cannot be blank');
 UserSchema.path('email').validate(function (email) {
     if (this.skipValidation()) return true;
     return email.length;

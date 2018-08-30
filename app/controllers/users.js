@@ -32,6 +32,37 @@ exports.loadProfile = async function (req, res, next, _id) {
     next();
 };
 
+exports.finishRegistration = async function (req, res) {
+    let user = req.user;
+    assign(user, only(req.body, 'name email username password'));
+    user.fullyRegistered = true;
+    try {
+        await user.save();
+        req.logIn(user, err => {
+            if (err) {
+                res.status(400).json({
+                    error: 'User exists but could not be logged in after registration',
+                    flash: {
+                        type: 'info',
+                        text: 'You have been registered, please log in'
+                    }
+                });
+            }
+            mailer.registeredConfirmation(user);
+            Log.log(TAG, 'User ' + user.username + ' has registered');
+            res.json({
+                errors: null,
+                user: user,
+            });
+        });
+    } catch (err) {
+        res.status(400).json({
+            error: err,
+            user: null
+        });
+    }
+};
+
 /**
  * Creates a new user and logs them in using passport
  */
