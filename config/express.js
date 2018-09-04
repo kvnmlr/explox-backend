@@ -131,7 +131,7 @@ module.exports = function (app, passport) {
     app.use(helpers(pkg.name));
 
     if (env !== 'test') {
-        app.use(csrf({cookie: true, ignoreMethods: ['GET', 'HEAD', 'OPTIONS', 'POST', 'PUT', 'DELETE']}));
+        app.use(csrf({cookie: true, ignoreMethods: ['GET' , 'HEAD', 'OPTIONS', 'DELETE']}));
 
         // This could be moved to view-helpers :-)
         app.use(function (req, res, next) {

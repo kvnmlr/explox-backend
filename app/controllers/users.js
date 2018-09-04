@@ -136,7 +136,7 @@ exports.activityMap = async function (req, res) {
  */
 exports.getCsrfToken = function (req, res) {
     res.json({
-        csrfToken: res.locals.csrf_token
+        csrf_token: res.locals.csrf_token
     });
 };
 
