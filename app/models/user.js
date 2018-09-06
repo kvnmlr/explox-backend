@@ -24,7 +24,8 @@ const UserSchema = new Schema({
     activities: [{type: Schema.ObjectId, ref: 'Activity'}],
     role: {type: String, default: 'user'},
     createdAt: {type: Date, default: Date.now},
-    lastLogin: {type: Date, default: Date.now}
+    lastLogin: {type: Date, default: Date.now},
+    lastUpdated: {type: Date, default: Date.now}
 });
 
 const validatePresenceOf = value => value && value.length;
@@ -248,12 +249,14 @@ UserSchema.statics = {
     /**
      * Returns all (unpopulated) users matching the given options
      * @param options
+     * @param sort
      * @returns {Promise|*|RegExpExecArray}
      */
     list: function (options) {
+        const sort = options.sort || {createdAt: -1};
         const criteria = options.criteria || {};
         return this.find(criteria)
-            .sort({createdAt: -1})
+            .sort(sort)
             .exec();
     }
 };

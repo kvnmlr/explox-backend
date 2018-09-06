@@ -18,6 +18,9 @@ exports.init = async function () {
     Activity = mongoose.model('Activity');
     Settings = mongoose.model('Settings');
 
+    const scheduler = require('./app/controllers/scheduler');
+    const crawler = require('./app/controllers/crawler');
+
     try {
         await createRoles();
         let initialized = await createDefaultAdmins();
@@ -26,6 +29,8 @@ exports.init = async function () {
             await createDefaultSettings();
             // await createSampleRoute();
         }
+        scheduler.init();
+        crawler.init();
         finished();
     } catch (e) {
         Log.error(TAG, 'An error occurred during initialization', e);

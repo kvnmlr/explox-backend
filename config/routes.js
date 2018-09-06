@@ -3,12 +3,12 @@ const users = require('../app/controllers/users');
 const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
 const strava = require('../app/controllers/strava');
-const crawler = require('../app/controllers/crawler');
 const optimization = require('../app/controllers/optimization');
 const generate = require('../app/controllers/generate');
 const importexport = require('../app/controllers/importexport');
 const general = require('../app/controllers/general');
 const auth = require('./middlewares/authorization');
+
 
 const routeAuth = [auth.requiresLogin, auth.route.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
@@ -70,7 +70,7 @@ module.exports = function (app, passport) {
     app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);
 
     // Admin Routes
-    app.get('/crawl', auth.adminOnly, crawler.crawlSegments);
+    app.get('/crawl', auth.adminOnly);
     app.get('/optimize', auth.adminOnly, optimization.prune);
 
     // Error Handling

@@ -22,7 +22,7 @@ process.setMaxListeners(0);
 app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
 
 const os = require('os');
-const numCPUs = os.cpus().length;
+const numCPUs = 1; // os.cpus().length;
 
 /**
  * Expose
@@ -89,9 +89,11 @@ function listen () {
     app.listen(port);
 }
 
-function initialize () {
+async function initialize () {
     if (app.get('env') === 'test') return;
     init.init();
+    //scheduler.init();
+    //crawler.init();
 }
 
 function connect () {

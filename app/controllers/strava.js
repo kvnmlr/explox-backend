@@ -36,6 +36,17 @@ const updateLimits = function (limit) {
     }
 };
 
+exports.queryLimits = async function (req, res) {
+    const options = {
+        bounds: '',
+        activity_type: 'cycling',
+        min_cat: 0,
+        max_cat: 0,
+    };
+    await this.segmentsExplorer('b835d0c6c520f39d22eeb8d60dc65ecb17559542', options);
+};
+
+
 /**
  * Query all relevant user data
  */
@@ -189,34 +200,36 @@ exports.segmentsExplorer = function (token, options, next) {
         };
     }
 
-    strava.segments.explore({
-        access_token: token,
-        bounds: options.bounds,
-        activity_type: options.activity_type,
-        min_cat: options.min_cat,
-        max_cat: options.max_cat
-    }, async function (err, payload, limits) {
-        updateLimits(limits);
-        if (err) {
-            Log.error(TAG, 'Error in segment explore request', err);
-        } else {
-            if (payload.segments) {
-                for (let i = 0; i < payload.segments.length; ++i) {
-                    const segment = await Route.load_options({
-                        criteria: {
-                            isRoute: false,
-                            stravaId: payload.segments[i].id
+    return new Promise(function (resolve, reject) {
+        strava.segments.explore({
+            access_token: token,
+            bounds: options.bounds,
+            activity_type: options.activity_type,
+            min_cat: options.min_cat,
+            max_cat: options.max_cat
+        }, async function (err, payload, limits) {
+            updateLimits(limits);
+            if (err) {
+                Log.error(TAG, 'Error in segment explore request', err);
+            } else {
+                if (payload.segments) {
+                    for (let i = 0; i < payload.segments.length; ++i) {
+                        const segment = await Route.load_options({
+                            criteria: {
+                                isRoute: false,
+                                stravaId: payload.segments[i].id
+                            }
+                        });
+                        if (segment) {
+                            Log.debug(TAG, 'Segment ' + payload.segments[i].id + ' already exist.');
+                        } else {
+                            await getSegment(payload.segments[i].id, token, payload.segments[i]);
                         }
-                    });
-                    if (segment) {
-                        Log.debug(TAG, 'Segment ' + payload.segments[i].id + ' already exist.');
-                    } else {
-                        await getSegment(payload.segments[i].id, token, payload.segments[i]);
                     }
                 }
             }
-        }
-        next(null, payload);
+            resolve(payload);
+        });
     });
 };
 
