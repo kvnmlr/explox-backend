@@ -7,6 +7,7 @@ const optimization = require('../app/controllers/optimization');
 const generate = require('../app/controllers/generate');
 const importexport = require('../app/controllers/importexport');
 const general = require('../app/controllers/general');
+const scheduler = require('../app/controllers/scheduler');
 const auth = require('./middlewares/authorization');
 
 
@@ -70,7 +71,9 @@ module.exports = function (app, passport) {
     app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);
 
     // Admin Routes
-    app.get('/crawl', auth.adminOnly);
+    app.get('/triggers/crawler', auth.adminOnly, scheduler.crawler);
+    app.get('/triggers/users', auth.adminOnly, scheduler.updateUsers);
+    app.get('/triggers/limits', auth.adminOnly, scheduler.updateLimits);
     app.get('/optimize', auth.adminOnly, optimization.prune);
 
     // Error Handling

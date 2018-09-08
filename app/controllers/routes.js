@@ -80,7 +80,7 @@ exports.create = async(function* (req, res) {
  */
 exports.update = async function (req, res) {
     let route = req.routeData;
-    assign(route, only(req.body, 'title body'));
+    assign(route, only(req.body, 'title body rating'));
     route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
     try {
         await route.save();

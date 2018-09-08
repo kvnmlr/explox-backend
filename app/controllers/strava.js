@@ -62,12 +62,17 @@ exports.updateUser = async function (req, res) {
         await exports.getRoutes(id, token);
         await exports.getActivities(id, token);
 
-        res.json({
-            flash: {
-                text: 'Your profile, routes and activities have been syncronized',
-                type: 'success'
-            }
-        });
+        user.lastUpdated = Date.now();
+        await user.save();
+
+        if (res) {
+            res.json({
+                flash: {
+                    text: 'Your profile, routes and activities have been syncronized',
+                    type: 'success'
+                }
+            });
+        }
     }
 };
 
@@ -435,6 +440,9 @@ const extractGeosFromPayload = async function (id, payload) {
 
         const pl = payload.payload;
         let data = null;
+        if (!pl) {
+            return;
+        }
         for (let i = 0; i < pl.length; ++i) {
             if (pl[i].type === 'latlng') {
                 data = pl[i].data;

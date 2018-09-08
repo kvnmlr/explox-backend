@@ -41,13 +41,11 @@ exports.init = function () {
 };
 
 exports.crawlSegments = async function (req, res) {
-    Log.log(TAG, 'Crawling segments at ' + new Date().toUTCString());
+    Log.log(TAG, 'Crawling ' + (req.detailed ? 'fine' : 'coarse') + ' segments at ' + new Date().toUTCString());
 
     if (queue.length === 0) {
         this.init();
     }
-
-
 
     let start = queue.pop();
     const horizontal = 0.009009;    // one horizontal kilometer

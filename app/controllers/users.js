@@ -213,6 +213,7 @@ exports.authenticate = function (req, res) {
  */
 exports.session = async function (req, res) {
     User.update_user(req.user._id, {lastLogin: Date.now()});
+    Strava.updateUser({profile: req.user});
     delete req.session.returnTo;
     if (req.oauth) {
         res.redirect(config.frontend_url + 'dashboard');
