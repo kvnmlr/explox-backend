@@ -23,9 +23,10 @@ const UserSchema = new Schema({
     routes: [{type: Schema.ObjectId, ref: 'Route'}],
     activities: [{type: Schema.ObjectId, ref: 'Activity'}],
     role: {type: String, default: 'user'},
+    subscriptions: [{type: String, default: ''}],
     createdAt: {type: Date, default: Date.now},
     lastLogin: {type: Date, default: Date.now},
-    lastUpdated: {type: Date, default: Date.now}
+    lastUpdated: {type: Date, default: Date.now},
 });
 
 const validatePresenceOf = value => value && value.length;

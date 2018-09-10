@@ -8,15 +8,13 @@ const TAG = 'controllers/generate';
 const mongoose = require('mongoose');
 const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
+const CreatorResult = mongoose.model('CreatorResult');
 const User = mongoose.model('User');
 
 const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 
-let preference, distance, duration, radius, difficulty, start, end;
-let goodRoutes = [], goodSegments = [], combos = [], finalRoutes = [], candidates = [], resultRoutes = [];
-let request, response;
 
 /**
  * Generates a new route by doing the following calculations in sequence:
@@ -29,48 +27,60 @@ let request, response;
  */
 exports.generate = async function (req, res) {
     Log.log(TAG, 'Generate');
-    preference = req.body.preference || 'discover';
-    duration = req.body.duration || 0;
-    distance = parseFloat(req.body.distance) * 1000 || 5000;
-    radius = distance / 2.0;
-    difficulty = req.body.difficulty || 'advanced';
-    start = req.body.start;
-    end = start;
-    request = req;
-    response = res;
+    let user = await User.load(req.user);
 
-    await initSearch();
-    await distanceFilter();
-    /* await lowerBoundsFilter();
-    await combine();
-    await sortAndReduce();
-    await generateCandidates();
-    await familiarityFilter();
-    await createRoutes();
-    logAll(); */
-    respond();
+    let distance = parseFloat(req.body.distance) * 1000 || 5000;
+
+    let query = {
+        preference: req.body.preference || 'discover',
+        duration: req.body.duration || 0,
+        distance: distance,
+        radius: distance / 2.0,
+        difficulty: req.body.difficulty || 'advanced',
+        start: req.body.start,
+        end: req.body.end,
+        request: req,
+        response: res,
+        user: user,
+    };
+
+    let result = {};
+
+    result = await initSearch(query, result);
+    result = await distanceFilter(query, result);
+    /* result = await lowerBoundsFilter(query, result);
+    result = await combine(query, result);
+    result = await sortAndReduce(query, result);
+    result = await generateCandidates(query, result);
+    result = await familiarityFilter(query, result);
+    result = await createRoutes(query, result);
+    logAll(query, result); */
+    respond(query, result);
 };
 
-const initSearch = function () {
+const initSearch = function (query, result) {
     Log.debug(TAG, 'Init search');
-    goodRoutes = [];
-    goodSegments = [];
-    combos = [];
-    finalRoutes = [];
-    candidates = [];
-    resultRoutes = [];
+    result = {
+        goodRoutes: [],
+        goodSegments: [],
+        combos: [],
+        finalRoutes: [],
+        candidates: [],
+        resultRoutes: [],
+    };
+    return result;
 };
 
-const logAll = function () {
-    if (resultRoutes.length > 0) {
-        Log.debug(TAG, 'Created these routes: ', resultRoutes.map(r => r.title + '\t (' + r.distance + ')'));
+const logAll = function (query, result) {
+    if (result.resultRoutes.length > 0) {
+        Log.debug(TAG, 'Created these routes: ', result.resultRoutes.map(r => r.title + '\t (' + r.distance + ')'));
     }
-    else if (candidates.length > 0) {
-        Log.debug(TAG, 'Found these candidate routes: ', candidates.map(r => r.title + '\t (' + r.distance + ')'));
+    else if (result.candidates.length > 0) {
+        Log.debug(TAG, 'Found these candidate routes: ', result.candidates.map(r => r.title + '\t (' + r.distance + ')'));
     }
-    else if (combos.length === 0) {
-        let tempRoutes = goodRoutes;
-        let tempSegments = goodSegments;
+    else if (result.combos.length === 0) {
+        let tempRoutes = result.goodRoutes;
+        let tempSegments = result.goodSegments;
 
         for (let route of tempRoutes) {
             route.geo = [];
@@ -80,10 +90,10 @@ const logAll = function () {
             segment.geo = [];
         }
 
-        Log.log(TAG, goodRoutes.length + ' routes: ', tempRoutes);
-        Log.log(TAG, goodSegments.length + ' segments: ', tempSegments);
+        Log.log(TAG, result.goodRoutes.length + ' routes: ', tempRoutes);
+        Log.log(TAG, result.goodSegments.length + ' segments: ', tempSegments);
     } else {
-        let tempCombos = combos;
+        let tempCombos = result.combos;
 
         for (let combo of tempCombos) {
             for (let part of combo.parts) {
@@ -92,8 +102,8 @@ const logAll = function () {
         }
         Log.log(TAG, tempCombos.length + ' combos: ', tempCombos);
 
-        if (finalRoutes.length > 0) {
-            let tempRoutes = finalRoutes;
+        if (result.finalRoutes.length > 0) {
+            let tempRoutes = result.finalRoutes;
 
             for (let route of tempRoutes) {
                 route.geo = [];
@@ -103,65 +113,80 @@ const logAll = function () {
     }
 };
 
-const respond = function () {
+const respond = async function (query, result) {
     Log.debug(TAG, 'Respond ');
 
-    if (preference === 'discover') {
-        resultRoutes.sort(function (a, b) {
+    if (query.preference === 'discover') {
+        result.resultRoutes.sort(function (a, b) {
             return b.familiarityScore - a.familiarityScore;
         });
     }
-    if (preference === 'distance') {
-        resultRoutes.sort(function (a, b) {
+    if (query.preference === 'distance') {
+        result.resultRoutes.sort(function (a, b) {
             return b.distance - a.distance;
         });
     } else {
-        resultRoutes.sort(function (a, b) {
+        result.resultRoutes.sort(function (a, b) {
             return b.distance + ((1 - b.familiarityScore) * a.distance) - a.distance + ((1 - a.familiarityScore) * b.distance);
         });
     }
+    Log.debug(TAG, '', result.goodRoutes);
 
-    response.json({
-        generatedRoutes: goodRoutes,
-    });
+    let generatedRoutes = result.goodRoutes;
+
+    let creatorResult = new CreatorResult(
+        {
+            user: query.user,
+            query: {
+                distance: query.distance,
+            },
+            generatedRoutes: generatedRoutes,
+            acceptedRoutes: [],
+        }
+    );
+    await creatorResult.save();
+
+    query.response.json(creatorResult);
 };
 
 /**
  * Keep routes and segments that are shorter than the route distance.
  */
-const distanceFilter = async function () {
+const distanceFilter = async function (query, result) {
     Log.debug(TAG, 'Distance Filter');
     let criteria = {
         distance: {
-            $lt: distance,
-            $gt: distance / 5   // this segment should be at least 10% of the final route (to avoid too small/insignificant segments
+            $lt: query.distance,
+            $gt: query.distance / 5   // this segment should be at least 10% of the final route (to avoid too small/insignificant segments
         },
         isRoute: true,
         isGenerated: false
     };
     // get all routes that are shorter than the route should-distance
     const routes = await Route.list({criteria: criteria, detailed: true});
-    goodRoutes = routes;
+    result.goodRoutes = routes;
 
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
     const segments = await Route.list({criteria: criteria, detailed: true});
-    goodSegments = segments;
+    result.goodSegments = segments;
 
-    Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
-    Log.debug(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
+    // Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
+    // Log.debug(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
+
+    return result;
 };
 
 /**
  * Keep routes and segments where each geo is within the radius of half the
  * route distance around the starting point (i.e. it must not leave the radius).
  */
-const radiusFilter = async function () {
+const radiusFilter = async function (query, result) {
     Log.debug(TAG, 'Radius Filter');
     const options = {
-        latitude: start.lat,
-        longitude: start.lng,
-        distance: radius,
+        latitude: query.start.lat,
+        longitude: query.start.lng,
+        distance: query.radius,
         select: {_id: 1, distance: 2, routes: 3}
     };
 
@@ -171,7 +196,7 @@ const radiusFilter = async function () {
     });
 
     // filter such that only the routes that are completely within the radius remain
-    goodRoutes = goodRoutes.filter(function (route) {
+    result.goodRoutes = result.goodRoutes.filter(function (route) {
         const takeEvery = Math.ceil(route.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
         let count = 0;
 
@@ -189,7 +214,7 @@ const radiusFilter = async function () {
     });
 
     // filter such that only the segments that are completely not outside remain
-    goodSegments = goodSegments.filter(function (segment) {
+    result.goodSegments = result.goodSegments.filter(function (segment) {
         const takeEvery = Math.ceil(segment.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
         let count = 0;
 
@@ -208,15 +233,17 @@ const radiusFilter = async function () {
     });
     // now our routes and segments arrays only contain routes where no geo is outside of the radius
 
-    Log.debug(TAG, goodRoutes.length + ' possible segments after radius filter: ', goodRoutes.map(s => s.distance + ' (' + s.title + ')'));
-    Log.debug(TAG, goodSegments.length + ' possible segments after radius filter: ', goodSegments.map(s => s.distance + ' (' + s.title + ')'));
+    Log.debug(TAG, result.goodRoutes.length + ' possible segments after radius filter: ', result.goodRoutes.map(s => s.distance + ' (' + s.title + ')'));
+    Log.debug(TAG, result.goodSegments.length + ' possible segments after radius filter: ', result.goodSegments.map(s => s.distance + ' (' + s.title + ')'));
+
+    return result;
 };
 
 /**
  * Keep routes and segments where, when incorporating them into the route,
  * the lower bound on the total distance would still be less than the route distance.
  */
-const lowerBoundsFilter = async function () {
+const lowerBoundsFilter = async function (query, result) {
     Log.debug(TAG, 'Lower Bound Filter');
 
     let newGoodRoutes = [];
@@ -224,8 +251,8 @@ const lowerBoundsFilter = async function () {
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
     let lists = [
-        {isRoute: true, routes: goodRoutes},
-        {isRoute: false, routes: goodSegments}
+        {isRoute: true, routes: query.goodRoutes},
+        {isRoute: false, routes: query.goodSegments}
     ];
 
     for (let routes of lists) {
@@ -241,9 +268,9 @@ const lowerBoundsFilter = async function () {
                 criteria: {
                     _id: startPoint._id,
                 },
-                latitude: start.lat,
-                longitude: start.lng,
-                distance: radius,
+                latitude: query.start.lat,
+                longitude: query.start.lng,
+                distance: query.radius,
                 limit: 1,
                 select: {_id: 1, distance: 2}
             };
@@ -271,7 +298,7 @@ const lowerBoundsFilter = async function () {
             // add the distance attribute to the object for later sorting
             route.lowerBoundDistance = totalDistance;
 
-            if (totalDistance - distance * 0.1 > distance) {
+            if (totalDistance - query.distance * 0.1 > query.distance) {
                 Log.debug(TAG, 'Lower bound on route with route/segment is too long: ' + totalDistance);
 
             } else {
@@ -283,88 +310,93 @@ const lowerBoundsFilter = async function () {
             }
         }
     }
-    goodRoutes = newGoodRoutes;
-    goodSegments = newGoodSegments;
-    Log.debug(TAG, goodRoutes.length + ' possible routes after lower bound filter: ', goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
-    Log.debug(TAG, goodSegments.length + ' possible segments after lower bound filter: ', goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
+    result.goodRoutes = newGoodRoutes;
+    result.goodSegments = newGoodSegments;
+    Log.debug(TAG, result.goodRoutes.length + ' possible routes after lower bound filter: ', result.goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
+    Log.debug(TAG, result.goodSegments.length + ' possible segments after lower bound filter: ', result.goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
+
+    return result;
 };
 
 /**
  * Sort combos on the lower bound total distance in descending order
  */
-const sortAndReduce = async function () {
+const sortAndReduce = async function (query, result) {
     Log.debug(TAG, 'Sort and Reduce');
 
-    combos.sort(function (a, b) {
+    result.combos.sort(function (a, b) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
 
     // reduce the list of combos to a fixed number
     const keepBest = 5;
-    while (combos.length > keepBest) {
-        let indexFromStart = combos[0];
-        let indexFromEnd = combos[combos.length - 1];
-        if (indexFromStart.lowerBoundDistance - distance > distance - indexFromEnd.lowerBoundDistance) {
-            combos = combos.slice(1, combos.length);    // remove item form the beginning
+    while (result.combos.length > keepBest) {
+        let indexFromStart = result.combos[0];
+        let indexFromEnd = result.combos[result.combos.length - 1];
+        if (indexFromStart.lowerBoundDistance - query.distance > query.distance - indexFromEnd.lowerBoundDistance) {
+            result.combos = result.combos.slice(1, result.combos.length);    // remove item form the beginning
         } else {
-            combos = combos.slice(0, combos.length - 1);    // remove item from the end
+            result.combos = result.combos.slice(0, result.combos.length - 1);    // remove item from the end
         }
     }
 
-    Log.debug(TAG, combos.length + ' combos remaining after sort and reduce');
+    Log.debug(TAG, result.combos.length + ' combos remaining after sort and reduce');
 
+    return result;
 };
 
 /**
  * Combine routes and segments into combos (combinations that are, when combined
  * in a route, still shorter in the lower bound than the max distance
  */
-const combine = async function () {
+const combine = async function (query, result) {
     Log.debug(TAG, 'Combine');
 
     // TODO split routes and gereate routes that have partial routes
-    for (let route of goodRoutes) {
+    for (let route of result.goodRoutes) {
         const comboObject = {
             lowerBoundDistance: route.lowerBoundDistance,
             singleRoute: true,
             mixed: false,
             parts: [route]
         };
-        combos.push(comboObject);
+        result.combos.push(comboObject);
     }
 
     // TODO combine segments and gereate routes that have multiple segments
-    for (let segment of goodSegments) {
+    for (let segment of result.goodSegments) {
         const comboObject = {
             lowerBoundDistance: segment.lowerBoundDistance,
             singleRoute: false,
             mixed: false,
             parts: [segment]
         };
-        combos.push(comboObject);
+        result.combos.push(comboObject);
     }
 
-    Log.debug(TAG, combos.length + ' combos generated');
+    Log.debug(TAG, result.combos.length + ' combos generated');
+
+    return result;
 };
 
 /**
  * Generate candidates from a 3rd party routing service using combos
  */
-const generateCandidates = async function () {
+const generateCandidates = async function (query, result) {
     Log.debug(TAG, 'Generate Candidates');
-    if (combos.length === 0) {
+    if (result.combos.length === 0) {
         return;
     }
 
     let routes = [];
 
     // for every combo, generate a route
-    for (let combo of combos) {
+    for (let combo of result.combos) {
         // start with the starting point
         let coordinates = [{
             'coordinates': [
-                start.lng,
-                start.lat
+                query.start.lng,
+                query.start.lat
             ],
             'type': 'Point'
         }];
@@ -377,8 +409,8 @@ const generateCandidates = async function () {
         // add the end point last
         coordinates.push({
             'coordinates': [
-                start.lng,
-                start.lat
+                query.start.lng,
+                query.start.lat
             ],
             'type': 'Point'
         });
@@ -424,32 +456,33 @@ const generateCandidates = async function () {
     while (routes.length > keepBest) {
         let indexFromStart = routes[0];
         let indexFromEnd = routes[routes.length - 1];
-        if (indexFromStart.distance - distance > distance - indexFromEnd.distance) {
+        if (indexFromStart.distance - query.distance > query.distance - indexFromEnd.distance) {
             routes = routes.slice(1, routes.length);    // remove item form the beginning
         } else {
             routes = routes.slice(0, routes.length - 1);    // remove item from the end
         }
     }
 
-    candidates = routes;
+    result.candidates = routes;
+
+    return result;
 };
 
 
 /**
  * Create Route objects from the generated candidates
  */
-const createRoutes = async function () {
+const createRoutes = async function (query, result) {
     Log.debug(TAG, 'Create Routes');
 
-    if (candidates.length === 0) {
+    if (result.candidates.length === 0) {
         return;
     }
 
     let generatedRoutes = [];
 
-    for (let candidate of candidates) {
+    for (let candidate of result.candidates) {
         // get the user
-        let user = await User.load(request.user);
         const title = 'New Route (' + Math.floor(candidate.distance / 1000) + ' km)';
         const description = 'This route has been generated. Select this route and change the title and description.';
         let id = routes.makeid({
@@ -466,11 +499,11 @@ const createRoutes = async function () {
             comments: [],
             tags: '',
             geo: [],
-            user: user,
+            user: query.user,
             distance: candidate.distance,
             isRoute: true,
             isGenerated: true,
-            queryDistance: distance,
+            queryDistance: query.distance,
             parts: candidate.parts
         });
 
@@ -526,20 +559,23 @@ const createRoutes = async function () {
         route.familiarityScore = candidate.familiarityScore;
         generatedRoutes.push(route);
     }
-    resultRoutes = generatedRoutes;
+
+    result.resultRoutes = generatedRoutes;
+
+    return result;
 };
 
 /**
  * Filters the generated routes to only leave ones that are mostly familiar
  */
-const familiarityFilter = async function () {
+const familiarityFilter = async function (query, result) {
     Log.debug(TAG, 'Familiarity Filter');
 
-    if (candidates.length === 0) {
+    if (result.candidates.length === 0) {
         return;
     }
 
-    for (let route of candidates) {
+    for (let route of result.candidates) {
         let leave = 25;
         if (route.waypoints.length < leave) {
             leave = route.waypoints.length;
@@ -548,10 +584,8 @@ const familiarityFilter = async function () {
 
         let matches = 0;
         let exploredGeos = [];
-        let user = await
-            User.load_full(request.user._id, {});
 
-        for (let activity of user.activities) {
+        for (let activity of query.user.activities) {
             for (let g of activity.geo) {
                 exploredGeos.push(g._id.toString());
             }
@@ -589,5 +623,7 @@ const familiarityFilter = async function () {
 
     // TODO needs to be sorted first?
     const keepBest = 5;
-    candidates = candidates.slice(0, keepBest);
+    result.candidates = result.candidates.slice(0, keepBest);
+
+    return result;
 };

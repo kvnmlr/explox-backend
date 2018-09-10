@@ -13,6 +13,21 @@ let queue = [];
 let increaseRadiusBy = 0.5;
 let iterations = 3;
 
+/**
+ * Shuffles array in place.
+ * @param {Array} array An array containing the items.
+ */
+function shuffle (array) {
+    let j, x, i;
+    for (i = array.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = array[i];
+        array[i] = array[j];
+        array[j] = x;
+    }
+    return array;
+}
+
 exports.init = function () {
     Log.log(TAG, 'Initialize Crawler');
     const horizontalKilometer = 0.009009;    // one horizontal kilometer
@@ -37,6 +52,11 @@ exports.init = function () {
             queue.push(loc);
         }
     }
+
+    // shuffle the queue such that the crawler selects random elements and there is no bias
+    // as to which area is crawler first
+    shuffle(queue);
+
     Log.debug(TAG, queue.length + ' locations added to crawler queue');
 };
 

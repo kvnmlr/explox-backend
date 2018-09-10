@@ -53,27 +53,51 @@ exports.queryLimits = async function (req, res) {
 
 exports.updateUser = async function (req, res) {
     const id = req.profile._id;
-    let user = await User.load(id);
-    if (user) {
-        const token = user.authToken;
-        const id = user.stravaId;
-        await exports.getAthlete(user, token);
-        await exports.getStats(user, token);
-        await exports.getRoutes(id, token);
-        await exports.getActivities(id, token);
+    return new Promise(async function (resolve, reject) {
 
-        user.lastUpdated = Date.now();
-        await user.save();
+        let user = await User.load(id);
 
-        if (res) {
-            res.json({
-                flash: {
-                    text: 'Your profile, routes and activities have been syncronized',
-                    type: 'success'
+        // check if limits still okay
+        let error = false;
+
+        if (user) {
+            const token = user.authToken;
+            const id = user.stravaId;
+            try {
+                await exports.getAthlete(user, token);
+                await exports.getStats(user, token);
+                await exports.getRoutes(id, token);
+                await exports.getActivities(id, token);
+            } catch (e) {
+                Log.error(TAG, 'User could not be fully synchronized');
+                error = true;
+            }
+
+            user.lastUpdated = Date.now();
+            await user.save();
+
+            if (res) {
+                if (!error) {
+                    res.json({
+                        flash: {
+                            text: 'Your profile, routes and activities have been syncronized',
+                            type: 'success'
+                        }
+                    });
                 }
-            });
+                else {
+                    res.status(400).json({
+                        error: 'User could not be fully synchronized',
+                        flash: {
+                            text: 'There was a problem. Please try again in one minute.',
+                            type: 'error'
+                        }
+                    });
+                }
+            }
+            resolve(user);
         }
-    }
+    });
 };
 
 /**
@@ -91,7 +115,6 @@ exports.getAthlete = function (user, token) {
             }
             user.strava = payload;
             await user.save();
-            Log.debug(TAG, 'Athlete: ', payload);
             resolve(payload);
         });
     });
@@ -103,7 +126,12 @@ exports.getAthlete = function (user, token) {
 exports.getStats = function (user, token) {
     const id = user.stravaId;
     return new Promise(function (resolve, reject) {
-        strava.athletes.stats({id: id, access_token: token, page: 1, per_page: 100}, async function (err, payload, limits) {
+        strava.athletes.stats({
+            id: id,
+            access_token: token,
+            page: 1,
+            per_page: 100
+        }, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
                 Log.error(TAG, 'Error while getting user statistics', err);
@@ -184,9 +212,10 @@ exports.getActivities = function (id, token) {
                 for (let i = 0; i < numActivities; ++i) {
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
-                        Log.debug(TAG, 'Activity ' +  payload[i].id + ' already exist.');
+                        Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
                     } else {
-                        await getActivity(payload[i].id, token, id).catch((err) => {});
+                        await getActivity(payload[i].id, token, id).catch((err) => {
+                        });
                     }
                 }
                 resolve(payload);
@@ -414,7 +443,10 @@ const getActivityStream = async function (id, token, activity, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        let geos = await extractGeosFromPayload(id, {payload: payload, activity: activity}).catch((err) => next(err.message));
+        let geos = await extractGeosFromPayload(id, {
+            payload: payload,
+            activity: activity
+        }).catch((err) => next(err.message));
         if (geos !== null) {
             next(null, geos);
         }
@@ -428,7 +460,10 @@ const getSegmentStream = function (id, token, segment, next) {
         if (err) {
             Log.error(TAG, err);
         }
-        let geos = await extractGeosFromPayload(id, {payload: payload, route: segment}).catch((err) => next(err.message));
+        let geos = await extractGeosFromPayload(id, {
+            payload: payload,
+            route: segment
+        }).catch((err) => next(err.message));
         if (geos !== null) {
             next(null, geos);
         }

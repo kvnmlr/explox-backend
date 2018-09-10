@@ -11,6 +11,7 @@ const config = require('../../server').config;
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
+const CreatorResult = mongoose.model('CreatorResult');
 const Feedbacks = mongoose.model('Feedback');
 const Invitations = mongoose.model('Invitation');
 
@@ -34,7 +35,8 @@ exports.loadProfile = async function (req, res, next, _id) {
 
 exports.finishRegistration = async function (req, res) {
     let user = req.user;
-    assign(user, only(req.body, 'name email username password'));
+    console.log(req.body);
+    assign(user, only(req.body, 'name email username password subscriptions'));
     user.fullyRegistered = true;
     try {
         await user.save();
@@ -158,7 +160,7 @@ exports.logout = function (req, res) {
  */
 exports.update = async function (req, res) {
     let user = req.user;
-    assign(user, only(req.body, 'name email username'));
+    assign(user, only(req.body, 'name email username subscriptions'));
     try {
         await user.save();
         res.json({
@@ -212,8 +214,16 @@ exports.authenticate = function (req, res) {
  * After successful passport authentication updates the last logged in attribute for the user
  */
 exports.session = async function (req, res) {
-    User.update_user(req.user._id, {lastLogin: Date.now()});
-    Strava.updateUser({profile: req.user});
+    // synchronize user on every login
+    if (req.user.fullyRegistered) {
+        // if user tries to log in, let him wait while synchronization is running
+        await Strava.updateUser({profile: req.user});
+    } else {
+        // synchronize asynchronously while they are registering
+        Strava.updateUser({profile: req.user});
+    }
+    await User.update_user(req.user._id, {lastLogin: Date.now()});
+    req.user = await User.load(req.user._id);
     delete req.session.returnTo;
     if (req.oauth) {
         res.redirect(config.frontend_url + 'dashboard');
@@ -231,12 +241,11 @@ async function showAdminDashboard (req, res) {
     let generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
     let activities = await Activity.list({});
     let segments = await Route.list({criteria: {isRoute: false}});
+    let creatorResults = await CreatorResult.list();
     let feedbacks = await Feedbacks.list();
     let invitations = await Invitations.list();
-
-    console.log(invitations);
-
     let apiLimits = await Strava.getLimits();
+
     respond(res, 'users/show_admin', {
         title: req.user.name,
         user: req.user,
@@ -247,6 +256,7 @@ async function showAdminDashboard (req, res) {
         activities: activities,
         limits: apiLimits,
         feedbacks: feedbacks,
+        creatorResults: creatorResults,
         invitations: invitations,
     });
 }

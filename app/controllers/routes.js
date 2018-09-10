@@ -11,9 +11,20 @@ const Log = require('../utils/logger');
 const TAG = 'controllers/routes';
 
 exports.creator = async(function (req, res) {
-    res.json({
-        text: 'Creator text',
-    });
+    // TODO check required API limits
+    let limitsOk = true;
+
+    if (!limitsOk) {
+        res.status(400).json({
+            error: 'Creator currently not available',
+            flash: {
+                text: 'Creator is currently not available',
+                type: 'error'
+            }
+        });
+    }
+
+    res.json({});
 });
 
 exports.load_options = async(function* (req, res, next, id) {
