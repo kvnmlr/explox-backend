@@ -92,8 +92,6 @@ function listen () {
 async function initialize () {
     if (app.get('env') === 'test') return;
     init.init();
-    //scheduler.init();
-    //crawler.init();
 }
 
 function connect () {

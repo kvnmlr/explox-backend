@@ -5,31 +5,34 @@ const TAG = 'controllers/scheduler';
 const schedule = require('node-schedule');
 const crawler = require('./crawler');
 const strava = require('./strava');
+const backup = require('mongodb-backup');
+const config = require('../../config');
+const fs = require('fs');
 
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
 
 
-const heartbeatTask = function (fireDate){
+const heartbeatTask = function (fireDate) {
     Log.log(TAG, 'Heartbeat task ran at: ' + fireDate);
 };
 
-const updateLimitsTask = function (fireDate){
+const updateLimitsTask = function (fireDate) {
     Log.log(TAG, 'Limit update task ran at: ' + fireDate);
     strava.queryLimits();
 };
 
-let coarseSegmentCrawlerTask = function (fireDate){
+let coarseSegmentCrawlerTask = function (fireDate) {
     Log.log(TAG, 'Crawl coarse segments task ran at: ' + fireDate);
     crawler.crawlSegments({detailed: false});
 };
 
-let fineSegmentCrawlerTask = function (fireDate){
+let fineSegmentCrawlerTask = function (fireDate) {
     Log.log(TAG, 'Crawl fine segments task ran at: ' + fireDate);
     crawler.crawlSegments({detailed: true});
 };
 
-let updateUserTask = async function (fireDate){
+let updateUserTask = async function (fireDate) {
     Log.log(TAG, 'Update user task ran at: ' + fireDate);
     let users = await User.list({sort: {lastUpdated: 1}});
     users.forEach(async function (profile) {
@@ -38,6 +41,34 @@ let updateUserTask = async function (fireDate){
         };
         if (profile.provider === 'strava') {
             await strava.updateUser(req);
+        }
+    });
+};
+
+let backupTask = async function (fireDate) {
+    Log.log(TAG, 'Backup task ran at: ' + fireDate);
+
+    const now = new Date();
+    const date = now.getDate() + '-' + now.getMonth() + '-' + now.getFullYear() + '-' + now.getHours() + '-' + now.getMinutes();
+    let path = './backup/';
+
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path);
+    }
+    path += date;
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path);
+    }
+
+    backup({
+        uri: config.db,
+        root: path,
+        callback: function (err) {
+            if (err) {
+                Log.error(TAG, 'Error during backup', err);
+            } else {
+                Log.log(TAG, 'Backup successful');
+            }
         }
     });
 };
@@ -65,10 +96,16 @@ exports.init = function () {
      * Task: Crawls detailed segments (i.e. small radius) */
     schedule.scheduleJob('0 0-59/15 0-23 * * *', fineSegmentCrawlerTask);
 
-        /** Update User Task:
+    /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)
      * Task: Takes a portion all users and synchronizes their profiles */
-    schedule.scheduleJob('0 0-59/15  0-6 * * *', updateUserTask);
+    schedule.scheduleJob('0 0-59/15 0-6 * * *', updateUserTask);
+
+    /** Backup Task:
+     * Period: Once at 4:20 am
+     * Task: Create a backup of the whole database
+     */
+    schedule.scheduleJob('0 20 4 * * *', backupTask);
 };
 
 exports.crawler = function (req, res) {

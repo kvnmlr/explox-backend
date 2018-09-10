@@ -140,7 +140,6 @@ exports.getStats = function (user, token) {
             }
             user.stravaStats = payload;
             await user.save();
-            Log.debug(TAG, 'Stats: ', payload);
             resolve(payload);
         });
     });
