@@ -35,8 +35,8 @@ exports.create = async function (req, res) {
  * Delete comment
  */
 
-exports.destroy = async(function* (req, res) {
-    yield req.routeData.removeComment(req.comment._id);
+exports.destroy = async function (req, res) {
+    await req.routeData.removeComment(req.comment._id);
     res.json({
         flash: {
             text: 'Your comment has been removed.',
@@ -44,4 +44,4 @@ exports.destroy = async(function* (req, res) {
         }
     });
 
-});
+};

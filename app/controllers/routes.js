@@ -25,17 +25,17 @@ exports.creator = async(function (req, res) {
     res.json({});
 });
 
-exports.load_options = async(function* (req, res, next, id) {
+exports.load_options = async function (req, res, next, id) {
     try {
-        req.routeData = yield Route.load(id);
+        req.routeData = await Route.load(id);
         if (!req.routeData) return next(new Error('Route not found'));
     } catch (err) {
         return next(err);
     }
     next();
-});
+};
 
-exports.index = async(function* (req, res) {
+exports.index = async function (req, res) {
     const page = (req.query.page > 0 ? req.query.page : 1) - 1;
     const _id = req.query.item;
     const tag = req.query.tag;
@@ -53,8 +53,8 @@ exports.index = async(function* (req, res) {
     if (_id) options.criteria._id = {_id};
     if (tag) options.criteria.tags = tag;
 
-    const routes = yield Route.list(options);
-    const count = yield Route.count();
+    const routes = await Route.list(options);
+    const count = await Route.count();
 
     res.json({
         title: 'Routes',
@@ -62,18 +62,18 @@ exports.index = async(function* (req, res) {
         page: page + 1,
         pages: Math.ceil(count / limit)
     });
-});
+};
 
 /**
  * Create a new route
  */
-exports.create = async(function* (req, res) {
+exports.create = async function (req, res) {
     const route = new Route();
     assign(route, only(req.body, 'title body'));
     route.tags = req.body.tags.replace(/[\[\]&"]+/g, ''); // eslint-disable-line no-useless-escape
 
     try {
-        yield route.save();
+        await route.save();
         res.json({});
     } catch (err) {
         Log.error(TAG, 'Error saving newly created route', err);
@@ -82,7 +82,7 @@ exports.create = async(function* (req, res) {
             flash: 'Route could not be created'
         });
     }
-});
+};
 
 /**
  * Updates a route
@@ -120,7 +120,7 @@ exports.routeData = function (req, res) {
     });
 };
 
-exports.userSavedChoice = async(function* (req, res) {
+exports.userSavedChoice = async function (req, res) {
     let generatedRoutes = JSON.parse(req.body.generatedRoutes);
     let keep = JSON.parse(req.body.keep);
     const limit = 10;
@@ -135,13 +135,13 @@ exports.userSavedChoice = async(function* (req, res) {
             options.criteria = {
                 _id: _id
             };
-            const route = yield Route.list(options);
+            const route = await Route.list(options);
             if (route.length > 0) {
                 route[0].geo = [];
                 routes.push(route[0]);
             }
         } else {
-            yield Route.delete(generatedRoutes[index].id);
+            await Route.delete(generatedRoutes[index].id);
         }
     }
     /* respond(res, 'routes/index', {
@@ -150,15 +150,15 @@ exports.userSavedChoice = async(function* (req, res) {
         page: 1,
         pages: 1
     }); */
-});
+};
 
 /**
  * Delete the given route
  */
-exports.destroy = async(function* (req, res) {
-    yield req.routeData.remove();
+exports.destroy = async function (req, res) {
+    await req.routeData.remove();
     res.json({});
-});
+};
 
 /**
  * Create a hash of the given route
