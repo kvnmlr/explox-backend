@@ -14,6 +14,7 @@ const User = mongoose.model('User');
 const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
+const importExport = require('./importexport');
 
 
 /**
@@ -554,6 +555,11 @@ const createRoutes = async function (query, result) {
         // add the created geos to the route and save it again
         route.geo = geos;
         await route.save();
+
+        importExport.exportRoute({
+            routeData: route,
+            query: {},
+        });
 
         Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
         route.familiarityScore = candidate.familiarityScore;

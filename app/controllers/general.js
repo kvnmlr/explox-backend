@@ -85,7 +85,7 @@ exports.destroyFeedback = async function (req, res) {
     res.json({
         flash: {
             type: 'success',
-            text: 'Feedback removes'
+            text: 'Feedback removed'
         }
     });
 };

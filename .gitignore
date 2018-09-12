@@ -1,5 +1,6 @@
 node_modules/
 backup/
+gpx/
 uploads/
 .monitor
 config/env/env.json

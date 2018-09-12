@@ -27,6 +27,16 @@ exports.exportRoute = async function (req, res) {
     const route = req.routeData;
     const format = req.query.format || 'gpx';
 
+    if (format !== 'gpx') {
+        return res.status(400).json({
+            error: 'Only can only export routes as GPX',
+            flash: {
+                type: 'error',
+                text: 'Only GPX export available'
+            }
+        });
+    }
+
     let data = {
         activityType: route.title,
         waypoints: []
@@ -50,7 +60,47 @@ exports.exportRoute = async function (req, res) {
         activityName: data.activityType,
     });
 
-    const file = __dirname + '../../../gpx/route_' + route._id + '.gpx';
+    let dir = __dirname + '../../../gpx/';
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+    }
+
+    let file;
+    if (route.isRoute) {
+        let dir = __dirname + '../../../gpx/routes/';
+        if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+        }
+        if (route.isGenerated) {
+            let dir = __dirname + '../../../gpx/routes/generated/';
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+            file = dir + 'route_' + route._id + '.gpx';
+        } else {
+            let dir = __dirname + '../../../gpx/routes/strava/';
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+            file = dir + 'route_' + route._id + '.gpx';
+        }
+    } else {
+        if (route.activityId) {
+            let dir = __dirname + '../../../gpx/activities/';
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+            file = dir + 'activity_' + route._id + '.gpx';
+        }
+         else {
+
+            let dir = __dirname + '../../../gpx/segments/';
+            if (!fs.existsSync(dir)) {
+                fs.mkdirSync(dir);
+            }
+            file = dir + 'segment_' + route._id + '.gpx';
+        }
+    }
 
     await fs.writeFile(file, gpx, function (err) {
         if (err) {
@@ -59,7 +109,9 @@ exports.exportRoute = async function (req, res) {
 
         Log.debug(TAG, 'File written');
 
-        res.download(file);
+        if (res) {
+            res.download(file);
+        }
     });
 };
 
@@ -285,6 +337,16 @@ async function exportUserSingle (req, res) {
     const format = req.query.format || 'gpx';
     const id = req.query.activityId || '0';
 
+    if (format !== 'gpx') {
+        return res.status(400).json({
+            error: 'Only can only export users as GPX',
+            flash: {
+                type: 'error',
+                text: 'Only GPX export available'
+            }
+        });
+    }
+
     res.json({
         ok: 'Not implemented'
     });
@@ -294,6 +356,16 @@ async function exportUserAll (req, res) {
     const user = req.profile;
     const format = req.query.format || 'gpx';
     const id = req.query.activityId || '0';
+
+    if (format !== 'gpx') {
+        return res.status(400).json({
+            error: 'Only can only export users as GPX',
+            flash: {
+                type: 'error',
+                text: 'Only GPX export available'
+            }
+        });
+    }
 
     // create a file to stream archive data to.
     const zipFile = __dirname + '../../../gpx/activity_export_' + (user.username).toLowerCase() + '.zip';

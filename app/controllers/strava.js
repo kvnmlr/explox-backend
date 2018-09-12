@@ -9,6 +9,7 @@ const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
+const ImportExport = require('./importexport');
 
 const Log = require('../utils/logger');
 
@@ -44,6 +45,10 @@ exports.queryLimits = async function (req, res) {
         max_cat: 0,
     };
     await this.segmentsExplorer('b835d0c6c520f39d22eeb8d60dc65ecb17559542', options);
+
+    if (res) {
+        res.json({});
+    }
 };
 
 
@@ -53,7 +58,7 @@ exports.queryLimits = async function (req, res) {
 
 exports.updateUser = async function (req, res) {
     const id = req.profile._id;
-    return new Promise(async function (resolve, reject) {
+    return new Promise(async function (resolve) {
 
         let user = await User.load(id);
 
@@ -95,8 +100,8 @@ exports.updateUser = async function (req, res) {
                     });
                 }
             }
-            resolve(user);
         }
+        resolve(user);
     });
 };
 
@@ -223,7 +228,7 @@ exports.getActivities = function (id, token) {
     });
 };
 
-exports.segmentsExplorer = function (token, options, next) {
+exports.segmentsExplorer = function (token, options) {
     if (!options) {
         options = {
             bounds: '49.25, 7.04, 49.60, 7.1',
@@ -233,7 +238,7 @@ exports.segmentsExplorer = function (token, options, next) {
         };
     }
 
-    return new Promise(function (resolve, reject) {
+    return new Promise(function (resolve) {
         strava.segments.explore({
             access_token: token,
             bounds: options.bounds,
@@ -292,6 +297,12 @@ const getSegment = async function (id, token, segment, next) {
 
         route.geo = geos;
         await route.save();
+
+        ImportExport.exportRoute({
+            routeData: route,
+            query: {},
+        });
+
         if (next) {
             next(null, route);
         }
@@ -340,6 +351,11 @@ const getActivity = async function (id, token, userID) {
                     // Link activity to user
                     user.activities = user.activities.concat([activity]);
                     await user.save().catch((err) => Log.error(TAG, 'Error while saving', err));
+
+                    ImportExport.exportRoute({
+                        routeData: activity,
+                        query: {},
+                    });
 
                     resolve(geos);
                 });
@@ -398,6 +414,9 @@ const getRoute = async function (id, token, userID) {
                     distance: payload.distance
                 });
                 await route.save();
+
+
+
                 await getRouteStream(id, token, route, async function (err, geos) {
                     if (err) {
                         Log.error(TAG, 'Error getting a route stream', err);
@@ -412,6 +431,12 @@ const getRoute = async function (id, token, userID) {
                     // Link activity to user
                     user.routes = user.routes.concat([route]);
                     await user.save().catch((err) => Log.error(TAG, 'Error while saving', err));
+
+                    ImportExport.exportRoute({
+                        routeData: route,
+                        query: {},
+                    });
+
                     resolve(geos);
                 });
             }

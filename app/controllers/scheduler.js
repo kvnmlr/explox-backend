@@ -8,41 +8,39 @@ const strava = require('./strava');
 const backup = require('mongodb-backup');
 const config = require('../../config');
 const fs = require('fs');
-
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
-
 
 const heartbeatTask = function (fireDate) {
     Log.log(TAG, 'Heartbeat task ran at: ' + fireDate);
 };
 
-const updateLimitsTask = function (fireDate) {
+const updateLimitsTask = async function (fireDate) {
     Log.log(TAG, 'Limit update task ran at: ' + fireDate);
-    strava.queryLimits();
+    await strava.queryLimits();
 };
 
-let coarseSegmentCrawlerTask = function (fireDate) {
+let coarseSegmentCrawlerTask = async function (fireDate) {
     Log.log(TAG, 'Crawl coarse segments task ran at: ' + fireDate);
-    crawler.crawlSegments({detailed: false});
+    await crawler.crawlSegments({detailed: false});
 };
 
-let fineSegmentCrawlerTask = function (fireDate) {
+let fineSegmentCrawlerTask = async function (fireDate) {
     Log.log(TAG, 'Crawl fine segments task ran at: ' + fireDate);
-    crawler.crawlSegments({detailed: true});
+    await crawler.crawlSegments({detailed: true});
 };
 
 let updateUserTask = async function (fireDate) {
     Log.log(TAG, 'Update user task ran at: ' + fireDate);
     let users = await User.list({sort: {lastUpdated: 1}});
-    users.forEach(async function (profile) {
+    for (const profile of users) {
         let req = {
             profile: profile
         };
         if (profile.provider === 'strava') {
             await strava.updateUser(req);
         }
-    });
+    }
 };
 
 let backupTask = async function (fireDate) {
@@ -79,12 +77,12 @@ exports.init = function () {
     /** Test Task:
      * Period: Every 60 seconds
      * Task: Outputs a heartbeat */
-    schedule.scheduleJob('0 * * * * *', heartbeatTask);
+    // schedule.scheduleJob('0 * * * * *', heartbeatTask);
 
     /** Limit Update Task:
      * Period: Every 60 seconds
      * Task: Updates API Limits */
-    schedule.scheduleJob('0 * * * * *', updateLimitsTask);
+    // schedule.scheduleJob('0 * * * * *', updateLimitsTask);
 
     /** Coars Segment Crawler Task:
      * Period: Once every hour during the night (0 - 6) at the half hour
@@ -108,12 +106,11 @@ exports.init = function () {
     schedule.scheduleJob('0 20 4 * * *', backupTask);
 };
 
-exports.crawler = function (req, res) {
-    console.log(req.query);
+exports.crawler = async function (req, res) {
     if (req.query.detailed === 'true') {
-        fineSegmentCrawlerTask(Date.now());
+        await fineSegmentCrawlerTask(Date.now());
     } else if (req.query.detailed === 'false') {
-        coarseSegmentCrawlerTask(Date.now());
+        await coarseSegmentCrawlerTask(Date.now());
     }
     res.json({});
 };
@@ -123,8 +120,8 @@ exports.updateUsers = async function (req, res) {
     res.json({});
 };
 
-exports.updateLimits = function (req, res) {
-    updateLimitsTask(Date.now());
+exports.updateLimits = async function (req, res) {
+    await updateLimitsTask(Date.now());
     res.json({});
 };
 
