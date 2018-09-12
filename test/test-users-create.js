@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const test = require('tape');
 const request = require('supertest');
@@ -15,14 +11,14 @@ test('Clean up', cleanup);
 
 test('no email - should respond with errors', t => {
     request(app)
-        .post('/users')
-        .field('name', 'Foo bar')
+        .post('/signup')
+        .field('firstName', 'Foo')
+        .field('lastName', 'Bar')
         .field('username', 'foobar')
         .field('email', '')
         .field('password', 'foobar')
-        .expect('Content-Type', /html/)
-        .expect(200)
-        .expect(/Email cannot be blank/)
+        .expect('Content-Type', /json/)
+        .expect(400)
         .end(async err => {
             const count = await User.count().exec();
             t.ifError(err);
@@ -33,14 +29,14 @@ test('no email - should respond with errors', t => {
 
 test('no name - should respond with errors', t => {
     request(app)
-        .post('/users')
-        .field('name', '')
+        .post('/signup')
+        .field('firstName', '')
+        .field('lastName', 'Bar')
         .field('username', 'foobar')
         .field('email', 'foobar@example.com')
         .field('password', 'foobar')
-        .expect('Content-Type', /html/)
-        .expect(200)
-        .expect(/Name cannot be blank/)
+        .expect('Content-Type', /json/)
+        .expect(400)
         .end(async err => {
             const count = await User.count().exec();
             t.ifError(err);
@@ -51,14 +47,14 @@ test('no name - should respond with errors', t => {
 
 test('no password - should respond with errors', t => {
     request(app)
-        .post('/users')
-        .field('name', '')
+        .post('/signup')
+        .field('firstName', 'Foo')
+        .field('lastName', 'Bar')
         .field('username', 'foobar')
         .field('email', 'foobar@example.com')
         .field('password', '')
-        .expect('Content-Type', /html/)
-        .expect(200)
-        .expect(/Password cannot be blank/)
+        .expect('Content-Type', /json/)
+        .expect(400)
         .end(async err => {
             const count = await User.count().exec();
             t.ifError(err);
@@ -69,14 +65,14 @@ test('no password - should respond with errors', t => {
 
 test('valid signup - should redirect to /', t => {
     request(app)
-        .post('/users')
-        .field('name', 'Foo bar')
+        .post('/signup')
+        .field('firstName', 'Foo')
+        .field('lastName', 'Bar')
         .field('username', 'foobar')
         .field('email', 'foobar@example.com')
         .field('password', 'foobar')
-        .expect('Content-Type', /plain/)
-        .expect('Location', /\//)
-        .expect(302)
+        .expect('Content-Type', /json/)
+        .expect(200)
         .end(async err => {
             const count = await User.count().exec();
             const user = await User.findOne({username: 'foobar'}).exec();

@@ -1,5 +1,4 @@
-gitploytest
-# ExploX
+# ExploX Backend
 
 ## Getting Started
 

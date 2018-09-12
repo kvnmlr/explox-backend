@@ -1,16 +1,8 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const ObjectId = require('mongoose').Types.ObjectId;
-
-/**
- * Role Schema
- */
 
 const ActivitySchema = new Schema({
     title: {type: String, default: '', trim: true},                         // Title of the route
@@ -25,11 +17,9 @@ ActivitySchema.statics = {
 
     /**
      * Load
-     *
      * @param {Object} options
      * @api private
      */
-
     load_options: function (options) {
         options.select = options.select || 'activityId';
         return this.findOne(options.criteria)

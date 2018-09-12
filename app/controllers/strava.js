@@ -1,5 +1,7 @@
 'use strict';
 
+const Log = require('../utils/logger');
+const TAG = 'strava';
 const mongoose = require('mongoose');
 const strava = require('strava-v3');
 const request = require('request');
@@ -10,10 +12,6 @@ const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
 const ImportExport = require('./importexport');
-
-const Log = require('../utils/logger');
-
-const TAG = 'strava';
 
 exports.getLimits = async function () {
     let setting = await Settings.loadValue('api');

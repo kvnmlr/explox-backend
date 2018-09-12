@@ -3,7 +3,6 @@
 /*
  *  Generic require login routing middleware
  */
-
 exports.requiresLogin = function (req, res, next) {
     if (req.isAuthenticated()) return next();
     if (req.method === 'GET') req.session.returnTo = req.originalUrl;
@@ -16,6 +15,9 @@ exports.requiresLogin = function (req, res, next) {
     });
 };
 
+/*
+ * Generic admin only routing middleware
+ */
 exports.adminOnly = function (req, res, next) {
     if (req.user.role === 'admin') {
         return next();
@@ -33,7 +35,6 @@ exports.adminOnly = function (req, res, next) {
 /*
  *  User authorization routing middleware
  */
-
 exports.user = {
     hasAuthorization: function (req, res, next) {
         if (req.user.role === 'admin') {
@@ -58,7 +59,6 @@ exports.user = {
 /*
  *  Route authorization routing middleware
  */
-
 exports.route = {
     hasAuthorization: function (req, res, next) {
         if (req.user.role === 'admin') {
@@ -92,7 +92,6 @@ exports.route = {
 /**
  * Comment authorization routing middleware
  */
-
 exports.comment = {
     hasAuthorization: function (req, res, next) {
         if (req.user.role === 'admin') {

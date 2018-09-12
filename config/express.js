@@ -1,26 +1,17 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const express = require('express');
 const session = require('express-session');
 const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const cookieSession = require('cookie-session');
-
 const methodOverride = require('method-override');
 const csrf = require('csurf');
 const bodyParser = require('body-parser');
 const parseForm = bodyParser.urlencoded({ extended: false });
-
 const cors = require('cors');
-const upload = require('multer')({
-    dest: 'uploads/'
-});
-
+const upload = require('multer')({dest: 'uploads/'});
 const mongoStore = require('connect-mongo')(session);
 const flash = require('connect-flash');
 const winston = require('winston');
@@ -30,12 +21,7 @@ const pkg = require('../package.json');
 
 const env = process.env.NODE_ENV || 'development';
 
-/**
- * Expose
- */
-
 module.exports = function (app, passport) {
-
     app.use(parseForm);
     app.use(function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');

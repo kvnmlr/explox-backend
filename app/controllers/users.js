@@ -1,22 +1,20 @@
 'use strict';
+
 const Log = require('../utils/logger');
+const TAG = 'views/users';
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
-const {respond} = require('../utils');
 const only = require('only');
 const mailer = require('../mailer/index');
 const Strava = require('./strava');
 const config = require('../../server').config;
-
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const CreatorResult = mongoose.model('CreatorResult');
 const Feedbacks = mongoose.model('Feedback');
 const Invitations = mongoose.model('Invitation');
-
 const assign = Object.assign;
-const TAG = 'views/users';
 
 /**
  * Adds a req.profile attribute containing the user corresponding to the user ID
@@ -73,11 +71,13 @@ exports.signup = async function (req, res) {
     const user = new User(req.body);
     user.provider = 'local';
     user.role = 'user';
+    let headersSent = false;
     try {
         await user.save();
         req.logIn(user, err => {
             if (err) {
-                res.status(400).json({
+                headersSent = true;
+                res.status(200).json({
                     error: 'User exists but could not be logged in after registration',
                     flash: {
                         type: 'info',
@@ -93,10 +93,12 @@ exports.signup = async function (req, res) {
             });
         });
     } catch (err) {
-        res.status(400).json({
-            error: err,
-            user: null
-        });
+        if (!headersSent) {
+            res.status(400).json({
+                error: err,
+                user: null
+            });
+        }
     }
 };
 
@@ -246,7 +248,7 @@ async function showAdminDashboard (req, res) {
     let invitations = await Invitations.list();
     let apiLimits = await Strava.getLimits();
 
-    respond(res, 'users/show_admin', {
+    res.json({
         title: req.user.name,
         user: req.user,
         users: users,

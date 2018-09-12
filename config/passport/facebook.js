@@ -1,17 +1,9 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const FacebookStrategy = require('passport-facebook').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
-
-/**
- * Expose
- */
 
 module.exports = new FacebookStrategy({
         clientID: config.facebook.clientID,

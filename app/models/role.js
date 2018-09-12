@@ -1,15 +1,7 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-/**
- * Role Schema
- */
 
 const RoleSchema = new Schema({
     name: {type: String, default: '', index: {unique: true}},   // name of the role, currently either "user" or "admin"
@@ -18,15 +10,12 @@ const RoleSchema = new Schema({
 
 RoleSchema.path('name').required(true, 'Role name cannot be blank');
 
-
 RoleSchema.statics = {
 
     /**
      * Load
-     *
      * @param {Object} options
      * @param {Function} cb
-     * @api private
      */
 
     load_options: function (options) {

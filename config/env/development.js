@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Expose
- */
-
 module.exports = {
     db: 'mongodb://localhost/exploxdb_dev',
     frontend_url: 'http://localhost:8080/',

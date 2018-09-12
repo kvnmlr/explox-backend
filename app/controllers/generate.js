@@ -1,8 +1,5 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
 const Log = require('../utils/logger');
 const TAG = 'controllers/generate';
 const mongoose = require('mongoose');
@@ -10,12 +7,10 @@ const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
 const CreatorResult = mongoose.model('CreatorResult');
 const User = mongoose.model('User');
-
 const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 const importExport = require('./importexport');
-
 
 /**
  * Generates a new route by doing the following calculations in sequence:

@@ -1,24 +1,16 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const test = require('tape');
 const {cleanup} = require('./helper');
 const GeoJSON = mongoose.model('Geo');
-const Log = require('../app/utils/logger');
-
-const TAG = 'test-geo-calculations';
-
 const geos = [];
 const coordinates = [];
 const specialPlace1 = 'dfki';
 const specialPlace2 = 'mpii';
 const specialPlace3 = 'cispa';
 
-var createGeos = function (t) {
+const createGeos = async function (t) {
     const coords1 = [];
     coords1[1] = 49.256807;
     coords1[0] = 7.04217;
@@ -30,11 +22,9 @@ var createGeos = function (t) {
             coordinates: coords1
         }
     });
-
-    geo1.save(function (err) {
-        geos[geos.length] = geo1;
-        coordinates[geos.length] = coords1;
-    });
+    await geo1.save();
+    geos.push(geo1);
+    coordinates.push(coords1);
 
     const coords2 = [];
     coords2[1] = 49.2578580;
@@ -47,11 +37,9 @@ var createGeos = function (t) {
             coordinates: coords2
         }
     });
-
-    geo2.save(function () {
-        geos[geos.length] = geo2;
-        coordinates[geos.length] = coords2;
-    });
+    geo2.save();
+    geos.push(geo2);
+    coordinates.push(coords2);
 
     const coords3 = [];
     coords3[1] = 49.259377;
@@ -64,11 +52,9 @@ var createGeos = function (t) {
             coordinates: coords3
         }
     });
-
-    geo3.save(function () {
-        geos[geos.length] = geo3;
-        coordinates[geos.length] = coords3;
-    });
+    geo3.save();
+    geos.push(geo3);
+    coordinates.push(coords3);
 
     setTimeout(t.end, 100);
 };
@@ -91,7 +77,7 @@ test('Geodata find special - should retrieve points for a special location', t =
 });
 
 test('Geodata find close - should retrieve all points within radius', t => {
-    GeoJSON.findWithinRadius({latitude : coordinates[1][1], longitude: coordinates[1][0], distance : 400})
+    GeoJSON.findWithinRadius({latitude : coordinates[0][1], longitude: coordinates[0][0], distance : 400})
         .then(function (geos) {
             t.same(geos.length, 1, 'should return only one coordinate');        // should not return dfki itself
             t.same(geos[0].name, specialPlace2, 'should return mpii');
@@ -118,7 +104,7 @@ test('Geodata find close - should retrieve all points within one kilometer', t =
 
 
 test('Geodata find closest - should retrieve the closest coordinate', t => {
-    GeoJSON.findClosest({latitude : coordinates[1][1] + 0.001 /* not exactly dfki*/, longitude: coordinates[1][0]})
+    GeoJSON.findClosest({latitude : coordinates[0][1] + 0.001 /* not exactly dfki*/, longitude: coordinates[0][0]})
         .then(function (geos) {
             t.same(geos.length, 1, 'should return only one entry');
             t.same(geos[0].name, specialPlace1, 'should return dfki');

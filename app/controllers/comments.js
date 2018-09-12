@@ -1,16 +1,7 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const {wrap: async} = require('co');
-const {respondOrRedirect} = require('../utils');
 const Log = require('../utils/logger');
-
-/**
- * Load comment
- */
 
 exports.load_options = function (req, res, next, id) {
     req.comment = req.routeData.comments

@@ -9,10 +9,6 @@ const LinkedinStrategy = require('passport-linkedin').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
 
-/**
- * Expose
- */
-
 module.exports = new LinkedinStrategy({
         consumerKey: config.linkedin.clientID,
         consumerSecret: config.linkedin.clientSecret,

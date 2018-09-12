@@ -1,15 +1,7 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
-/**
- * Role Schema
- */
 
 const FeedbackSchema = new Schema({
     createdAt: {type: Date, default: Date.now},
@@ -23,12 +15,9 @@ FeedbackSchema.path('body').required(true, 'Body name cannot be blank');
 FeedbackSchema.statics = {
     /**
      * Load
-     *
      * @param {Object} options
      * @param {Function} cb
-     * @api private
      */
-
     updateValue: function (options) {
         return this.update({key: options.key}, {value: options.value}).exec();
     },

@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const StravaStrategy = require('passport-strava').Strategy;
 const config = require('../');
@@ -12,9 +8,6 @@ const Role = mongoose.model('Role');
 const Invitation = mongoose.model('Invitation');
 const Log = require('../../app/utils/logger');
 const TAG = 'passport/strava';
-/**
- * Expose
- */
 
 module.exports = new StravaStrategy({
         clientID: config.strava.clientID,

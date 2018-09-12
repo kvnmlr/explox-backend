@@ -1,14 +1,12 @@
 'use strict';
 
+const Log = require('../utils/logger');
+const TAG = 'controllers/routes';
 const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const only = require('only');
-const {respond} = require('../utils');
 const Route = mongoose.model('Route');
 const assign = Object.assign;
-
-const Log = require('../utils/logger');
-const TAG = 'controllers/routes';
 
 exports.creator = async(function (req, res) {
     // TODO check required API limits
@@ -72,14 +70,14 @@ exports.index = async(function* (req, res) {
 exports.create = async(function* (req, res) {
     const route = new Route();
     assign(route, only(req.body, 'title body'));
-    route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
+    route.tags = req.body.tags.replace(/[\[\]&"]+/g, ''); // eslint-disable-line no-useless-escape
 
     try {
         yield route.save();
         res.json({});
     } catch (err) {
         Log.error(TAG, 'Error saving newly created route', err);
-        res.status(500).json({
+        res.status(400).json({
             error: 'Error while creating the route',
             flash: 'Route could not be created'
         });
@@ -92,7 +90,7 @@ exports.create = async(function* (req, res) {
 exports.update = async function (req, res) {
     let route = req.routeData;
     assign(route, only(req.body, 'title body rating'));
-    route.tags = req.body.tags.replace(/[\[\]&"]+/g, '');
+    route.tags = req.body.tags.replace(/[\[\]&"]+/g, ''); // eslint-disable-line no-useless-escape
     try {
         await route.save();
         res.json({
@@ -103,7 +101,7 @@ exports.update = async function (req, res) {
         });
     } catch (err) {
         Log.error(TAG, 'Error saving updated route', err);
-        res.status(500).json({
+        res.status(400).json({
             error: 'Error while updating the route',
             flash: {
                 type: 'error',
@@ -146,12 +144,12 @@ exports.userSavedChoice = async(function* (req, res) {
             yield Route.delete(generatedRoutes[index].id);
         }
     }
-    respond(res, 'routes/index', {
+    /* respond(res, 'routes/index', {
         title: 'Routes',
         routes: routes,
         page: 1,
         pages: 1
-    });
+    }); */
 });
 
 /**

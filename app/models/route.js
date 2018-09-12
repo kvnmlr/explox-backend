@@ -1,18 +1,10 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const getTags = tags => tags.join(',');
 const setTags = tags => tags.split(',');
 const ObjectId = require('mongoose').Types.ObjectId;
-
-/**
- * Route Schema
- */
 
 const RouteSchema = new Schema({
     stravaId: {type: String, default: '', index: true, unique: true, sparse: true},           // The ID this route has in Strava
@@ -36,23 +28,13 @@ const RouteSchema = new Schema({
     rating: {type: Number , default: 0, trim: true},        // User rating
 });
 
-/**
- * Validations
- */
-
 RouteSchema.path('title').required(true, 'Route title cannot be blank');
-
-/**
- * Methods
- */
 
 RouteSchema.methods = {
 
     /**
      * Save article and upload image
-     * @api private
      */
-
     uploadAndSave: function () {
         const err = this.validateSync();
         if (err && err.toString()) throw new Error(err.toString());
@@ -61,13 +43,10 @@ RouteSchema.methods = {
 
     /**
      * Add comment
-     *
      * @param {User} user
      * @param {Object} comment
-     * @api private
      */
-
-        addComment: function (user, comment) {
+    addComment: function (user, comment) {
         this.comments.push({
             body: comment.body,
             user: user._id
@@ -77,11 +56,8 @@ RouteSchema.methods = {
 
     /**
      * Remove comment
-     *
      * @param {String} commentId
-     * @api private
      */
-
     removeComment: function (commentId) {
         const index = this.comments
             .map(comment => comment._id)
@@ -93,10 +69,6 @@ RouteSchema.methods = {
     }
 };
 
-/**
- * Statics
- */
-
 RouteSchema.statics = {
 
     delete: function (_id) {
@@ -105,22 +77,16 @@ RouteSchema.statics = {
 
     /**
      * Find route by id
-     *
      * @param {ObjectId} _id
-     * @api private
      */
-
     load: function (_id) {
         return this.load_options({criteria: {_id: ObjectId(_id)}});
     },
 
     /**
      * Load
-     *
      * @param {Object} options
-     * @api private
      */
-
     load_options: function (options) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
@@ -134,11 +100,8 @@ RouteSchema.statics = {
 
     /**
      * List routes
-     *
      * @param {Object} options
-     * @api private
      */
-
     list: function (options) {
         let criteria = options.criteria || {};
         if (criteria._id) {

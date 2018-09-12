@@ -1,16 +1,8 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const LocalStrategy = require('passport-local').Strategy;
 const User = mongoose.model('User');
-
-/**
- * Expose
- */
 
 module.exports = new LocalStrategy({
         usernameField: 'email',

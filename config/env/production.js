@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Expose
- */
-
 module.exports = {
     db: 'mongodb://localhost/exploxdb_prod',
     frontend_url: 'http://umtl.dfki.de/explox/',

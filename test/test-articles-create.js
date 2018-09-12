@@ -1,9 +1,5 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const test = require('tape');
 const request = require('supertest');
@@ -15,7 +11,8 @@ const agent = request.agent(app);
 
 const _user = {
     email: 'foo@email.com',
-    name: 'Foo bar',
+    firstName: 'Foo',
+    lastName: 'Bar',
     username: 'foobar',
     password: 'foobar'
 };
@@ -29,22 +26,19 @@ test('Create user', async t => {
 
 test('POST /routes - when not logged in - should redirect to /login', t => {
     request(app)
-        .get('/routes/new')
-        .expect('Content-Type', /plain/)
-        .expect(302)
-        .expect('Location', '/login')
-        .expect(/Redirecting/)
+        .post('/routes')
+        .expect('Content-Type', /json/)
+        .expect(400)    // Bad Request
         .end(t.end);
 });
 
-// login
 test('User login', t => {
     agent
-        .post('/users/session')
+        .post('/login')
         .field('email', _user.email)
         .field('password', _user.password)
-        .expect('Location', '/')
-        .expect('Content-Type', /text/)
+        .expect('Content-Type', /json/)
+        .expect(200)    // OK
         .end(t.end);
 });
 
@@ -53,9 +47,9 @@ test('POST /routes - invalid form - should respond with error', t => {
         .post('/routes')
         .field('title', '')
         .field('body', 'foo')
-        .expect('Content-Type', /text/)
-        .expect(200)
-        .expect(/Route title cannot be blank/)
+        .field('tags', 'cycling,road')
+        .expect('Content-Type', /json/)
+        .expect(400)
         .end(async err => {
             const count = await Route.count().exec();
             t.ifError(err);
@@ -69,10 +63,9 @@ test('POST /routes - valid form - should redirect to the new article page', t =>
         .post('/routes')
         .field('title', 'foo')
         .field('body', 'bar')
-        .expect('Content-Type', /plain/)
-        .expect('Location', /\/routes\//)
-        .expect(302)
-        .expect(/Redirecting/)
+        .field('tags', 'cycling,road')
+        .expect('Content-Type', /json/)
+        .expect(200)
         .end(async err => {
             const count = await Route.count().exec();
             t.ifError(err);
@@ -80,6 +73,5 @@ test('POST /routes - valid form - should redirect to the new article page', t =>
             t.end();
         });
 });
-
 
 test.onFinish(() => process.exit(0));

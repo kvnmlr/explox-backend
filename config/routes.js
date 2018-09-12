@@ -1,4 +1,5 @@
 'use strict';
+
 const users = require('../app/controllers/users');
 const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
@@ -9,7 +10,6 @@ const importexport = require('../app/controllers/importexport');
 const general = require('../app/controllers/general');
 const scheduler = require('../app/controllers/scheduler');
 const auth = require('./middlewares/authorization');
-
 
 const routeAuth = [auth.requiresLogin, auth.route.hasAuthorization];
 const commentAuth = [auth.requiresLogin, auth.comment.hasAuthorization];
@@ -81,14 +81,12 @@ module.exports = function (app, passport) {
         if (!err || err === undefined) {
             return next();
         }
-        // treat as 404
+
         if (err.message
             && (~err.message.indexOf('not found')
                 || (~err.message.indexOf('Cast to ObjectId failed')))) {
             return next();
         }
-
-        console.error('Error: ' + JSON.stringify(err));
 
         if (err.stack) {
             if (err.stack.includes('ValidationError')) {
@@ -96,19 +94,14 @@ module.exports = function (app, passport) {
                 return;
             }
         }
-
-
-        // error page
-        // res.status(500).json({error: err.stack});
     });
 
-    // assume 404 since no middleware responded
+    // 404 if no middleware responded
     app.use(function (req, res) {
         const payload = {
             url: req.originalUrl,
             error: 'Not found'
         };
-        if (req.accepts('json')) return res.status(404).json(payload);
         res.status(404).json(payload);
     });
 };

@@ -1,5 +1,7 @@
 'use strict';
 
+const Log = require('../utils/logger');
+const TAG = 'osrm';
 const mongoose = require('mongoose');
 const request = require('request-promise');
 const config = require('../../server').config;
@@ -8,11 +10,6 @@ const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
-
-const Log = require('../utils/logger');
-
-const TAG = 'osrm';
-
 const protocol = 'https';
 const domain = 'api.mapbox.com';
 const version = 'v5/mapbox';

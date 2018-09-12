@@ -1,19 +1,11 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const GeoJSON = require('mongoose-geojson-schema');
 const Log = require('../utils/logger');
 const TAG = 'geo';
 const ObjectId = require('mongoose').Types.ObjectId;
-
-/**
- * Route Schema
- */
 
 const GeoSchema = new Schema({
     name: { type: String, default: '', trim: true },              // Optional name for this coordinate (e.g. "DFKI")
@@ -22,27 +14,13 @@ const GeoSchema = new Schema({
     activities: [{ type: Schema.ObjectId, ref: 'Activity' }],     // Activities that contain this point
 });
 
-/**
- * Validations
- */
 GeoSchema.path('location').required(true, 'Coordinates cannot be blank');
-
-/**
- * Pre-remove hook
- */
-
-
-/**
- * Statics
- */
 
 GeoSchema.statics = {
 
     /**
      * Find geo data by id
-     *
      * @param {ObjectId} _id
-     * @api private
      */
 
     load: function (_id) {
@@ -51,9 +29,7 @@ GeoSchema.statics = {
 
     /**
      * Load
-     *
      * @param {Object} options
-     * @api private
      */
 
     load_options: function (options) {
@@ -65,9 +41,7 @@ GeoSchema.statics = {
 
     /**
      * List geo data
-     *
      * @param {Object} options
-     * @api private
      */
 
     list: function (options) {
@@ -132,7 +106,6 @@ GeoSchema.statics = {
     },
 
     /**
-     *
      * @param options: longitude, latitude
      */
     findClosest: function (options) {
@@ -141,7 +114,6 @@ GeoSchema.statics = {
     },
 
     /**
-     *
      * @param options: coarseness
      */
     prune: function (options) {

@@ -1,17 +1,9 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const config = require('../');
 const User = mongoose.model('User');
-
-/**
- * Expose
- */
 
 module.exports = new GoogleStrategy({
         clientID: config.google.clientID,

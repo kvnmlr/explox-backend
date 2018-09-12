@@ -134,7 +134,7 @@ UserSchema.methods = {
      * Validation is not required if using OAuth
      */
     skipValidation: function () {
-        return ~oAuthTypes.indexOf(this.provider) || !this._password;
+        return ~oAuthTypes.indexOf(this.provider);
     }
 };
 

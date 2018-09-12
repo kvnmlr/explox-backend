@@ -1,17 +1,9 @@
 'use strict';
 
-/**
- * Module dependencies.
- */
-
 const mongoose = require('mongoose');
 const GithubStrategy = require('passport-github').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
-
-/**
- * Expose
- */
 
 module.exports = new GithubStrategy({
         clientID: config.github.clientID,
