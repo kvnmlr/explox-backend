@@ -216,13 +216,15 @@ exports.authenticate = function (req, res) {
  * After successful passport authentication updates the last logged in attribute for the user
  */
 exports.session = async function (req, res) {
-    // synchronize user on every login
-    if (req.user.fullyRegistered) {
-        // if user tries to log in, let him wait while synchronization is running
-        await Strava.updateUser({profile: req.user});
-    } else {
-        // synchronize asynchronously while they are registering
-        Strava.updateUser({profile: req.user});
+    if (req.user.provider === 'strava') {
+        // synchronize user on every login
+        if (req.user.fullyRegistered) {
+            // if user tries to log in, let him wait while synchronization is running
+            await Strava.updateUser({profile: req.user});
+        } else {
+            // synchronize asynchronously while they are registering
+            Strava.updateUser({profile: req.user});
+        }
     }
     await User.update_user(req.user._id, {lastLogin: Date.now()});
     req.user = await User.load(req.user._id);

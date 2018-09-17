@@ -42,13 +42,22 @@ exports.exportRoute = async function (req, res) {
         waypoints: []
     };
 
+    let counter = 0;
+
+    let now = new Date().getTime();
+    let start = now - 1000 * 60 * 60 * 24 * 365;
+
+
     for (let geo of route.geo) {
+        let time = start + 1000 * counter;
         let geoObject = {
-            'latitude': geo.location.coordinates[1],
-            'longitude': geo.location.coordinates[0],
-            'elevation': 0,
+            latitude: geo.location.coordinates[1],
+            longitude: geo.location.coordinates[0],
+            elevation: 0,
+            time: new Date(time),
         };
         data.waypoints.push(geoObject);
+        counter++;
     }
 
     if (data.waypoints.length === 0) {

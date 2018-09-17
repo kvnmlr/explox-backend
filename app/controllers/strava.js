@@ -4,7 +4,7 @@ const Log = require('../utils/logger');
 const TAG = 'strava';
 const mongoose = require('mongoose');
 const strava = require('strava-v3');
-const request = require('request');
+const request = require('request-promise');
 const config = require('../../server').config;
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
@@ -12,6 +12,107 @@ const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
 const ImportExport = require('./importexport');
+
+const getUploadStatus = async function (req, res) {
+    let user = await User.load(req.user._id);
+    const token = user.authToken;
+    const id = user.stravaId;
+    let uploadId = req.activityId;
+
+    let requestString = 'https://www.strava.com/api/v3/uploads/' + uploadId + '?access_token=' + token;
+
+    await request(requestString)
+        .then((data) => {
+            data = JSON.parse(data);
+            if (data.error) {
+                console.log(data);
+                if (data.error.includes('duplicate')) {
+                    Log.debug(TAG, 'Activity upload is a duplicate');
+                    let split = data.error.split(' ');
+                    let dupId = split[split.length - 1];
+                    let dupType = split[split.length - 2] === 'activity';
+
+                    console.log(dupId);
+                    console.log(split[split.length - 2]);
+                    console.log(dupType);
+
+                    return res.json({
+                        status: data.error,
+                        activityId: dupId,
+                        isActivity: dupType,
+                    });
+                }
+                return res.status(400).json({
+                    flash: {
+                        type: 'error',
+                        text: 'This route could not be uploaded'
+                    }
+                });
+            }
+            if (data.status === 'Your activity is ready.') {
+                Log.debug(TAG, 'Activity upload is ready');
+                return res.json({
+                    status: data.status,
+                    activityId: req.activityId,
+                });
+            } else {
+                Log.debug(TAG, 'Activity upload is pending', data);
+                setTimeout(() => {
+                    getUploadStatus(req, res);
+                }, 2000);
+            }
+        });
+};
+
+exports.uploadActivity = async function (req, res) {
+    let user = await User.load(req.user._id);
+    const token = user.authToken;
+    const id = user.stravaId;
+    const routeId = req.query.id;
+    const title = req.query.title;
+    const description = req.query.description;
+
+
+    var headers = {
+        'User-Agent': 'Super Agent/0.0.1',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + token,
+    };
+
+    const options = {
+        url: 'https://www.strava.com/api/v3/uploads?access_token=' + token,
+        method: 'POST',
+        headers: headers,
+        formData: {
+            file: 'gpx/routes/strava/route_' + routeId + '.gpx',
+            name: '[ExploX] ' + title,
+            description: description,
+            private: 0,
+            data_type: 'gpx',
+            external_id: 'id',
+            id: routeId,
+            access_token: token
+        },
+    };
+
+    strava.uploads.post(options.formData, async function (err, payload, limits) {
+        if (err) {
+            Log.error(TAG, 'Error while uploading activity', err);
+            res.status(400).json({
+                flash: {
+                    type: 'error',
+                    text: 'This route could not be uploaded'
+                }
+            });
+        } else {
+            Log.debug(TAG, 'Activity successfully uploaded');
+            setTimeout(() => {
+                req.activityId = payload.id;
+                getUploadStatus(req, res);
+            }, 2000);
+        }
+    });
+};
 
 exports.getLimits = async function () {
     let setting = await Settings.loadValue('api');
@@ -167,11 +268,10 @@ exports.getRoutes = function (id, token) {
                 return;
             }
             if (payload) {
-                let max = 2;
+                let max = 50;
                 if (payload.length < max) max = payload.length;
 
                 for (let i = 0; i < max; ++i) {
-
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
@@ -205,7 +305,7 @@ exports.getActivities = function (id, token) {
                 return;
             }
             if (payload) {
-                const max = 5;
+                const max = 50;
                 let numActivities = payload.length;
 
                 if (numActivities > max) numActivities = max;
@@ -216,6 +316,11 @@ exports.getActivities = function (id, token) {
                     if (activity) {
                         Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
                     } else {
+
+                        if (payload[i].name.includes('[ExploX]')) {
+                            Log.error(TAG, 'Found a created Activity!');
+                        }
+
                         await getActivity(payload[i].id, token, id).catch((err) => {
                         });
                     }
@@ -412,7 +517,6 @@ const getRoute = async function (id, token, userID) {
                     distance: payload.distance
                 });
                 await route.save();
-
 
 
                 await getRouteStream(id, token, route, async function (err, geos) {
