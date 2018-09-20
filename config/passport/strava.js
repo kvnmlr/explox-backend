@@ -12,13 +12,16 @@ const TAG = 'passport/strava';
 module.exports = new StravaStrategy({
         clientID: config.strava.clientID,
         clientSecret: config.strava.clientSecret,
-        callbackURL: config.strava.callbackURL
+        callbackURL: config.strava.callbackURL,
+        reponse_type: 'code',
+        scope: 'view_private,write'
     },
     function (accessToken, refreshToken, profile, done) {
         const options = {
-            criteria: { 'strava.id': parseInt(profile.id) }
+            criteria: {'strava.id': parseInt(profile.id)}
         };
-        User.load_options(options, function (err, user) {
+
+        User.load_options(options, async function (err, user) {
             if (err) return done(err);
             if (!user) {
                 user = new User({
@@ -35,7 +38,7 @@ module.exports = new StravaStrategy({
                     stravaId: profile.id,
                     role: 'user'
                 });
-                user.save(async function (err, user) {
+                await user.save(async function (err, user) {
                     if (err) {
                         Log.error(TAG, err);
                     }
@@ -48,6 +51,11 @@ module.exports = new StravaStrategy({
                     return done(err, user);
                 });
             } else {
+                await User.update_user(user._id, {
+                    authToken: accessToken,
+                    stravaId: profile.id,
+                    strava: profile._json,
+                });
                 return done(err, user);
             }
         });

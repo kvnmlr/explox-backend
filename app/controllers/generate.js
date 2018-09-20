@@ -44,13 +44,13 @@ exports.generate = async function (req, res) {
 
     result = await initSearch(query, result);
     result = await distanceFilter(query, result);
-    /* result = await lowerBoundsFilter(query, result);
+    result = await lowerBoundsFilter(query, result);
     result = await combine(query, result);
     result = await sortAndReduce(query, result);
     result = await generateCandidates(query, result);
     result = await familiarityFilter(query, result);
     result = await createRoutes(query, result);
-    logAll(query, result); */
+    logAll(query, result);
     respond(query, result);
 };
 
@@ -128,7 +128,7 @@ const respond = async function (query, result) {
     }
     Log.debug(TAG, '', result.goodRoutes);
 
-    let generatedRoutes = result.goodRoutes;
+    let generatedRoutes = result.resultRoutes;
 
     let creatorResult = new CreatorResult(
         {
@@ -247,8 +247,8 @@ const lowerBoundsFilter = async function (query, result) {
 
     // filter routes such that direct connections to start and end point + route distance is roughly the same as the given distance
     let lists = [
-        {isRoute: true, routes: query.goodRoutes},
-        {isRoute: false, routes: query.goodSegments}
+        {isRoute: true, routes: result.goodRoutes},
+        {isRoute: false, routes: result.goodSegments}
     ];
 
     for (let routes of lists) {
@@ -381,7 +381,7 @@ const combine = async function (query, result) {
 const generateCandidates = async function (query, result) {
     Log.debug(TAG, 'Generate Candidates');
     if (result.combos.length === 0) {
-        return;
+        return result;
     }
 
     let routes = [];
@@ -472,7 +472,7 @@ const createRoutes = async function (query, result) {
     Log.debug(TAG, 'Create Routes');
 
     if (result.candidates.length === 0) {
-        return;
+        return result;
     }
 
     let generatedRoutes = [];
@@ -573,7 +573,7 @@ const familiarityFilter = async function (query, result) {
     Log.debug(TAG, 'Familiarity Filter');
 
     if (result.candidates.length === 0) {
-        return;
+        return result;
     }
 
     for (let route of result.candidates) {

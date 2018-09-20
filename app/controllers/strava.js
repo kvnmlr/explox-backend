@@ -85,8 +85,8 @@ exports.uploadActivity = async function (req, res) {
         headers: headers,
         formData: {
             file: 'gpx/routes/strava/route_' + routeId + '.gpx',
-            name: '[ExploX] ' + title,
-            description: description,
+            name: '[Explox] Please delete this activity',
+            description: 'This activity has been created automatically by explox, please delete it.',
             private: 0,
             data_type: 'gpx',
             external_id: 'id',
@@ -157,8 +157,8 @@ exports.queryLimits = async function (req, res) {
 
 exports.updateUser = async function (req, res) {
     const id = req.profile._id;
+    const max = req.max;
     return new Promise(async function (resolve) {
-
         let user = await User.load(id);
 
         // check if limits still okay
@@ -170,8 +170,8 @@ exports.updateUser = async function (req, res) {
             try {
                 await exports.getAthlete(user, token);
                 await exports.getStats(user, token);
-                await exports.getRoutes(id, token);
-                await exports.getActivities(id, token);
+                await exports.getRoutes(id, token, max);
+                await exports.getActivities(id, token, max);
             } catch (e) {
                 Log.error(TAG, 'User could not be fully synchronized');
                 error = true;
@@ -253,7 +253,7 @@ exports.getStats = function (user, token) {
  * Retrieves all routes created by the given user id, retrieves detailed route information, retrieves the route stream.
  * Updates db.user to include all routes, updates db.geo to include the coordinates of all routes, updates db.route to hold all route and references to db.geo
  */
-exports.getRoutes = function (id, token) {
+exports.getRoutes = function (id, token, max) {
     return new Promise(function (resolve, reject) {
         strava.athlete.listRoutes({
             id: id,
@@ -268,15 +268,26 @@ exports.getRoutes = function (id, token) {
                 return;
             }
             if (payload) {
-                let max = 50;
+                let done = 0;
+                if (!max) {
+                    max = 30;
+                }
                 if (payload.length < max) max = payload.length;
+                Log.debug(TAG, 'Get Routes ', payload);
 
-                for (let i = 0; i < max; ++i) {
+                /* this will iterate through all routes and take at most max which are not yet in the database.
+                * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
+                * and we will not kill the API*/
+                for (let i = 0; i < payload.length; ++i) {
+                    if (done >= max) {
+                        break;
+                    }
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
                     } else {
                         await getRoute(payload[i].id, token, id).catch();
+                        done++;
                     }
                 }
             }
@@ -288,7 +299,7 @@ exports.getRoutes = function (id, token) {
 /**
  * Get all activities for the given user
  */
-exports.getActivities = function (id, token) {
+exports.getActivities = function (id, token, max) {
     // query a list of all activities of this user
     return new Promise(function (resolve, reject) {
 
@@ -305,24 +316,31 @@ exports.getActivities = function (id, token) {
                 return;
             }
             if (payload) {
-                const max = 50;
+                let done = 0;
+                if (!max) {
+                    max = 30;
+                }
                 let numActivities = payload.length;
+                if (numActivities < max) max = numActivities;
 
-                if (numActivities > max) numActivities = max;
-
-                // for each activity, get detailed activity information
+                /* This will iterate through all activities and take at most max which are not yet in the database.
+                * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
+                * and we will not kill the API */
                 for (let i = 0; i < numActivities; ++i) {
+                    if (done >= max) {
+                        break;
+                    }
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
                         Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
                     } else {
-
                         if (payload[i].name.includes('[ExploX]')) {
                             Log.error(TAG, 'Found a created Activity!');
+                        } else {
+                            await getActivity(payload[i].id, token, id).catch((err) => {
+                                done++;
+                            });
                         }
-
-                        await getActivity(payload[i].id, token, id).catch((err) => {
-                        });
                     }
                 }
                 resolve(payload);
@@ -510,7 +528,7 @@ const getRoute = async function (id, token, userID) {
                     title: payload.name,
                     body: payload.description || 'A Strava route created by ' + user.username,
                     location: '',
-                    user: user,
+                    user: user,         // keep the creator
                     comments: [],
                     tags: tags,
                     geo: [],
@@ -688,10 +706,11 @@ const extractGeosFromPayload = async function (id, payload) {
 };
 
 exports.authCallback = function (req, res, next) {
+    Log.debug(TAG, 'Auth Callback', req.query);
     const myJSONObject = {
-        'client_id': config.strava.clientID,
-        'client_secret': config.strava.clientSecret,
-        'code': req.query.code
+        client_id: config.strava.clientID,
+        client_secret: config.strava.clientSecret,
+        code: req.query.code,
     };
     request({
         url: 'https://www.strava.com/oauth/token',
@@ -699,8 +718,14 @@ exports.authCallback = function (req, res, next) {
         json: true,
         body: myJSONObject
     }, async function (error, response) {
+        if (error) {
+            Log.error('Error during OAuth', error);
+            return;
+        }
         req.oauth = true;
         next(null, response);
+    }).catch((error) => {
+        Log.error('Error during OAuth', error);
     });
 };
 

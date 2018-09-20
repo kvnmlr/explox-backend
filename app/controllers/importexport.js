@@ -23,7 +23,7 @@ exports.exportUser = async function (req, res) {
 };
 
 exports.exportRoute = async function (req, res) {
-    Log.debug(TAG, 'Export GPX for route ' + req.routeData.title);
+    Log.debug(TAG, 'Export GPX for ' + req.routeData.title);
     const route = req.routeData;
     const format = req.query.format || 'gpx';
 
