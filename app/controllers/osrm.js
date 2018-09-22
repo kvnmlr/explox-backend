@@ -23,7 +23,7 @@ exports.findRoute = async function (options) {
 
     const service = 'directions';
     const profile = 'cycling';
-    const query = 'overview=false&steps=true&geometries=geojson&access_token=pk.eyJ1Ijoia3ZubWxyIiwiYSI6ImNqZmlobmwzcjAwazMycnJ6ejNoNmpmMDMifQ.5MzS02vStOXn_KoMOZ-wMw';
+    const query = 'overview=false&steps=true&geometries=geojson&access_token=' + config.mapbox_token;
 
     let requestString = protocol + '://' + domain + '/' + service + '/' + version + '/' + profile + '/';
     Log.debug(TAG, 'OSRM request path: ' + requestString);

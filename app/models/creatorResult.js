@@ -9,6 +9,8 @@ const CreatorResultSchema = new Schema({
     query: {},
     generatedRoutes: [{type: Schema.ObjectId, ref: 'Route', default: null}],
     acceptedRoutes: [{type: Schema.ObjectId, ref: 'Route', default: null}],
+    familiarityScores: [Number],
+
 });
 
 CreatorResultSchema.statics = {

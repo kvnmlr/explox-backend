@@ -50,10 +50,11 @@ const getUploadStatus = async function (req, res) {
                 });
             }
             if (data.status === 'Your activity is ready.') {
-                Log.debug(TAG, 'Activity upload is ready');
+                Log.debug(TAG, 'Activity upload is ready', data);
                 return res.json({
                     status: data.status,
-                    activityId: req.activityId,
+                    isActivity: true,
+                    activityId: data.activity_id,
                 });
             } else {
                 Log.debug(TAG, 'Activity upload is pending', data);
@@ -84,8 +85,8 @@ exports.uploadActivity = async function (req, res) {
         method: 'POST',
         headers: headers,
         formData: {
-            file: 'gpx/routes/strava/route_' + routeId + '.gpx',
-            name: '[Explox] Please delete this activity',
+            file: 'gpx/routes/generated/route_' + routeId + '.gpx',
+            name: '[ExploX] Please delete this activity',
             description: 'This activity has been created automatically by explox, please delete it.',
             private: 0,
             data_type: 'gpx',
@@ -165,13 +166,14 @@ exports.updateUser = async function (req, res) {
         let error = false;
 
         if (user) {
+            let activities = [];
             const token = user.authToken;
             const id = user.stravaId;
             try {
                 await exports.getAthlete(user, token);
                 await exports.getStats(user, token);
                 await exports.getRoutes(id, token, max);
-                await exports.getActivities(id, token, max);
+                activities = await exports.getActivities(id, token, max);
             } catch (e) {
                 Log.error(TAG, 'User could not be fully synchronized');
                 error = true;
@@ -180,13 +182,22 @@ exports.updateUser = async function (req, res) {
             user.lastUpdated = Date.now();
             await user.save();
 
+            // find activities that have been created by ExploX:
+            let generatedActivities = [];
+            activities.forEach((activity, i) => {
+                if (activity.name.includes('[ExploX]')) {
+                    generatedActivities.push(activity);
+                }
+            });
+
             if (res) {
                 if (!error) {
                     res.json({
                         flash: {
                             text: 'Your profile, routes and activities have been syncronized',
                             type: 'success'
-                        }
+                        },
+                        generatedActivities: generatedActivities,
                     });
                 }
                 else {

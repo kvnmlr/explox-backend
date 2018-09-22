@@ -12,6 +12,39 @@ const routes = require('./routes');
 const osrm = require('./osrm');
 const importExport = require('./importexport');
 
+function roughSizeOfObject(object) {
+
+    var objectList = [];
+    var stack = [object];
+    var bytes = 0;
+
+    while (stack.length) {
+        var value = stack.pop();
+
+        if (typeof value === 'boolean') {
+            bytes += 4;
+        }
+        else if (typeof value === 'string') {
+            bytes += value.length * 2;
+        }
+        else if (typeof value === 'number') {
+            bytes += 8;
+        }
+        else if
+        (
+            typeof value === 'object'
+            && objectList.indexOf(value) === -1
+        ) {
+            objectList.push(value);
+
+            for (var i in value) {
+                stack.push(value[i]);
+            }
+        }
+    }
+    return bytes;
+}
+
 /**
  * Generates a new route by doing the following calculations in sequence:
  *      1. Distance filter
@@ -23,7 +56,7 @@ const importExport = require('./importexport');
  */
 exports.generate = async function (req, res) {
     Log.log(TAG, 'Generate');
-    let user = await User.load(req.user);
+    let user = await User.load_full(req.user._id, {});
 
     let distance = parseFloat(req.body.distance) * 1000 || 5000;
 
@@ -63,6 +96,7 @@ const initSearch = function (query, result) {
         finalRoutes: [],
         candidates: [],
         resultRoutes: [],
+        familiarityScores: [],
     };
     return result;
 };
@@ -112,37 +146,39 @@ const logAll = function (query, result) {
 const respond = async function (query, result) {
     Log.debug(TAG, 'Respond ');
 
+    let resultRoutes = result.resultRoutes;
+
     if (query.preference === 'discover') {
-        result.resultRoutes.sort(function (a, b) {
+        resultRoutes.sort(function (a, b) {
             return b.familiarityScore - a.familiarityScore;
         });
     }
     if (query.preference === 'distance') {
-        result.resultRoutes.sort(function (a, b) {
+        resultRoutes.sort(function (a, b) {
             return b.distance - a.distance;
         });
     } else {
-        result.resultRoutes.sort(function (a, b) {
+        resultRoutes.sort(function (a, b) {
             return b.distance + ((1 - b.familiarityScore) * a.distance) - a.distance + ((1 - a.familiarityScore) * b.distance);
         });
     }
-    Log.debug(TAG, '', result.goodRoutes);
 
-    let generatedRoutes = result.resultRoutes;
+    Log.debug(TAG, 'FAM', result.familiarityScores);
 
     let creatorResult = new CreatorResult(
         {
-            user: query.user,
+            user: query.user._id,
             query: {
                 distance: query.distance,
             },
-            generatedRoutes: generatedRoutes,
+            generatedRoutes: resultRoutes,
+            familiarityScores: result.familiarityScores,
             acceptedRoutes: [],
-        }
-    );
+        });
     await creatorResult.save();
 
     query.response.json(creatorResult);
+    return result;
 };
 
 /**
@@ -476,6 +512,7 @@ const createRoutes = async function (query, result) {
     }
 
     let generatedRoutes = [];
+    let familiarityScores = [];
 
     for (let candidate of result.candidates) {
         // get the user
@@ -495,7 +532,7 @@ const createRoutes = async function (query, result) {
             comments: [],
             tags: '',
             geo: [],
-            user: query.user,
+            user: query.user._id,
             distance: candidate.distance,
             isRoute: true,
             isGenerated: true,
@@ -516,6 +553,8 @@ const createRoutes = async function (query, result) {
             Log.debug(TAG, 'Route already exists (' + existingRoute.title + ')');
             existingRoute.familiarityScore = candidate.familiarityScore;
             generatedRoutes.push(existingRoute);
+            familiarityScores.push(candidate.familiarityScore);
+
             continue;
         }
 
@@ -557,11 +596,13 @@ const createRoutes = async function (query, result) {
         });
 
         Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
-        route.familiarityScore = candidate.familiarityScore;
+
         generatedRoutes.push(route);
+        familiarityScores.push(candidate.familiarityScore);
     }
 
     result.resultRoutes = generatedRoutes;
+    result.familiarityScores = familiarityScores;
 
     return result;
 };

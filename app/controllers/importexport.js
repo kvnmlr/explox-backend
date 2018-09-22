@@ -45,11 +45,11 @@ exports.exportRoute = async function (req, res) {
     let counter = 0;
 
     let now = new Date().getTime();
-    let start = now - 1000 * 60 * 60 * 24 * 365;
+    let start = now - 1000 * 60 * 60 * 12;
 
 
     for (let geo of route.geo) {
-        let time = start + 1000 * counter;
+        let time = start + 20000 * counter;
         let geoObject = {
             latitude: geo.location.coordinates[1],
             longitude: geo.location.coordinates[0],
