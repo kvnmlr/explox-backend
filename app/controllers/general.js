@@ -58,7 +58,7 @@ exports.invitation = async function (req, res) {
 exports.submitInvitation = async function (req, res) {
     const invite = {
         user: req.user,
-        sender: req.user.name,
+        sender: req.user.firstName + ' ' + req.user.lastName,
         receiver: req.body.name,
         email: req.body.email.toLowerCase(),
     };

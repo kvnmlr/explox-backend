@@ -39,14 +39,24 @@ exports.index = async function (req, res) {
     const page = (req.query.page > 0 ? req.query.page : 1) - 1;
     const _id = req.query.item;
     const tag = req.query.tag;
+    const distance = req.query.distance;
     const segments = req.query.segments === 'true';
-    const limit = 30;
+    const limit = 100;
+
+    let distanceQuery = {$gt: 0};
+    if (distance !== '') {
+        const dist = parseInt(distance);
+        distanceQuery = {$gt: dist - (dist * 0.1), $lt: dist + (dist * 0.1)};
+    }
+
     const options = {
         limit: limit,
         page: page,
         detailed: false,
         criteria: {
             isRoute: (!segments),
+            isGenerated: false,
+            distance: distanceQuery,
         }
     };
 

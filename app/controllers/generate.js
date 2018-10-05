@@ -13,13 +13,12 @@ const osrm = require('./osrm');
 const importExport = require('./importexport');
 
 function roughSizeOfObject(object) {
-
-    var objectList = [];
-    var stack = [object];
-    var bytes = 0;
+    const objectList = [];
+    const stack = [object];
+    let bytes = 0;
 
     while (stack.length) {
-        var value = stack.pop();
+        const value = stack.pop();
 
         if (typeof value === 'boolean') {
             bytes += 4;
@@ -37,7 +36,7 @@ function roughSizeOfObject(object) {
         ) {
             objectList.push(value);
 
-            for (var i in value) {
+            for (let i in value) {
                 stack.push(value[i]);
             }
         }

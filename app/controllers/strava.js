@@ -284,7 +284,6 @@ exports.getRoutes = function (id, token, max) {
                     max = 30;
                 }
                 if (payload.length < max) max = payload.length;
-                Log.debug(TAG, 'Get Routes ', payload);
 
                 /* this will iterate through all routes and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
@@ -717,7 +716,6 @@ const extractGeosFromPayload = async function (id, payload) {
 };
 
 exports.authCallback = function (req, res, next) {
-    Log.debug(TAG, 'Auth Callback', req.query);
     const myJSONObject = {
         client_id: config.strava.clientID,
         client_secret: config.strava.clientSecret,
