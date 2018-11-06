@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
 
 let mailOptions = {
     from: '"ExploX" <' + config.email + '>',
-    to: 'kevin.mueller194@gmail.com',
+    to: config.email,
     subject: 'This is a test email',
     text: 'It works'
 };
