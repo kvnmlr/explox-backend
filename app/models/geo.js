@@ -12,6 +12,7 @@ const GeoSchema = new Schema({
     location: { type: Schema.Types.Point, index: '2dsphere' },    // The coordinate with 2dsphere index for spatial queries, (lng, lat)
     routes: [{ type: Schema.ObjectId, ref: 'Route' }],            // Routes that contain this point
     activities: [{ type: Schema.ObjectId, ref: 'Activity' }],     // Activities that contain this point
+    altitude: {type: Number , default: 0, trim: true},            // Altitude in meters
 });
 
 GeoSchema.path('location').required(true, 'Coordinates cannot be blank');

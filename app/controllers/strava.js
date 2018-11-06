@@ -370,35 +370,39 @@ exports.segmentsExplorer = function (token, options) {
     }
 
     return new Promise(function (resolve) {
-        strava.segments.explore({
-            access_token: token,
-            bounds: options.bounds,
-            activity_type: options.activity_type,
-            min_cat: options.min_cat,
-            max_cat: options.max_cat
-        }, async function (err, payload, limits) {
-            updateLimits(limits);
-            if (err) {
-                Log.error(TAG, 'Error in segment explore request', err);
-            } else {
-                if (payload.segments) {
-                    for (let i = 0; i < payload.segments.length; ++i) {
-                        const segment = await Route.load_options({
-                            criteria: {
-                                isRoute: false,
-                                stravaId: payload.segments[i].id
+        try {
+            strava.segments.explore({
+                access_token: token,
+                bounds: options.bounds,
+                activity_type: options.activity_type,
+                min_cat: options.min_cat,
+                max_cat: options.max_cat
+            }, async function (err, payload, limits) {
+                updateLimits(limits);
+                if (err) {
+                    Log.error(TAG, 'Error in segment explore request', err);
+                } else {
+                    if (payload.segments) {
+                        for (let i = 0; i < payload.segments.length; ++i) {
+                            const segment = await Route.load_options({
+                                criteria: {
+                                    isRoute: false,
+                                    stravaId: payload.segments[i].id
+                                }
+                            });
+                            if (segment) {
+                                Log.debug(TAG, 'Segment ' + payload.segments[i].id + ' already exist.');
+                            } else {
+                                await getSegment(payload.segments[i].id, token, payload.segments[i]);
                             }
-                        });
-                        if (segment) {
-                            Log.debug(TAG, 'Segment ' + payload.segments[i].id + ' already exist.');
-                        } else {
-                            await getSegment(payload.segments[i].id, token, payload.segments[i]);
                         }
                     }
                 }
-            }
-            resolve(payload);
-        });
+                resolve(payload);
+            });
+        } catch (e) {
+            Log.debug(TAG, 'An error occurred in segment explorer', e);
+        }
     });
 };
 
@@ -416,10 +420,12 @@ const getSegment = async function (id, token, segment, next) {
         tags: tags,
         geo: [],
         distance: segment.distance,
-        isRoute: false
+        isRoute: false,
+        strava: segment,
     });
 
     await route.save();
+
     await getSegmentStream(id, token, route, async function (err, geos) {
         if (err) {
             return;
@@ -461,7 +467,8 @@ const getActivity = async function (id, token, userID) {
                     geo: [],                // array of database geo references, to be filled
                     user: user,             // user who owns this activity
                     title: payload.name,    // title corresponding to the name in strava
-                    distance: payload.distance  // distance in meters
+                    distance: payload.distance,     // distance in meters
+                    strava: payload,
                 });
 
                 await activity.save();
@@ -542,7 +549,8 @@ const getRoute = async function (id, token, userID) {
                     comments: [],
                     tags: tags,
                     geo: [],
-                    distance: payload.distance
+                    distance: payload.distance,
+                    strava: payload,
                 });
                 await route.save();
 
@@ -578,65 +586,87 @@ const getRoute = async function (id, token, userID) {
  * Retrieves the GeoJSON data for a given route. Updates db.geo and db.route
  */
 const getRouteStream = function (id, token, route, next) {
-    strava.streams.route({id: id, types: '', access_token: token}, async function (err, payload, limits) {
-        updateLimits(limits);
-        if (err) {
-            Log.error(TAG, err);
-            return;
-        }
-        let geos = await extractGeosFromPayload(id, {payload: payload, route: route}).catch((err) => next(err.message));
-        if (geos !== null) {
-            next(null, geos);
-        }
-    });
+    try {
+        strava.streams.route({id: id, types: '', access_token: token}, async function (err, payload, limits) {
+            updateLimits(limits);
+            if (err) {
+                Log.error(TAG, err);
+                return;
+            }
+            let geos = await extractGeosFromPayload(id, {payload: payload, route: route}).catch((err) => next(err.message));
+            if (geos !== null) {
+                next(null, geos);
+            }
+        });
+    } catch (e) {
+        Log.debug(TAG, 'Error during route stream', e);
+        next(e, []);
+    }
 };
 
 const getActivityStream = async function (id, token, activity, next) {
-    strava.streams.activity({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
-        // updateLimits(limits);
-        if (err) {
-            Log.error(TAG, err);
-        }
-        let geos = await extractGeosFromPayload(id, {
-            payload: payload,
-            activity: activity
-        }).catch((err) => next(err.message));
-        if (geos !== null) {
-            next(null, geos);
-        }
-    });
+    try {
+        strava.streams.activity({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
+            // updateLimits(limits);
+            if (err) {
+                Log.error(TAG, err);
+            }
+            let geos = await extractGeosFromPayload(id, {
+                payload: payload,
+                activity: activity
+            }).catch((err) => next(err.message));
+            if (geos !== null) {
+                next(null, geos);
+            }
+        });
+    } catch (e) {
+        Log.debug(TAG, 'Error during activity stream');
+        next(e, []);
+    }
 };
 
 
 const getSegmentStream = function (id, token, segment, next) {
-    strava.streams.segment({id: id, types: '', access_token: token}, async function (err, payload, limits) {
-        updateLimits(limits);
-        if (err) {
-            Log.error(TAG, err);
-        }
-        let geos = await extractGeosFromPayload(id, {
-            payload: payload,
-            route: segment
-        }).catch((err) => next(err.message));
-        if (geos !== null) {
-            next(null, geos);
-        }
-    });
+    try {
+        strava.streams.segment({id: id, types: '', access_token: token}, async function (err, payload, limits) {
+            updateLimits(limits);
+            if (err) {
+                Log.error(TAG, err);
+            }
+            let geos = await extractGeosFromPayload(id, {
+                payload: payload,
+                route: segment
+            }).catch((err) => next(err.message));
+            if (geos !== null) {
+                next(null, geos);
+            }
+        });
+    } catch (e) {
+        Log.debug(TAG, 'Error during segment stream', e);
+        next(e, []);
+    }
 };
 
 const extractGeosFromPayload = async function (id, payload) {
     return new Promise(async function (resolve, reject) {
 
         const pl = payload.payload;
-        let data = null;
+        let data = {
+            latlng: [],
+            altitude: [],
+        };
         if (!pl) {
             return;
         }
         for (let i = 0; i < pl.length; ++i) {
             if (pl[i].type === 'latlng') {
-                data = pl[i].data;
+                data.latlng = pl[i].data;
+            }
+            if (pl[i].type === 'altitude') {
+                data.altitude = pl[i].data;
             }
         }
+        Log.debug(TAG, 'latlng points; ' + data.latlng.length + ', altitude points: ' + data.altitude.length);
         if (data == null || data === undefined) {
             Log.error(TAG, 'Could not read payload data from stream ' + id, pl);
             reject(new Error());
@@ -647,26 +677,27 @@ const extractGeosFromPayload = async function (id, payload) {
 
         // Only store a certain number of waypoints for efficiency (routes, segmetns, and activities).
         let leave = 300; // sample waypoints to max 100
-        if (data.length < leave) {
-            leave = data.length;
+        if (data.latlng.length < leave) {
+            leave = data.latlng.length;
         }
-        const takeEvery = Math.ceil(data.length / leave);
-        const remaining = Math.floor(data.length / takeEvery);
+        const takeEvery = Math.ceil(data.latlng.length / leave);
+        const remaining = Math.floor(data.latlng.length / takeEvery);
 
         let geos = [];
         let geosSaved = 0;
 
-        for (let i = 0; i < data.length; ++i) {
+        for (let i = 0; i < data.latlng.length; ++i) {
             // always keep the first and last element. Only take some in between
-            if (i === 0 || i % takeEvery === 0 || i === data.length - 1) {
-                lat = data[i][0];
-                lng = data[i][1];
+            if (i === 0 || i % takeEvery === 0 || i === data.latlng.length - 1) {
+                lat = data.latlng[i][0];
+                lng = data.latlng[i][1];
                 let geo = new Geo({
                     name: id,
                     location: {
                         type: 'Point',
                         coordinates: [lng, lat]
                     },
+                    altitude: data.altitude[i],
                 });
 
                 const activity = payload.activity;

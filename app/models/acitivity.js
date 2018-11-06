@@ -11,6 +11,7 @@ const ActivitySchema = new Schema({
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],                     // List of references to geo points
     user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
     distance: {type: Number , default: 0, trim: true},      // Distance in meters
+    strava: {},
 });
 
 ActivitySchema.statics = {
