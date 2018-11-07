@@ -57,6 +57,7 @@ module.exports = {
     },
 
     feedbackReceived: function (feedback) {
+        mailOptions.to = config.email;
         mailOptions.subject = '[ExploX] New Feedback Received';
         mailOptions.html =
             '<h2>New Feedback:</h2>' +
@@ -68,10 +69,12 @@ module.exports = {
             } else {
                 Log.log(TAG, 'Email sent: ' + info.response);
             }
+
         });
     },
 
     newUserRegistered: function (user) {
+        mailOptions.to = config.email;
         mailOptions.subject = '[ExploX] New User Registered';
         mailOptions.html =
             '<h2>New Registration:</h2>' +
