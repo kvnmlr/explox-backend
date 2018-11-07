@@ -292,6 +292,14 @@ exports.getRoutes = function (id, token, max) {
                     if (done >= max) {
                         break;
                     }
+                    if (payload[i].type !== 1) {
+                        // only rides
+                        continue;
+                    }
+                    if (payload[i].sub_type !== 1) {
+                        // only road cycling
+                        continue;
+                    }
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
@@ -339,6 +347,10 @@ exports.getActivities = function (id, token, max) {
                 for (let i = 0; i < numActivities; ++i) {
                     if (done >= max) {
                         break;
+                    }
+                    if (payload[i].type !== 'Ride') {
+                        // only rides
+                        continue;
                     }
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
