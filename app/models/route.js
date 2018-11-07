@@ -110,6 +110,7 @@ RouteSchema.statics = {
         }
         if (!options.detailed) {
             return this.find(criteria)
+                .populate('user', 'name username')
                 .sort({createdAt: -1})
                 .exec();
         }
