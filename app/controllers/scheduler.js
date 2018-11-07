@@ -85,9 +85,9 @@ exports.init = function () {
     // schedule.scheduleJob('0 * * * * *', updateLimitsTask);
 
     /** Coars Segment Crawler Task:
-     * Period: Once every hour during the night (0 - 6) at the half hour
+     * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius)  */
-    schedule.scheduleJob('0 30 0-6 * * *', coarseSegmentCrawlerTask);
+    schedule.scheduleJob('0 0-59/11 0-23 * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
