@@ -125,3 +125,8 @@ exports.updateLimits = async function (req, res) {
     res.json({});
 };
 
+exports.backup = async function (req, res) {
+    await backupTask(Date.now());
+    res.json({});
+};
+

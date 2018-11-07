@@ -76,6 +76,7 @@ module.exports = function (app, passport) {
     app.get('/triggers/crawler', auth.adminOnly, scheduler.crawler);
     app.get('/triggers/users', auth.adminOnly, scheduler.updateUsers);
     app.get('/triggers/limits', auth.adminOnly, scheduler.updateLimits);
+    app.get('/triggers/backup', auth.adminOnly, scheduler.backup);
     app.get('/optimize', auth.adminOnly, optimization.prune);
 
     // Error Handling

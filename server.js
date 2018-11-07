@@ -21,7 +21,7 @@ process.setMaxListeners(0);
 app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
 
 const os = require('os');
-const numCPUs = 1; // os.cpus().length;
+const numCPUs = os.cpus().length;
 
 module.exports = app;
 module.exports.config = config;
