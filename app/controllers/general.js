@@ -9,9 +9,13 @@ const Invitation = mongoose.model('Invitation');
 const config = require('../../server').config;
 const mailer = require('../mailer/index');
 
+var today = new Date();
+
+
 exports.home = async(function (req, res) {
     res.json({
         text: 'Home text',
+        startup: today.getTime(),
         env: config
     });
 });
