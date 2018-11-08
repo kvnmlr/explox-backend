@@ -21,7 +21,7 @@ process.setMaxListeners(0);
 app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
 
 const os = require('os');
-const numCPUs = 1; // os.cpus().length;
+const numCPUs = os.cpus().length;
 
 module.exports = app;
 module.exports.config = config;
@@ -37,7 +37,7 @@ require('./config/passport')(passport);
 require('./config/express')(app, passport);
 require('./config/routes')(app, passport);
 
-if (cluster.isMaster) {
+if (cluster.isMaster && app.get('env') === 'development') {
     Log.log(TAG, '_____Starting Server_____');
     Log.log(TAG, 'Starting ' + numCPUs + ' workers on port ' + port);
 
@@ -46,7 +46,7 @@ if (cluster.isMaster) {
         .on('disconnected', connect)
         .once('open', initialize);
 
-    if (app.get('env') !== 'test') {
+    if (app.get('env') === 'development') {
         for (let i = 0; i < numCPUs; i++) {
             cluster.fork();
         }
