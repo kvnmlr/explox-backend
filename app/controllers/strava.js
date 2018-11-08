@@ -421,41 +421,67 @@ exports.segmentsExplorer = function (token, options) {
 const getSegment = async function (id, token, segment, next) {
     Log.log(TAG, 'Creating new segment with id ' + id);
 
-    let tags = '';
-    let route = new Route({
-        stravaId: segment.id,
-        title: segment.name,
-        body: segment.description || 'A Strava segment',
-        location: '',
-        user: null,
-        comments: [],
-        tags: tags,
-        geo: [],
-        distance: segment.distance,
-        isRoute: false,
-        strava: segment,
-    });
 
-    await route.save();
+    return new Promise(function (resolve, reject) {
+        strava.segments.get({id: id, access_token: token}, async function (err, payload, limits) {
+            if (err) {
+                Log.error(TAG, 'Error trying to get segment details', err);
+                reject(new Error(err));
+                return;
+            }
+            updateLimits(limits);
 
-    await getSegmentStream(id, token, route, async function (err, geos) {
-        if (err) {
-            return;
-        }
-        Log.log(TAG, geos.length + ' geos extracted for segment ' + id);
+            if (payload.activity_type !== 'Ride') {
+                Log.debug(TAG, 'Wrong activity type');
+                reject('Wrong activity type for segment');
+            }
+            Log.debug(TAG, 'Correct activity type');
 
-        route.geo = geos;
-        await route.save();
 
-        ImportExport.exportRoute({
-            routeData: route,
-            query: {},
+            let tags = '';
+            let title = payload.name;
+            if (!title || title.replace(/\s/g, '') === '') {
+                title = 'Untitled Strava Segment';
+            }
+            let segment = new Route({
+                stravaId: payload.id,
+                title: title,
+                body: payload.description || 'A Strava segment',
+                location: '',
+                user: null,
+                comments: [],
+                tags: tags,
+                geo: [],
+                distance: payload.distance,
+                isRoute: false,
+                strava: payload,
+            });
+
+            await segment.save();
+
+            await getSegmentStream(id, token, segment, async function (err, geos) {
+                if (err) {
+                    return;
+                }
+                Log.log(TAG, geos.length + ' geos extracted for segment ' + id);
+
+                segment.geo = geos;
+                await segment.save();
+
+                ImportExport.exportRoute({
+                    routeData: segment,
+                    query: {},
+                });
+
+                if (next) {
+                    next(null, segment);
+                }
+                resolve(payload);
+            });
         });
-
-        if (next) {
-            next(null, route);
-        }
     });
+
+
 };
 
 
@@ -552,9 +578,13 @@ const getRoute = async function (id, token, userID) {
                         tags += ', mixed';
                         break;
                 }
+                let title = payload.name;
+                if (!title || title.replace(/\s/g, '') === '') {
+                    title = 'Untitled Strava Route';
+                }
                 let route = new Route({
                     stravaId: id,
-                    title: payload.name,
+                    title: title,
                     body: payload.description || 'A Strava route created by ' + user.username,
                     location: '',
                     user: user,         // keep the creator
@@ -605,7 +635,10 @@ const getRouteStream = function (id, token, route, next) {
                 Log.error(TAG, err);
                 return;
             }
-            let geos = await extractGeosFromPayload(id, {payload: payload, route: route}).catch((err) => next(err.message));
+            let geos = await extractGeosFromPayload(id, {
+                payload: payload,
+                route: route
+            }).catch((err) => next(err.message));
             if (geos !== null) {
                 next(null, geos);
             }
