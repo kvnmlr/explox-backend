@@ -84,7 +84,7 @@ exports.init = function () {
      * Task: Updates API Limits */
     // schedule.scheduleJob('0 * * * * *', updateLimitsTask);
 
-    /** Coars Segment Crawler Task:
+    /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius)  */
     schedule.scheduleJob('0 0-59/7 0-23 * * *', coarseSegmentCrawlerTask);

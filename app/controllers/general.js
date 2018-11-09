@@ -8,6 +8,8 @@ const Feedback = mongoose.model('Feedback');
 const Invitation = mongoose.model('Invitation');
 const config = require('../../server').config;
 const mailer = require('../mailer/index');
+const fs = require('fs');
+const path = require('path');
 
 var today = new Date();
 
@@ -30,6 +32,21 @@ exports.about = async(function (req, res) {
     res.json({
         version: '0.1',
         text: 'About text'
+    });
+});
+
+exports.logs = async(function (req, res) {
+    let application = fs.readFileSync(path.join(__dirname, '../../logs/application.log'), 'utf8');
+    let errors = fs.readFileSync(path.join(__dirname, '../../logs/errors.log'), 'utf8');
+
+    // Log.debug(TAG, 'ap', application);
+
+    let applicationArray = application.split('\n');
+    let errorArray = errors.split('\n');
+
+    res.json({
+        application: applicationArray,
+        errors: errorArray,
     });
 });
 
