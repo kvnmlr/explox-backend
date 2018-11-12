@@ -51,6 +51,7 @@ module.exports = function (app, passport) {
     app.param('userId', users.loadProfile);
     app.get('/users/:userId',  auth.requiresLogin, users.activityMap);
     app.get('/dashboard', userAuth, users.dashboard);
+    app.get('/dashboard/admin', userAuth, users.adminDashboard);
     app.get('/users/:userId/export', userAuth, importexport.exportUser);
     app.get('/users/:userId/import', userAuth, importexport.import);
     app.get('/users/:userId/update', userAuth, strava.updateUser);

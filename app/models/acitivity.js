@@ -31,6 +31,13 @@ ActivitySchema.statics = {
 
     list: function (options) {
         const criteria = options.criteria || {};
+        if (!options.detailed) {
+            return this.find(criteria)
+                .select('-geo')
+                .populate('user', 'name username')
+                .sort({createdAt: -1})
+                .exec();
+        }
         return this.find(criteria)
             .populate('user', 'name username')
             .populate('geo', 'name location')

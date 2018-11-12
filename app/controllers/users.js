@@ -106,6 +106,19 @@ exports.signup = async function (req, res) {
  * Loads the data relevant for the dashboard of the logged in user
  */
 exports.dashboard = async function (req, res) {
+    if (req.user.role === 'user') {
+        await showUserDashboard(req, res);
+    } else {
+        res.json({
+            user: req.user,
+        });
+    }
+};
+
+/**
+ * Loads the data relevant for the dashboard of the logged in user
+ */
+exports.adminDashboard = async function (req, res) {
     if (req.user.role === 'admin') {
         await showAdminDashboard(req, res);
     }
@@ -240,15 +253,35 @@ exports.session = async function (req, res) {
  * Responds data for the admin dashboard
  */
 async function showAdminDashboard (req, res) {
-    let users = await User.list({});
-    let routes = await Route.list({criteria: {isRoute: true, isGenerated: false}});
-    let generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
-    let activities = await Activity.list({});
-    let segments = await Route.list({criteria: {isRoute: false}});
-    let creatorResults = await CreatorResult.list();
-    let feedbacks = await Feedbacks.list();
-    let invitations = await Invitations.list();
-    let apiLimits = await Strava.getLimits();
+    let users = [];
+    let routes = [];
+    let generated = [];
+    let activities = [];
+    let segments = [];
+    let creatorResults = [];
+    let feedbacks = [];
+    let invitations = [];
+    let apiLimits = [];
+
+    if (req.query.general) {
+        feedbacks = await Feedbacks.list();
+        invitations = await Invitations.list();
+        apiLimits = await Strava.getLimits();
+    }
+    if (req.query.users) {
+        users = await User.list({});
+    }
+    if (req.query.routes) {
+        routes = await Route.list({criteria: {isRoute: true, isGenerated: false}});
+        generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
+        creatorResults = await CreatorResult.list();
+    }
+    if (req.query.segments) {
+        segments = await Route.list({criteria: {isRoute: false}});
+    }
+    if (req.query.activities) {
+        activities = await Activity.list({});
+    }
 
     res.json({
         title: req.user.name,
