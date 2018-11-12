@@ -2,24 +2,22 @@
 
 const Log = require('./app/utils/logger');
 const TAG = 'Init';
+const  mongoose = require('mongoose');
+const Route = mongoose.model('Route');
+const Geo = mongoose.model('Geo');
+const User = mongoose.model('User');
+const Role = mongoose.model('Role');
+const Activity = mongoose.model('Activity');
+const Settings = mongoose.model('Settings');
+const scheduler = require('./app/controllers/scheduler');
+const crawler = require('./app/controllers/crawler');
 
-let mongoose;
-let Route, Geo, User, Role, Activity, Settings;
+// let Route, Geo, User, Role, Activity, Settings;
 let geos = [];
 let adminRole, userRole;
 
 exports.init = async function () {
     Log.log('Init', 'Initializing database');
-    mongoose = require('mongoose');
-    Route = mongoose.model('Route');
-    Geo = mongoose.model('Geo');
-    User = mongoose.model('User');
-    Role = mongoose.model('Role');
-    Activity = mongoose.model('Activity');
-    Settings = mongoose.model('Settings');
-
-    const scheduler = require('./app/controllers/scheduler');
-    const crawler = require('./app/controllers/crawler');
 
     try {
         await createRoles();

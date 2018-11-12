@@ -77,7 +77,7 @@ exports.init = function () {
     /** Test Task:
      * Period: Every 60 seconds
      * Task: Outputs a heartbeat */
-    // schedule.scheduleJob('0 * * * * *', heartbeatTask);
+    schedule.scheduleJob('0 * * * * *', heartbeatTask);
 
     /** Limit Update Task:
      * Period: Every 60 seconds
@@ -87,12 +87,12 @@ exports.init = function () {
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius)  */
-    schedule.scheduleJob('0 0-59/7 0-23 * * *', coarseSegmentCrawlerTask);
+    schedule.scheduleJob('0 0-59/4 0-23 * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
      * Task: Crawls detailed segments (i.e. small radius) */
-    schedule.scheduleJob('0 0-59/9 0-23 * * *', fineSegmentCrawlerTask);
+    schedule.scheduleJob('59 0-59/4 0-23 * * *', fineSegmentCrawlerTask);
 
     /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)
@@ -103,7 +103,7 @@ exports.init = function () {
      * Period: Once at 4:20 am
      * Task: Create a backup of the whole database
      */
-    schedule.scheduleJob('0 20 4 * * *', backupTask);
+    // schedule.scheduleJob('0 20 4 * * *', backupTask);
 };
 
 exports.crawler = async function (req, res) {

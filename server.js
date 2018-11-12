@@ -12,7 +12,6 @@ const cluster = require('cluster');
 const favicon = require('serve-favicon');
 const passport = require('passport');
 const config = require('./config');
-const init = require('./init');
 const models = join(__dirname, 'app/models');
 
 const port = process.env.PORT || 3000;
@@ -79,7 +78,7 @@ function listen () {
 
 async function initialize () {
     if (app.get('env') === 'test') return;
-    init.init();
+    require('./init').init();
 }
 
 function connect () {
