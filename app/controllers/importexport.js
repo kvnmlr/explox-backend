@@ -65,8 +65,8 @@ exports.exportRoute = async function (req, res) {
             res.status(401).json({
                 error: 'Route doesn\'t have waypoints'
             });
-            return;
         }
+        return;
     }
     const gpx = gpxWrite(data.waypoints, {
         activityName: data.activityType,
