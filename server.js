@@ -51,7 +51,7 @@ if (cluster.isMaster) {
         }
 
         Object.keys(cluster.workers).forEach(function (id) {
-            Log.log(TAG, 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
+            Log.debug(TAG, 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
         });
     }
 

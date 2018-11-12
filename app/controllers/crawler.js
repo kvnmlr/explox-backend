@@ -70,7 +70,7 @@ exports.crawlSegments = async function (req, res) {
     let self = this;
     return new Promise(async function (resolve) {
 
-        Log.log(TAG, 'Crawling ' + (req.detailed ? 'fine' : 'coarse') + ' segments at ' + new Date().toUTCString());
+        Log.debug(TAG, 'Crawling ' + (req.detailed ? 'fine' : 'coarse') + ' segments at ' + new Date().toUTCString());
 
         if (queue.length === 0) {
             self.init();

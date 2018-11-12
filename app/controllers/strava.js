@@ -288,6 +288,7 @@ exports.getRoutes = function (id, token, max) {
                 /* this will iterate through all routes and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
                 * and we will not kill the API*/
+                Log.log('Found ' +  max + ' new routes');
                 for (let i = 0; i < payload.length; ++i) {
                     if (done >= max) {
                         break;
@@ -348,6 +349,7 @@ exports.getActivities = function (id, token, max) {
                 /* This will iterate through all activities and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
                 * and we will not kill the API */
+                Log.log('Found ' +  max + ' new routes');
                 for (let i = 0; i < numActivities; ++i) {
                     if (done >= max) {
                         break;
@@ -403,6 +405,8 @@ exports.segmentsExplorer = function (token, options) {
                     Log.error(TAG, 'Error in segment explore request', err);
                 } else {
                     if (payload.segments) {
+                        Log.log(TAG, 'Found ' + payload.segments.length + ' new segments');
+
                         for (let i = 0; i < payload.segments.length; ++i) {
                             const segment = await Route.load_options({
                                 criteria: {
@@ -431,7 +435,7 @@ exports.segmentsExplorer = function (token, options) {
 };
 
 const getSegment = async function (id, token, segment, next) {
-    Log.log(TAG, 'Creating new segment with id ' + id);
+    Log.debug(TAG, 'Creating new segment with id ' + id);
 
 
     return new Promise(function (resolve, reject) {
@@ -475,7 +479,7 @@ const getSegment = async function (id, token, segment, next) {
                 if (err) {
                     return;
                 }
-                Log.log(TAG, geos.length + ' geos extracted for segment ' + id);
+                Log.debug(TAG, geos.length + ' geos extracted for segment ' + id);
 
                 segment.geo = geos;
                 await segment.save();
@@ -510,7 +514,7 @@ const getActivity = async function (id, token, userID) {
             let user = await User.load_options({criteria: {stravaId: userID}});
             if (user) {
 
-                Log.log(TAG, 'Creating new activity with id ' + id);
+                Log.debug(TAG, 'Creating new activity with id ' + id);
 
                 let activity = new Activity({
                     activityId: id,         // the activity id from Strava
@@ -569,7 +573,7 @@ const getRoute = async function (id, token, userID) {
 
             if (user) {
                 // If this route does not exist in the db create an entry in db.route, link to db.user using userID
-                Log.log(TAG, 'Creating new route with id ' + id);
+                Log.debug(TAG, 'Creating new route with id ' + id);
                 let tags = '';
                 if (payload.type === 1) tags += 'ride, cycling';
                 if (payload.type === 2) tags += 'run, running';

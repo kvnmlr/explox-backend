@@ -86,7 +86,7 @@ exports.init = function () {
 
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
-     * Task: Crawls coarse segments (i.e. large radius)  */
+     * Task: Crawls coarse segments (i.e. large radius) s */
     schedule.scheduleJob('0 0-59/4 0-23 * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
