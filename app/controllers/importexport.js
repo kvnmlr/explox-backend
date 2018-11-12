@@ -69,25 +69,25 @@ exports.exportRoute = async function (req, res) {
         activityName: data.activityType,
     });
 
-    let dir = __dirname + '../../../gpx/';
+    let dir = './gpx/';
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
     }
 
     let file;
     if (route.isRoute) {
-        let dir = __dirname + '../../../gpx/routes/';
+        let dir = './gpx/routes/';
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir);
         }
         if (route.isGenerated) {
-            let dir = __dirname + '../../../gpx/routes/generated/';
+            let dir = './gpx/routes/generated/';
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
             file = dir + 'route_' + route._id + '.gpx';
         } else {
-            let dir = __dirname + '../../../gpx/routes/strava/';
+            let dir = './gpx/routes/strava/';
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
@@ -95,7 +95,7 @@ exports.exportRoute = async function (req, res) {
         }
     } else {
         if (route.activityId) {
-            let dir = __dirname + '../../../gpx/activities/';
+            let dir = './gpx/activities/';
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
@@ -103,7 +103,7 @@ exports.exportRoute = async function (req, res) {
         }
          else {
 
-            let dir = __dirname + '../../../gpx/segments/';
+            let dir = './gpx/segments/';
             if (!fs.existsSync(dir)) {
                 fs.mkdirSync(dir);
             }
@@ -377,7 +377,7 @@ async function exportUserAll (req, res) {
     }
 
     // create a file to stream archive data to.
-    const zipFile = __dirname + '../../../gpx/activity_export_' + (user.username).toLowerCase() + '.zip';
+    const zipFile = './gpx/activity_export_' + (user.username).toLowerCase() + '.zip';
     let output = fs.createWriteStream(zipFile);
     let archive = archiver('zip', {
         zlib: {level: 9} // Sets the compression level.
