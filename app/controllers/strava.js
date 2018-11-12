@@ -288,7 +288,7 @@ exports.getRoutes = function (id, token, max) {
                 /* this will iterate through all routes and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
                 * and we will not kill the API*/
-                Log.log('Found ' +  max + ' new routes');
+                Log.debug('Found ' +  max + ' new routes');
                 for (let i = 0; i < payload.length; ++i) {
                     if (done >= max) {
                         break;
@@ -349,7 +349,7 @@ exports.getActivities = function (id, token, max) {
                 /* This will iterate through all activities and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
                 * and we will not kill the API */
-                Log.log('Found ' +  max + ' new routes');
+                Log.debug('Found ' +  max + ' new routes');
                 for (let i = 0; i < numActivities; ++i) {
                     if (done >= max) {
                         break;
@@ -405,7 +405,7 @@ exports.segmentsExplorer = function (token, options) {
                     Log.error(TAG, 'Error in segment explore request', err);
                 } else {
                     if (payload.segments) {
-                        Log.log(TAG, 'Found ' + payload.segments.length + ' new segments');
+                        Log.debug(TAG, 'Found ' + payload.segments.length + ' new segments');
 
                         for (let i = 0; i < payload.segments.length; ++i) {
                             const segment = await Route.load_options({

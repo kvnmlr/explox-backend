@@ -10,6 +10,8 @@ const config = require('../../config');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const app = require('express')();
+
 
 const heartbeatTask = function (fireDate) {
     Log.log(TAG, 'Heartbeat task ran at: ' + fireDate);
@@ -78,6 +80,9 @@ exports.init = function () {
      * Period: Every 60 seconds
      * Task: Outputs a heartbeat */
     schedule.scheduleJob('0 * * * * *', heartbeatTask);
+
+    if (app.get('env') !== 'production') return;
+    // The following tasks are meant for production setup only
 
     /** Limit Update Task:
      * Period: Every 60 seconds
