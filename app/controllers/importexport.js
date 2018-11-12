@@ -61,9 +61,12 @@ exports.exportRoute = async function (req, res) {
     }
 
     if (data.waypoints.length === 0) {
-        return res.status(401).json({
-            error: "Route doesn't have waypoints"
-        });
+        if (res) {
+            res.status(401).json({
+                error: 'Route doesn\'t have waypoints'
+            });
+            return;
+        }
     }
     const gpx = gpxWrite(data.waypoints, {
         activityName: data.activityType,
@@ -101,7 +104,7 @@ exports.exportRoute = async function (req, res) {
             }
             file = dir + 'activity_' + route._id + '.gpx';
         }
-         else {
+        else {
 
             let dir = './gpx/segments/';
             if (!fs.existsSync(dir)) {
