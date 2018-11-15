@@ -90,4 +90,20 @@ module.exports = {
             }
         });
     },
+
+    crawlerFinished: function () {
+        mailOptions.to = config.email;
+        mailOptions.subject = '[ExploX] Crawler finished';
+        mailOptions.html =
+            '<h2>Crawler Finished:</h2>' +
+            '<p>The crawler has finished and is now repeating old locations.</p>';
+        transporter.sendMail(mailOptions, function (error, info){
+            if (error) {
+                Log.error(TAG, error);
+            } else {
+                Log.log(TAG, 'Email sent: ' + info.response);
+            }
+
+        });
+    },
 };

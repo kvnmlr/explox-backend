@@ -3,6 +3,7 @@
 const Log = require('../utils/logger');
 const TAG = 'controllers/crawler';
 const Strava = require('./strava');
+const mailer = require('../mailer/index');
 const mongoose = require('mongoose');
 const Settings = mongoose.model('Settings');
 
@@ -53,10 +54,10 @@ exports.init = async function () {
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.5) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 30) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.5) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 30) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
@@ -84,7 +85,15 @@ exports.crawlSegments = async function (req, res) {
         Log.debug(TAG, 'Crawling ' + (req.detailed ? 'fine' : 'coarse') + ' segments at ' + new Date().toUTCString());
 
         if (queue.length === 0) {
-            self.init();
+            // Send an email to the admin that the crawler has finished
+            mailer.crawlerFinished();
+            await self.init();
+            if (res) {
+                // if this was a request through the frontend
+                res.json({});
+            }
+            resolve([]);
+            return;
         }
 
         let start = queue.pop();
