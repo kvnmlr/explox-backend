@@ -21,9 +21,9 @@ exports.init = async function () {
         let initialized = await createDefaultAdmins();
         if (!initialized) {
             await createDefaultUsers();
-            await createDefaultSettings();
             // await createSampleRoute();
         }
+        await createDefaultSettings();
         scheduler.init();
         crawler.init();
         finished();
@@ -120,6 +120,8 @@ const createDefaultUsers = async function () {
 
 const createDefaultSettings = async function () {
     let setting = await Settings.loadValue('api');
+    let setting2 = await Settings.loadValue('queue');
+
     if (!setting) {
         setting = new Settings({
             key: 'api',
@@ -129,6 +131,13 @@ const createDefaultSettings = async function () {
             }
         });
         await setting.save();
+    }
+    if (!setting2) {
+        setting2 = new Settings({
+            key: 'queue',
+            value: [],
+        });
+        await setting2.save();
     }
 };
 

@@ -3,8 +3,9 @@
 const Log = require('../utils/logger');
 const TAG = 'controllers/crawler';
 const Strava = require('./strava');
+const mongoose = require('mongoose');
+const Settings = mongoose.model('Settings');
 
-let queue = [];
 
 /**
  * Shuffles array in place.
@@ -21,7 +22,7 @@ function shuffle (array) {
     return array;
 }
 
-exports.init = function () {
+exports.init = async function () {
     Log.log(TAG, 'Initialize Crawler');
     const horizontalKilometer = 0.009009;    // one horizontal kilometer
     const verticalKilometer = 0.013808;      // one vertical kilometer
@@ -50,6 +51,8 @@ exports.init = function () {
     const ll = mzg;
     const lr = sw;
 
+    let queue = [];
+
     for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.5) {
         // vertical holds all vertical locations with 1km distance
 
@@ -63,12 +66,19 @@ exports.init = function () {
     // shuffle the queue such that the crawler selects random elements and there is no bias
     // as to which area is crawler first
     Log.debug(TAG, queue.length + ' locations added to crawler queue');
-    shuffle(queue);
+    queue = shuffle(queue);
 
+    let setting = await Settings.loadValue('queue');
+    if (setting) {
+        setting.value = queue;
+        await setting.save();
+    }
 };
 
 exports.crawlSegments = async function (req, res) {
     let self = this;
+    let setting = await Settings.loadValue('queue');
+    let queue = setting.value;
     return new Promise(async function (resolve) {
 
         Log.debug(TAG, 'Crawling ' + (req.detailed ? 'fine' : 'coarse') + ' segments at ' + new Date().toUTCString());
