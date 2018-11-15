@@ -89,7 +89,7 @@ exports.crawlSegments = async function (req, res) {
 
         let start = queue.pop();
 
-        Log.debug(TAG, queue.length + ' locations left in crawler queue');
+        Log.log(TAG, queue.length + ' locations left in crawler queue');
 
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
