@@ -89,7 +89,7 @@ exports.crawlSegments = async function (req, res) {
 
         let start = queue.pop();
         setting.value = queue;
-        await setting.save();
+        await Settings.updateValue({key: 'queue', value: queue});
 
         Log.log(TAG, queue.length + ' locations left in crawler queue');
 
