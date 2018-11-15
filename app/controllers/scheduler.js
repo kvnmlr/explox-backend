@@ -12,7 +12,6 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const app = require('express')();
 
-
 const heartbeatTask = function (fireDate) {
     Log.log(TAG, 'Heartbeat task ran at: ' + fireDate);
 };

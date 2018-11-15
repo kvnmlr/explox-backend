@@ -6,13 +6,10 @@ const  mongoose = require('mongoose');
 const Route = mongoose.model('Route');
 const Geo = mongoose.model('Geo');
 const User = mongoose.model('User');
-const Role = mongoose.model('Role');
-const Activity = mongoose.model('Activity');
 const Settings = mongoose.model('Settings');
 const scheduler = require('./app/controllers/scheduler');
 const crawler = require('./app/controllers/crawler');
 
-// let Route, Geo, User, Role, Activity, Settings;
 let geos = [];
 let adminRole, userRole;
 
