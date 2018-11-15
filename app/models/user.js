@@ -150,7 +150,7 @@ UserSchema.statics = {
      * @param options
      */
     load_full: function (_id, options) {
-        options.select = options.select || '-hashed_password -lastLogin -createdAt -salt';
+        options.select = options.select || '-hashed_password -lastLogin -salt';
         return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',
@@ -180,7 +180,6 @@ UserSchema.statics = {
         return this.findOne({_id: ObjectId(_id)})
             .populate({
                 path: 'activities',
-                select: 'title geo createdAt distance',
                 populate: {
                     path: 'geo',
                     select: 'location',
@@ -216,7 +215,7 @@ UserSchema.statics = {
      * @param cb
      */
     load_options: function (options, cb) {
-        options.select = options.select || '-hashed_password -lastLogin -createdAt -salt';
+        options.select = options.select || '-hashed_password -salt';
         return this.findOne(options.criteria)
             .select(options.select)
             .populate({

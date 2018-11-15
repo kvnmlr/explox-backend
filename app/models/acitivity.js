@@ -22,8 +22,9 @@ ActivitySchema.statics = {
      * @api private
      */
     load_options: function (options) {
-        options.select = options.select || 'activityId';
+        options.select = options.select || '';
         return this.findOne(options.criteria)
+            .populate('user', 'name email username')
             .populate('geo')
             .select(options.select)
             .exec();

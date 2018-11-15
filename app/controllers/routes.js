@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
 const {wrap: async} = require('co');
 const only = require('only');
 const Route = mongoose.model('Route');
+const Activity = mongoose.model('Activity');
 const assign = Object.assign;
 
 exports.creator = async(function (req, res) {
@@ -27,8 +28,14 @@ exports.creator = async(function (req, res) {
 
 exports.load_options = async function (req, res, next, id) {
     try {
+        // check if it is a route
         req.routeData = await Route.load(id);
-        if (!req.routeData) return next(new Error('Route not found'));
+        if (!req.routeData) {
+            // check if it is an activity
+            req.routeData = await Activity.load(id);
+            if (!req.routeData) {
+                return next(new Error('Route or Activity not found'));
+            }        }
     } catch (err) {
         return next(err);
     }

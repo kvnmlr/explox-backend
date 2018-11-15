@@ -132,8 +132,8 @@ exports.adminDashboard = async function (req, res) {
  */
 exports.activityMap = async function (req, res) {
     const id = req.profile._id;
-    const userActivities = await User.load_activities(id, {});
-    if (!userActivities) {
+    const user = await User.load_full(id, {});
+    if (!user) {
         return res.status(400).json({
             error: 'The given id does not belong to a user',
             flash: {
@@ -144,7 +144,7 @@ exports.activityMap = async function (req, res) {
     }
     // const geos = Strava.activitiesToGeos(userActivities.activities);
     res.json({
-        activities: userActivities.activities,
+        user: user
     });
 };
 
@@ -211,13 +211,11 @@ exports.destroy = async function (req, res) {
 exports.authenticate = function (req, res) {
     if (!req.user) {
         res.json({
-            deployTest: false,
             user: null,
         });
     }
     res.json({
         user: {
-            deployTest: false,
             name: req.user.name,
             _id: req.user._id,
             role: req.user.role,
