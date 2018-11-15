@@ -71,8 +71,11 @@ exports.init = async function () {
 
     let setting = await Settings.loadValue('queue');
     if (setting) {
-        setting.value = queue;
-        await setting.save();
+        if (setting.value.length === 0) {
+            // only init the queue when it is empty
+            setting.value = queue;
+            await setting.save();
+        }
     }
 };
 
@@ -98,6 +101,7 @@ exports.crawlSegments = async function (req, res) {
 
         let start = queue.pop();
         setting.value = queue;
+
         await Settings.updateValue({key: 'queue', value: queue});
 
         Log.log(TAG, queue.length + ' locations left in crawler queue');
