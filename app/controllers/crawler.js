@@ -28,6 +28,11 @@ exports.init = async function () {
     const horizontalKilometer = 0.009009;    // one horizontal kilometer
     const verticalKilometer = 0.013808;      // one vertical kilometer
 
+    // Large Saarland
+    const ma = [49.964771, 8.242493];   // Mainz
+    const st = [48.759795, 9.136916];   // Stuttgart
+    const ny = [48.663657, 6.135648];   // Nancy
+
     // Full Saarland
     const lx = [49.696608, 6.137890];   // north of Luxemburg
     const kl = [49.679770, 7.808433];   // north of Kaiserslautern
@@ -35,10 +40,10 @@ exports.init = async function () {
     const kr = [48.944127, 7.749429];   // west of Karlsruhe
 
     // Saarbrücken
-    const sb = [49.245665, 6.997569];   // Saarbrücken
-    const igb = [49.287085, 7.12887];   // Ingbert
-    const eh = [49.234207, 7.112391];   // Ensheim
-    const qs = [49.319769, 7.058146];   // Quierschied
+    const sl = [49.307921, 6.721432];   // Saarlouis
+    const fb = [49.194574, 6.894502];   // Forbach
+    const nk = [49.340050, 7.167313];   // Neunkirchen
+    const gh = [49.141470, 7.214846];   // Gersheim
 
     // North Saarland
     const tr = [49.786126, 6.563979];   // Trier
@@ -46,23 +51,58 @@ exports.init = async function () {
     const sw = [49.448196, 7.217076];   // St. Wendel
     const mzg = [49.401713, 6.580591];  // Merzig
 
+    // South Saarland
+    const sa = [49.119889, 6.739864];   // St. Avold
+    const pi = [49.189448, 7.609637];   // Pirmasens
 
-    const ul = tr;
-    const ur = io;
-    const ll = mzg;
-    const lr = sw;
+
+    const ul = mzg;
+    const ur = sw;
+    const ll = sa;
+    const lr = pi;
+
+    const ul2 = sl;
+    const ur2 = nk;
+    const ll2 = fb;
+    const lr2 = gh;
+
+    const ul3 = lx;
+    const ur3 = ma;
+    const ll3 = ny;
+    const lr3 = st;
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.5) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.1) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.5) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.1) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
         }
     }
+
+    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 0.7) {
+        // vertical holds all vertical locations with 1km distance
+
+        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 0.7) {
+            // horizontal holds all horizontal locations with 1km distance
+            const loc = [vertical, horizontal];
+            queue.push(loc);
+        }
+    }
+
+    for (let vertical = Math.min(ll3[0], lr3[0]); vertical <= Math.max(ul3[0], ur3[0]); vertical += verticalKilometer * 4) {
+        // vertical holds all vertical locations with 1km distance
+
+        for (let horizontal = Math.min(ll3[1], ul3[1]); horizontal <= Math.max(lr3[1], ur3[1]); horizontal += horizontalKilometer * 4) {
+            // horizontal holds all horizontal locations with 1km distance
+            const loc = [vertical, horizontal];
+            queue.push(loc);
+        }
+    }
+
 
     // shuffle the queue such that the crawler selects random elements and there is no bias
     // as to which area is crawler first
@@ -102,18 +142,21 @@ exports.crawlSegments = async function (req, res) {
         let start = queue.pop();
         setting.value = queue;
 
-        await Settings.updateValue({key: 'queue', value: queue});
+        if (!req.detailed) {
+            // Only update after coarse crawls, otherwise keep location in
+            await Settings.updateValue({key: 'queue', value: queue});
+        }
 
         Log.log(TAG, queue.length + ' locations left in crawler queue');
 
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
         let increaseRadiusBy = 0.5;
-        let iterations = 3;
+        let iterations = 5;
 
         if (!req.detailed) {
             iterations = 20;
-            increaseRadiusBy = 5;
+            increaseRadiusBy = 3;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 
