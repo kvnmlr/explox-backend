@@ -117,7 +117,7 @@ exports.uploadActivity = async function (req, res) {
 
 exports.getLimits = async function () {
     let setting = await Settings.loadValue('api');
-    let apiLimits = {'shortTermUsage': 0, 'shortTermLimit': 600, 'longTermUsage': 0, 'longTermLimit': 30000};
+    let apiLimits = {'shortTermUsage': 0, 'shortTermLimit': 2700, 'longTermUsage': 0, 'longTermLimit': 135000};
     if (setting) {
         apiLimits.shortTermUsage = setting.value.shortTerm;
         apiLimits.longTermUsage = setting.value.longTerm;
