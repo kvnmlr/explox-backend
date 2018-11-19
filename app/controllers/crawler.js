@@ -56,15 +56,10 @@ exports.init = async function () {
     const pi = [49.189448, 7.609637];   // Pirmasens
 
 
-    const ul = mzg;
-    const ur = sw;
-    const ll = sa;
-    const lr = pi;
-
-    const ul2 = sl;
-    const ur2 = nk;
-    const ll2 = fb;
-    const lr2 = gh;
+    const ul2 = tr;
+    const ur2 = io;
+    const ll2 = mzg;
+    const lr2 = sw;
 
     const ul3 = lx;
     const ur3 = ma;
@@ -73,7 +68,7 @@ exports.init = async function () {
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.1) {
+    /* for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.1) {
         // vertical holds all vertical locations with 1km distance
 
         for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.1) {
@@ -81,19 +76,19 @@ exports.init = async function () {
             const loc = [vertical, horizontal];
             queue.push(loc);
         }
-    }
+    } */
 
-    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 0.7) {
+    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 1.2) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 0.7) {
+        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 1.2) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
         }
     }
 
-    for (let vertical = Math.min(ll3[0], lr3[0]); vertical <= Math.max(ul3[0], ur3[0]); vertical += verticalKilometer * 4) {
+    /* for (let vertical = Math.min(ll3[0], lr3[0]); vertical <= Math.max(ul3[0], ur3[0]); vertical += verticalKilometer * 4) {
         // vertical holds all vertical locations with 1km distance
 
         for (let horizontal = Math.min(ll3[1], ul3[1]); horizontal <= Math.max(lr3[1], ur3[1]); horizontal += horizontalKilometer * 4) {
@@ -101,7 +96,7 @@ exports.init = async function () {
             const loc = [vertical, horizontal];
             queue.push(loc);
         }
-    }
+    } */
 
 
     // shuffle the queue such that the crawler selects random elements and there is no bias
@@ -197,4 +192,3 @@ exports.crawlSegments = async function (req, res) {
         resolve(segments);
     });
 };
-
