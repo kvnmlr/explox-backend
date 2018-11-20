@@ -56,10 +56,10 @@ exports.init = async function () {
     const pi = [49.189448, 7.609637];   // Pirmasens
 
 
-    const ul2 = tr;
-    const ur2 = io;
-    const ll2 = mzg;
-    const lr2 = sw;
+    const ul2 = lx;
+    const ur2 = ma;
+    const ll2 = ny;
+    const lr2 = st;
 
     const ul3 = lx;
     const ur3 = ma;
@@ -78,10 +78,10 @@ exports.init = async function () {
         }
     } */
 
-    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 1.2) {
+    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 4.5) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 1.2) {
+        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 4.5) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
@@ -147,11 +147,11 @@ exports.crawlSegments = async function (req, res) {
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
         let increaseRadiusBy = 0.5;
-        let iterations = 5;
+        let iterations = 2;
 
         if (!req.detailed) {
             iterations = 20;
-            increaseRadiusBy = 3;
+            increaseRadiusBy = 8;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 
