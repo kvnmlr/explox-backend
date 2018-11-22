@@ -113,6 +113,7 @@ RouteSchema.statics = {
                 .select('-geo')
                 .populate('user', 'name username')
                 .sort({createdAt: -1})
+                .limit(5000)
                 .lean()
                 .exec();
         }
@@ -120,6 +121,7 @@ RouteSchema.statics = {
             .populate('user', 'name username')
             .populate('geo', 'name location')
             .sort({createdAt: -1})
+            .limit(5000)
             .lean()
             .exec();
     },
