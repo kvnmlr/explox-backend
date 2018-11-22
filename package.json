@@ -38,6 +38,7 @@
     "express-session": "~1.15.0",
     "forever": "~0.15.1",
     "formidable": "^1.2.1",
+    "geolib": "^2.0.24",
     "gps-to-gpx": "^1.2.0",
     "gpx-parse": "^0.10.4",
     "heatmap.js": "^2.0.5",

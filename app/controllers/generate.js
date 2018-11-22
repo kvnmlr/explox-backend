@@ -11,8 +11,26 @@ const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 const importExport = require('./importexport');
+const geolib = require('geolib');
 
-function roughSizeOfObject(object) {
+function getDistanceFromLatLonInKm (lat1,lon1,lat2,lon2) {
+    const R = 6371; // Radius of the earth in km
+    let dLat = deg2rad(lat2 - lat1);  // deg2rad below
+    let dLon = deg2rad(lon2 - lon1);
+    let a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    let d = R * c; // Distance in km
+    return d;
+}
+
+function deg2rad (deg) {
+    return deg * (Math.PI / 180);
+}
+
+function roughSizeOfObject (object) {
     const objectList = [];
     const stack = [object];
     let bytes = 0;
@@ -188,7 +206,7 @@ const distanceFilter = async function (query, result) {
     let criteria = {
         distance: {
             $lt: query.distance,
-            $gt: query.distance / 5   // this segment should be at least 10% of the final route (to avoid too small/insignificant segments
+            $gt: query.distance / 5   // this segment should be at least 20% of the final route (to avoid too small/insignificant segments
         },
         isRoute: true,
         isGenerated: false
@@ -202,8 +220,8 @@ const distanceFilter = async function (query, result) {
     const segments = await Route.list({criteria: criteria, detailed: true});
     result.goodSegments = segments;
 
-    // Log.debug(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
-    // Log.debug(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
+    Log.log(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
+    Log.log(TAG, segments.length + ' possible segments after distance filter: ', segments.map(s => s.distance + ' (' + s.title + ')'));
 
     return result;
 };
@@ -269,7 +287,6 @@ const radiusFilter = async function (query, result) {
 
     return result;
 };
-
 /**
  * Keep routes and segments where, when incorporating them into the route,
  * the lower bound on the total distance would still be less than the route distance.
@@ -294,35 +311,15 @@ const lowerBoundsFilter = async function (query, result) {
             const startPoint = route.geo[0];
             const endPoint = route.geo[route.geo.length - 1];
 
-            // query the db to get the distance to the start point
-            const options = {
-                criteria: {
-                    _id: startPoint._id,
-                },
-                latitude: query.start.lat,
-                longitude: query.start.lng,
-                distance: query.radius,
-                limit: 1,
-                select: {_id: 1, distance: 2}
-            };
-            let distanceToStart = await Geo.findDistance(options);
+            let distanceToStart = geolib.getDistance(
+                {latitude: query.start.lat, longitude: query.start.lng},
+                {latitude: startPoint.location.coordinates[1], longitude: startPoint.location.coordinates[0]}
+            );
 
-            // if this one failed
-            if (distanceToStart.length === 0) {
-                continue;
-            }
-            distanceToStart = distanceToStart[0].distance;
-
-            options.criteria._id = endPoint._id;
-            let distanceToEnd = await Geo.findDistance(options);
-
-            // if this one failed
-            if (distanceToEnd.length === 0) {
-                continue;
-            }
-
-            // calculate lower bound on the total route distance when incorporating this route
-            distanceToEnd = distanceToEnd[0].distance;
+            let distanceToEnd = geolib.getDistance(
+                {latitude: query.start.lat, longitude: query.start.lng},
+                {latitude: endPoint.location.coordinates[1], longitude: endPoint.location.coordinates[0]}
+            );
 
             const totalDistance = route.distance + distanceToStart + distanceToEnd;
 
@@ -343,8 +340,8 @@ const lowerBoundsFilter = async function (query, result) {
     }
     result.goodRoutes = newGoodRoutes;
     result.goodSegments = newGoodSegments;
-    Log.debug(TAG, result.goodRoutes.length + ' possible routes after lower bound filter: ', result.goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
-    Log.debug(TAG, result.goodSegments.length + ' possible segments after lower bound filter: ', result.goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
+    Log.log(TAG, result.goodRoutes.length + ' possible routes after lower bound filter: ', result.goodRoutes.map(r => r.lowerBoundDistance + ' (' + r.title + ')'));
+    Log.log(TAG, result.goodSegments.length + ' possible segments after lower bound filter: ', result.goodSegments.map(s => s.lowerBoundDistance + ' (' + s.title + ')'));
 
     return result;
 };
@@ -371,7 +368,7 @@ const sortAndReduce = async function (query, result) {
         }
     }
 
-    Log.debug(TAG, result.combos.length + ' combos remaining after sort and reduce');
+    Log.log(TAG, result.combos.length + ' combos remaining after sort and reduce');
 
     return result;
 };
@@ -405,7 +402,7 @@ const combine = async function (query, result) {
         result.combos.push(comboObject);
     }
 
-    Log.debug(TAG, result.combos.length + ' combos generated');
+    Log.log(TAG, result.combos.length + ' combos generated');
 
     return result;
 };
@@ -479,7 +476,7 @@ const generateCandidates = async function (query, result) {
         return b.distance - a.distance;
     });
 
-    Log.debug(TAG, routes.length + ' routes generated by OSRM: ', routes.map(r => r.distance));
+    Log.log(TAG, routes.length + ' routes generated by OSRM: ', routes.map(r => r.distance));
 
     // only keep the best n routes by removing items form the front and end of the array
     const keepBest = 10;
@@ -594,7 +591,7 @@ const createRoutes = async function (query, result) {
             query: {},
         });
 
-        Log.debug(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
+        Log.log(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints)');
 
         generatedRoutes.push(route);
         familiarityScores.push(candidate.familiarityScore);

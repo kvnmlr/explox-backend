@@ -74,6 +74,7 @@ let backupTask = async function (fireDate) {
 
 exports.init = function () {
     Log.log(TAG, 'Initialize Scheduler');
+    return;
 
     /** Test Task:
      * Period: Every 60 seconds
