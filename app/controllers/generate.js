@@ -97,6 +97,7 @@ exports.generate = async function (req, res) {
     result = await lowerBoundsFilter(query, result);
     result = await combine(query, result);
     result = await sortAndReduce(query, result);
+    result = await populate(query, result);
     result = await generateCandidates(query, result);
     result = await familiarityFilter(query, result);
     result = await createRoutes(query, result);
@@ -204,20 +205,20 @@ const respond = async function (query, result) {
 const distanceFilter = async function (query, result) {
     Log.log(TAG, 'Distance Filter');
     let criteria = {
+        isRoute: true,
+        isGenerated: false,
         distance: {
             $lt: query.distance,
             $gt: query.distance / 5   // this segment should be at least 20% of the final route (to avoid too small/insignificant segments
         },
-        isRoute: true,
-        isGenerated: false
     };
     // get all routes that are shorter than the route should-distance
-    const routes = await Route.list({criteria: criteria, detailed: true, limit: 100000});
+    const routes = await Route.list({criteria: criteria, detailed: true, limit: 1000});
     result.goodRoutes = routes;
 
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
-    const segments = await Route.list({criteria: criteria, detailed: true, limit: 100000});
+    const segments = await Route.list({criteria: criteria, detailed: false, limit: 1000});
     result.goodSegments = segments;
 
     Log.log(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
@@ -305,20 +306,29 @@ const lowerBoundsFilter = async function (query, result) {
 
     for (let routes of lists) {
         for (let route of routes.routes) {
-            if (route.geo.length < 2) {
-                continue;
+
+            let startPoint = [];
+            let endPoint = [];
+            if (!route.isRoute) {
+                startPoint = route.strava.start_latlng;
+                endPoint = route.strava.end_latlng;
+            } else {
+                startPoint = [route.geo[0].location.coordinates[1], route.geo[0].location.coordinates[0]];
+                endPoint = [route.geo[route.geo.length - 1].location.coordinates[1], route.geo[route.geo.length - 1].location.coordinates[0]];
             }
-            const startPoint = route.geo[0];
-            const endPoint = route.geo[route.geo.length - 1];
+
+            if (startPoint === [] || endPoint === []) {
+                Log.error(TAG, 'Route does not have start and end latlng strava properties', route);
+            }
 
             let distanceToStart = geolib.getDistance(
                 {latitude: query.start.lat, longitude: query.start.lng},
-                {latitude: startPoint.location.coordinates[1], longitude: startPoint.location.coordinates[0]}
+                {latitude: startPoint[0], longitude: startPoint[1]}
             );
 
             let distanceToEnd = geolib.getDistance(
                 {latitude: query.start.lat, longitude: query.start.lng},
-                {latitude: endPoint.location.coordinates[1], longitude: endPoint.location.coordinates[0]}
+                {latitude: endPoint[0], longitude: endPoint[1]}
             );
 
             const totalDistance = route.distance + distanceToStart + distanceToEnd;
@@ -365,6 +375,25 @@ const sortAndReduce = async function (query, result) {
             result.combos = result.combos.slice(1, result.combos.length);    // remove item form the beginning
         } else {
             result.combos = result.combos.slice(0, result.combos.length - 1);    // remove item from the end
+        }
+    }
+
+    Log.log(TAG, result.combos.length + ' combos remaining after sort and reduce');
+
+    return result;
+};
+
+/**
+ * Populates the remaining routes and generates with the full geo data
+ */
+const populate = async function (query, result) {
+    Log.debug(TAG, 'Populate');
+
+    for (let ci = 0; ci < result.combos.length; ci++) {
+        let combo = result.combos[ci];
+        for (let pi = 0; pi < combo.parts.length; pi++) {
+            let part = combo.parts[pi];
+            result.combos[ci].parts[pi] = await Route.load(part._id);
         }
     }
 
