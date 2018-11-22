@@ -218,7 +218,7 @@ const distanceFilter = async function (query, result) {
 
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
-    const segments = await Route.list({criteria: criteria, detailed: false, limit: 1000});
+    const segments = await Route.list({criteria: criteria, detailed: false, limit: 100000});
     result.goodSegments = segments;
 
     Log.log(TAG, routes.length + ' possible routes after distance filter: ', routes.map(r => r.distance + ' (' + r.title + ')'));
