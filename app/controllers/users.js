@@ -270,12 +270,12 @@ async function showAdminDashboard (req, res) {
         users = await User.list({});
     }
     if (req.query.routes) {
-        routes = await Route.list({criteria: {isRoute: true, isGenerated: false}});
-        generated = await Route.list({criteria: {isRoute: true, isGenerated: true}});
+        routes = await Route.list({criteria: {isRoute: true, isGenerated: false}, limit: 5000});
+        generated = await Route.list({criteria: {isRoute: true, isGenerated: true}, limit: 5000});
         creatorResults = await CreatorResult.list();
     }
     if (req.query.segments) {
-        segments = await Route.list({criteria: {isRoute: false}});
+        segments = await Route.list({criteria: {isRoute: false}, limit: 5000});
     }
     if (req.query.activities) {
         activities = await Activity.list({});

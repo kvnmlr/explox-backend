@@ -104,6 +104,7 @@ RouteSchema.statics = {
      * @param {Object} options
      */
     list: function (options) {
+        let limit = options.limit || 5000;
         let criteria = options.criteria || {};
         if (criteria._id) {
             criteria._id = ObjectId(criteria._id);
@@ -113,7 +114,7 @@ RouteSchema.statics = {
                 .select('-geo')
                 .populate('user', 'name username')
                 .sort({createdAt: -1})
-                .limit(5000)
+                .limit(limit)
                 .lean()
                 .exec();
         }
@@ -121,7 +122,7 @@ RouteSchema.statics = {
             .populate('user', 'name username')
             .populate('geo', 'name location')
             .sort({createdAt: -1})
-            .limit(5000)
+            .limit(limit)
             .lean()
             .exec();
     },
