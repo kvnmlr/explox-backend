@@ -56,48 +56,22 @@ exports.init = async function () {
     const pi = [49.189448, 7.609637];   // Pirmasens
 
 
-    const ul2 = lx;
-    const ur2 = ma;
-    const ll2 = ny;
-    const lr2 = st;
-
-    const ul3 = lx;
-    const ur3 = ma;
-    const ll3 = ny;
-    const lr3 = st;
+    const ul = lx;
+    const ur = kl;
+    const ll = mz;
+    const lr = kr;
 
     let queue = [];
 
-    /* for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.1) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.2) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.1) {
-            // horizontal holds all horizontal locations with 1km distance
-            const loc = [vertical, horizontal];
-            queue.push(loc);
-        }
-    } */
-
-    for (let vertical = Math.min(ll2[0], lr2[0]); vertical <= Math.max(ul2[0], ur2[0]); vertical += verticalKilometer * 4.5) {
-        // vertical holds all vertical locations with 1km distance
-
-        for (let horizontal = Math.min(ll2[1], ul2[1]); horizontal <= Math.max(lr2[1], ur2[1]); horizontal += horizontalKilometer * 4.5) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 1.2) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
         }
     }
-
-    /* for (let vertical = Math.min(ll3[0], lr3[0]); vertical <= Math.max(ul3[0], ur3[0]); vertical += verticalKilometer * 4) {
-        // vertical holds all vertical locations with 1km distance
-
-        for (let horizontal = Math.min(ll3[1], ul3[1]); horizontal <= Math.max(lr3[1], ur3[1]); horizontal += horizontalKilometer * 4) {
-            // horizontal holds all horizontal locations with 1km distance
-            const loc = [vertical, horizontal];
-            queue.push(loc);
-        }
-    } */
-
 
     // shuffle the queue such that the crawler selects random elements and there is no bias
     // as to which area is crawler first
@@ -146,12 +120,12 @@ exports.crawlSegments = async function (req, res) {
 
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
-        let increaseRadiusBy = 0.5;
-        let iterations = 2;
+        let increaseRadiusBy = 0.7;
+        let iterations = 8;
 
         if (!req.detailed) {
-            iterations = 20;
-            increaseRadiusBy = 8;
+            iterations = 10;
+            increaseRadiusBy = 5;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 

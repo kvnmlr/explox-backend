@@ -80,7 +80,7 @@ exports.init = function () {
      * Task: Outputs a heartbeat */
     schedule.scheduleJob('0 * * * * *', heartbeatTask);
 
-    if (app.get('env') !== 'production') return;
+    // if (app.get('env') !== 'production') return;
     // The following tasks are meant for production setup only
 
     /** Limit Update Task:
@@ -91,19 +91,17 @@ exports.init = function () {
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius) s */
-    schedule.scheduleJob('0 * 0-23 * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('30 * 0-23 * * *', coarseSegmentCrawlerTask);
+    schedule.scheduleJob('0 0-59/15 0-23 * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
      * Task: Crawls detailed segments (i.e. small radius) */
-    schedule.scheduleJob('15 * 0-23 * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('45 * 0-23 * * *', fineSegmentCrawlerTask);
+    schedule.scheduleJob('0 5-59/15 0-23 * * *', fineSegmentCrawlerTask);
 
     /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)
      * Task: Takes a portion all users and synchronizes their profiles */
-    schedule.scheduleJob('0 0-59/15 0-6 * * *', updateUserTask);
+    schedule.scheduleJob('0 10-59/15 0-23 * * *', updateUserTask);
 
     /** Backup Task:
      * Period: Once at 4:20 am

@@ -304,10 +304,6 @@ exports.getRoutes = function (id, token, max) {
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
-                        ImportExport.exportRoute({
-                            routeData: route,
-                            query: {},
-                        });
                     } else {
                         await getRoute(payload[i].id, token, id).catch();
                         done++;
@@ -361,10 +357,6 @@ exports.getActivities = function (id, token, max) {
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
                         Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
-                        ImportExport.exportRoute({
-                            routeData: activity,
-                            query: {},
-                        });
                     } else {
                         if (payload[i].name.includes('[ExploX]')) {
                             Log.error(TAG, 'Found a created Activity!');
@@ -416,10 +408,6 @@ exports.segmentsExplorer = function (token, options) {
                             });
                             if (segment) {
                                 Log.debug(TAG, 'Segment ' + payload.segments[i].id + ' already exist.');
-                                ImportExport.exportRoute({
-                                    routeData: segment,
-                                    query: {},
-                                });
                             } else {
                                 await getSegment(payload.segments[i].id, token, payload.segments[i]);
                             }
