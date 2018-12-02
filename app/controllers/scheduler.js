@@ -91,25 +91,19 @@ exports.init = function () {
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius) s */
-    schedule.scheduleJob('0 0-59/10 0-23 * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('0 2-59/10 0-23 * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('0 4-59/10 0-23 * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('0 6-59/10 0-23 * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('0 8-59/10 0-23 * * *', coarseSegmentCrawlerTask);
+    schedule.scheduleJob('0 * * * * *', coarseSegmentCrawlerTask);
+    schedule.scheduleJob('30 * * * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
      * Task: Crawls detailed segments (i.e. small radius) */
-    schedule.scheduleJob('0 1-59/10 0-23 * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('0 3-59/10 0-23 * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('0 5-59/10 0-23 * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('0 7-59/10 0-23 * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('0 9-59/10 0-23 * * *', fineSegmentCrawlerTask);
+    schedule.scheduleJob('15 * * * * *', fineSegmentCrawlerTask);
+    schedule.scheduleJob('45 * * * * *', fineSegmentCrawlerTask);
 
     /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)
      * Task: Takes a portion all users and synchronizes their profiles */
-    schedule.scheduleJob('0 10-59/15 0-23 * * *', updateUserTask);
+    schedule.scheduleJob('0 0-59/15 0-23 * * *', updateUserTask);
 
     /** Backup Task:
      * Period: Once at 4:20 am

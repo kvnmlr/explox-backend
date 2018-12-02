@@ -715,7 +715,6 @@ const extractGeosFromPayload = async function (id, payload) {
                 data.altitude = pl[i].data;
             }
         }
-        Log.debug(TAG, 'latlng points; ' + data.latlng.length + ', altitude points: ' + data.altitude.length);
         if (data == null || data === undefined) {
             Log.error(TAG, 'Could not read payload data from stream ' + id, pl);
             reject(new Error());
