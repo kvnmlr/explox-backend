@@ -57,16 +57,16 @@ exports.init = async function () {
 
 
     const ul = lx;
-    const ur = ma;
-    const ll = ny;
-    const lr = st;
+    const ur = kl;
+    const ll = mz;
+    const lr = kr;
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 2.52) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.42) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 2.52) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.91) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
