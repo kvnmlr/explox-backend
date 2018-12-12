@@ -63,10 +63,10 @@ exports.init = async function () {
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.42) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.27) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.91) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.99) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
@@ -121,11 +121,11 @@ exports.crawlSegments = async function (req, res) {
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
         let increaseRadiusBy = 1.5;
-        let iterations = 10;
+        let iterations = 15;
 
         if (!req.detailed) {
             iterations = 10;
-            increaseRadiusBy = 10;
+            increaseRadiusBy = 15;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 
