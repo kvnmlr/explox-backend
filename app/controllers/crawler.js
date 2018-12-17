@@ -56,17 +56,17 @@ exports.init = async function () {
     const pi = [49.189448, 7.609637];   // Pirmasens
 
 
-    const ul = lx;
-    const ur = kl;
-    const ll = mz;
-    const lr = kr;
+    const ul = sl;
+    const ur = nk;
+    const ll = fb;
+    const lr = gh;
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 1.27) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 0.5) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.99) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.5) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
@@ -120,12 +120,12 @@ exports.crawlSegments = async function (req, res) {
 
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
-        let increaseRadiusBy = 1.5;
+        let increaseRadiusBy = 0.3;
         let iterations = 15;
 
         if (!req.detailed) {
             iterations = 10;
-            increaseRadiusBy = 15;
+            increaseRadiusBy = 1;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 
