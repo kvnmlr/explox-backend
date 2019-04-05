@@ -36,9 +36,78 @@ module.exports = new StravaStrategy({
                     strava: profile._json,
                     authToken: accessToken,
                     stravaId: profile.id,
-                    role: 'user'
+                    role: 'user',
+                    demographics: {
+                        q1: '0',
+                        q2: '0',
+                        q3: '0',
+                        q3Text: '',
+                        q4: '0',
+                        q5: '0',
+                        q5Text: '',
+                        q6: '0'
+                    },
+                    cyclingBehaviour: {
+                        q1: '0',
+                        q2: '0',
+                        q3: [],
+                        q4: [],
+                        q5: '0',
+                        q6: '0',
+                        q7: '0',
+                        q8: {
+                            i1: 0,
+                            i2: 0,
+                            i3: 0,
+                            i4: 0,
+                            i5: 0,
+                            i6: 0,
+                            i7: 0,
+                        }
+                    },
+                    routePlanning: {
+                        q1: {
+                            i1: 0,
+                            i2: 0,
+                            i3: 0,
+                            i4: 0,
+                            i5: 0,
+                            i6: 0,
+                        },
+                        q2: [],
+                        q3: '',
+                        q4: '0',
+                        q5: {
+                            i1: 0,
+                            i2: 0,
+                            i3: 0,
+                            i4: 0,
+                            i5: 0,
+                            i6: 0,
+                            i7: 0,
+                        },
+                        q6: '',
+                        q7: {
+                            i1: 0,
+                            i2: 0,
+                            i3: 0,
+                            i4: 0,
+                            i5: 0,
+                            i6: 0,
+                            i7: 0,
+                            i8: 0,
+                            i9: 0,
+                        },
+                    },
+                    questionnaireInfo: {
+                        eligible: false,
+                        canUseWebsite: false,
+                        participates: false,
+                    },
                 });
+                Log.debug(TAG, user);
                 await user.save(async function (err, user) {
+                    Log.debug(TAG, user);
                     if (err) {
                         Log.error(TAG, err);
                     }

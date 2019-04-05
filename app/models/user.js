@@ -27,6 +27,10 @@ const UserSchema = new Schema({
     createdAt: {type: Date, default: Date.now},
     lastLogin: {type: Date, default: Date.now},
     lastUpdated: {type: Date, default: Date.now},
+    demographics: {},
+    cyclingBehaviour: {},
+    routePlanning: {},
+    questionnaireInfo: {},
 });
 
 const validatePresenceOf = value => value && value.length;

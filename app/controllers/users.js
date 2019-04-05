@@ -34,7 +34,7 @@ exports.loadProfile = async function (req, res, next, _id) {
 exports.finishRegistration = async function (req, res) {
     let user = req.user;
     console.log(req.body);
-    assign(user, only(req.body, 'name email username password subscriptions'));
+    assign(user, only(req.body, 'name email username password subscriptions demographics cyclingBehaviour routePlanning questionnaireInfo'));
     user.fullyRegistered = true;
     try {
         await user.save();
