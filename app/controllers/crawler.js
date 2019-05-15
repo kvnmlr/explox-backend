@@ -56,17 +56,17 @@ exports.init = async function () {
     const pi = [49.189448, 7.609637];   // Pirmasens
 
 
-    const ul = sl;
-    const ur = nk;
-    const ll = fb;
-    const lr = gh;
+    const ul = lx;
+    const ur = ma;
+    const ll = ny;
+    const lr = st;
 
     let queue = [];
 
-    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 0.5) {
+    for (let vertical = Math.min(ll[0], lr[0]); vertical <= Math.max(ul[0], ur[0]); vertical += verticalKilometer * 10) {
         // vertical holds all vertical locations with 1km distance
 
-        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 0.5) {
+        for (let horizontal = Math.min(ll[1], ul[1]); horizontal <= Math.max(lr[1], ur[1]); horizontal += horizontalKilometer * 10) {
             // horizontal holds all horizontal locations with 1km distance
             const loc = [vertical, horizontal];
             queue.push(loc);
@@ -75,8 +75,8 @@ exports.init = async function () {
 
     // shuffle the queue such that the crawler selects random elements and there is no bias
     // as to which area is crawler first
-    Log.debug(TAG, queue.length + ' locations added to crawler queue');
     queue = shuffle(queue);
+    Log.debug(TAG, queue.length + ' locations added to crawler queue');
 
     let setting = await Settings.loadValue('queue');
     if (setting) {
@@ -103,6 +103,7 @@ exports.crawlSegments = async function (req, res) {
             if (res) {
                 // if this was a request through the frontend
                 res.json({});
+
             }
             resolve([]);
             return;
@@ -120,12 +121,12 @@ exports.crawlSegments = async function (req, res) {
 
         const horizontal = 0.009009;    // one horizontal kilometer
         const vertical = 0.013808;      // one vertical kilometer
-        let increaseRadiusBy = 0.3;
-        let iterations = 15;
+        let increaseRadiusBy = 1;
+        let iterations = 10;
 
         if (!req.detailed) {
             iterations = 10;
-            increaseRadiusBy = 1;
+            increaseRadiusBy = 3;
             start = queue[Math.floor(Math.random() * queue.length)];
         }
 

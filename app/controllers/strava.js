@@ -288,7 +288,7 @@ exports.getRoutes = function (id, token, max) {
                 /* this will iterate through all routes and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
                 * and we will not kill the API*/
-                Log.debug('Found ' +  max + ' new routes');
+                Log.debug('Found ' + max + ' new routes');
                 for (let i = 0; i < payload.length; ++i) {
                     if (done >= max) {
                         break;
@@ -304,6 +304,21 @@ exports.getRoutes = function (id, token, max) {
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
+                        let user = await User.load_options({criteria: {stravaId: id}});
+                        route.user = user;
+
+                        let found = false;
+                        for (let i = 0; i < user.routes.length; i++) {
+                            if (user.routes[i].id === route.id) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            await route.save();
+                            route.user.routes.push(route);
+                            await route.user.save();
+                        }
                     } else {
                         await getRoute(payload[i].id, token, id).catch();
                         done++;
@@ -345,7 +360,7 @@ exports.getActivities = function (id, token, max) {
                 /* This will iterate through all activities and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
                 * and we will not kill the API */
-                Log.debug('Found ' +  max + ' new routes');
+                Log.debug('Found ' + max + ' new routes');
                 for (let i = 0; i < numActivities; ++i) {
                     if (done >= max) {
                         break;
@@ -357,6 +372,21 @@ exports.getActivities = function (id, token, max) {
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
                         Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
+                        let user = await User.load_options({criteria: {stravaId: id}});
+                        activity.user = user;
+                        let found = false;
+                        for (let i = 0; i < user.activities.length; i++) {
+                            if (user.activities[i].id === activity.id) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                        if (!found) {
+                            await activity.save();
+                            activity.user.activities.push(activity);
+                            await activity.user.save();
+                        }
                     } else {
                         if (payload[i].name.includes('[ExploX]')) {
                             Log.error(TAG, 'Found a created Activity!');

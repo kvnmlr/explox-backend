@@ -32,12 +32,21 @@ exports.loadProfile = async function (req, res, next, _id) {
 };
 
 exports.finishRegistration = async function (req, res) {
+    Log.debug(TAG, 'finish registration');
     let user = req.user;
-    console.log(req.body);
-    assign(user, only(req.body, 'name email username password subscriptions demographics cyclingBehaviour routePlanning questionnaireInfo'));
-    user.fullyRegistered = true;
+    assign(user, only(req.body, 'firstName lastName email username subscriptions demographics cyclingBehaviour routePlanning questionnaireInfo'));
+
+    if (!req.body.cache) {
+        user.fullyRegistered = true;
+    }
     try {
         await user.save();
+        if (req.body.cache) {
+            res.json({
+                errors: null,
+            });
+            return;
+        }
         req.logIn(user, err => {
             if (err) {
                 res.status(400).json({

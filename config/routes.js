@@ -42,7 +42,7 @@ module.exports = function (app, passport) {
     app.get('/csrf', users.getCsrfToken);
     app.post('/login', pauth('local', fail), users.session);
     app.post('/signup', users.signup);
-    app.post('/finishRegistration', userAuth, users.finishRegistration);
+    app.post('/finishRegistration', /*userAuth,*/ users.finishRegistration);
     app.post('/feedback', general.submitFeedback);
     app.post('/invite', general.submitInvitation);
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);

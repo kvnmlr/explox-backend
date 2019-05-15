@@ -10,6 +10,8 @@ const config = require('../../config');
 const fs = require('fs');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const Route = mongoose.model('Route');
+const Activity = mongoose.model('Activity');
 const app = require('express')();
 
 const heartbeatTask = function (fireDate) {
@@ -42,6 +44,16 @@ let updateUserTask = async function (fireDate) {
             await strava.updateUser(req);
         }
     }
+};
+
+let cleanupInvalidRoutes = async function (fireDate) {
+    Log.log(TAG, 'Cleanup invalid routes task ran at: ' + fireDate);
+    await Route.deleteMany({
+        geo: {$exists: true, $size: 0},
+    });
+    await Activity.deleteMany({
+        geo: {$exists: true, $size: 0},
+    });
 };
 
 let backupTask = async function (fireDate) {
@@ -78,7 +90,12 @@ exports.init = function () {
     /** Test Task:
      * Period: Every 60 seconds
      * Task: Outputs a heartbeat */
-    schedule.scheduleJob('0 * * * * *', heartbeatTask);
+    // schedule.scheduleJob('0 * * * * *', heartbeatTask);
+
+    /** Cleanup invalid Routes Task:
+     * Period: Every night at 0:00
+     * Task: Deletes invalid routes and activities */
+    schedule.scheduleJob('0 0 0 * * *', cleanupInvalidRoutes);
 
     // if (app.get('env') !== 'production') return;
     // The following tasks are meant for production setup only
@@ -91,19 +108,19 @@ exports.init = function () {
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius) s */
-    schedule.scheduleJob('0 * * * * *', coarseSegmentCrawlerTask);
-    schedule.scheduleJob('30 * * * * *', coarseSegmentCrawlerTask);
+     // schedule.scheduleJob('0 * * * * *', coarseSegmentCrawlerTask);
+     // schedule.scheduleJob('30 * * * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
      * Task: Crawls detailed segments (i.e. small radius) */
-    schedule.scheduleJob('15 * * * * *', fineSegmentCrawlerTask);
-    schedule.scheduleJob('45 * * * * *', fineSegmentCrawlerTask);
+     // schedule.scheduleJob('15 * * * * *', fineSegmentCrawlerTask);
+     // schedule.scheduleJob('45 * * * * *', fineSegmentCrawlerTask);
 
     /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)
      * Task: Takes a portion all users and synchronizes their profiles */
-    schedule.scheduleJob('0 0-59/15 0-23 * * *', updateUserTask);
+    // schedule.scheduleJob('0 0-59/15 0-23 * * *', updateUserTask);
 
     /** Backup Task:
      * Period: Once at 4:20 am

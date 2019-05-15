@@ -22,7 +22,6 @@ exports.creator = async(function (req, res) {
             }
         });
     }
-
     res.json({});
 });
 
@@ -48,7 +47,7 @@ exports.index = async function (req, res) {
     const tag = req.query.tag;
     const distance = req.query.distance;
     const segments = req.query.segments === 'true';
-    const limit = 100;
+    const limit = 1000;
 
     let distanceQuery = {$gt: 0};
     if (distance !== '') {
@@ -64,6 +63,7 @@ exports.index = async function (req, res) {
             isRoute: (!segments),
             isGenerated: false,
             distance: distanceQuery,
+            geo: {$exists: true, $not: {$size: 0}},
         }
     };
 
