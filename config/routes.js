@@ -42,7 +42,7 @@ module.exports = function (app, passport) {
     app.get('/csrf', users.getCsrfToken);
     app.post('/login', pauth('local', fail), users.session);
     app.post('/signup', users.signup);
-    app.post('/finishRegistration', /*userAuth,*/ users.finishRegistration);
+    app.post('/finishRegistration', /* userAuth, */ users.finishRegistration);
     app.post('/feedback', general.submitFeedback);
     app.post('/invite', general.submitInvitation);
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
@@ -69,6 +69,7 @@ module.exports = function (app, passport) {
     app.post('/routes', auth.requiresLogin, routes.create);
     // app.post('/routes/generated', routes.userSavedChoice);                  // TODO
     app.post('/routes/:id/comments', auth.requiresLogin, comments.create);
+    app.post('/updateCreatorResult', routes.updateCreatorResult);
     app.put('/routes/:id', routeAuth, routes.update);
     app.delete('/routes/:id', routeAuth, routes.destroy);
     app.delete('/routes/:id/comments/:commentId', commentAuth, comments.destroy);

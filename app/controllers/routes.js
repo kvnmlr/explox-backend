@@ -7,6 +7,9 @@ const {wrap: async} = require('co');
 const only = require('only');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
+const User = mongoose.model('User');
+const CreatorResult = mongoose.model('CreatorResult');
+
 const assign = Object.assign;
 
 exports.creator = async(function (req, res) {
@@ -102,14 +105,52 @@ exports.create = async function (req, res) {
 };
 
 /**
+ * Updates a creator result
+ */
+exports.updateCreatorResult = async function (req, res) {
+    Log.debug(TAG, 'Update creator result');
+    let result = await CreatorResult.load(req.body.id);
+    result.routeRatings = req.body.routeRatings;
+    result.acceptedRoutes = req.body.acceptedRoutes;
+
+    try {
+        await result.save();
+        res.json({
+            flash: {
+                type: 'success',
+                text: 'The route details have been updated.'
+            }
+        });
+    } catch (err) {
+        Log.error(TAG, 'Error saving updated creator result', err);
+        res.status(400).json({
+            error: 'Error while updating the creator result',
+            flash: {
+                type: 'error',
+                text: 'Creator result could not be updated'
+            }
+        });
+    }
+};
+
+/**
  * Updates a route
  */
 exports.update = async function (req, res) {
     let route = req.routeData;
     assign(route, only(req.body, 'title body rating'));
     route.tags = req.body.tags.replace(/[\[\]&"]+/g, ''); // eslint-disable-line no-useless-escape
+
     try {
-        await route.save();
+        if (!route.user && req.body.user) {
+            let user = await User.load(req.body.user._id);
+            route.user = user;
+            await route.save();
+            user.routes.push(route);
+            await user.save();
+        } else {
+            await route.save();
+        }
         res.json({
             flash: {
                 type: 'success',

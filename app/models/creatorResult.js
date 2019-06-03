@@ -9,6 +9,7 @@ const CreatorResultSchema = new Schema({
     query: {},
     generatedRoutes: [{type: Schema.ObjectId, ref: 'Route', default: null}],
     acceptedRoutes: [{type: Schema.ObjectId, ref: 'Route', default: null}],
+    routeRatings: [{}],
     familiarityScores: [Number],
 
 });
@@ -31,15 +32,20 @@ CreatorResultSchema.statics = {
     },
 
     load: function (_id) {
-        return this.load_options({ criteria: { _id: _id } });
+        return this.load_options({criteria: {_id: _id}});
     },
 
     load_options: function (options, cb) {
         options.select = options.select || '';
         return this.findOne(options.criteria)
             .populate('user', 'name username email')
-            .populate('receiverUser', 'name username email')
-            .select(options.select)
+            .populate({
+                path: 'generatedRoutes',
+                populate: {
+                    path: 'geo',
+                    model: 'Geo'
+                }
+            }).select(options.select)
             .exec(cb);
     },
 

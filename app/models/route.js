@@ -14,7 +14,7 @@ const RouteSchema = new Schema({
     user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
     geo: [{type: Schema.ObjectId, ref: 'Geo'}],         // List of references to geo points
     parts: [{type: Schema.ObjectId, ref: 'Route'}],     // List of routes that are part of this route (only for generated routes)
-    distance: {type: Number , default: 0, trim: true},      // Distance in meters
+    distance: {type: Number , default: 0, index: true, trim: true},      // Distance in meters
     comments: [{                                            // Comments, currently not used
         body: {type: String, default: ''},
         user: {type: Schema.ObjectId, ref: 'User'},
@@ -106,6 +106,7 @@ RouteSchema.statics = {
     list: function (options) {
         let limit = options.limit || 5000;
         let criteria = options.criteria || {};
+        let sort = options.sort || {createdAt: -1};
         if (criteria._id) {
             criteria._id = ObjectId(criteria._id);
         }
@@ -113,7 +114,7 @@ RouteSchema.statics = {
             return this.find(criteria)
                 .select('-geo')
                 .populate('user', 'name username')
-                .sort({createdAt: -1})
+                .sort(sort)
                 .limit(limit)
                 .lean()
                 .exec();
@@ -121,7 +122,7 @@ RouteSchema.statics = {
         return this.find(criteria)
             .populate('user', 'name username')
             .populate('geo', 'name location')
-            .sort({createdAt: -1})
+            .sort(sort)
             .limit(limit)
             .lean()
             .exec();

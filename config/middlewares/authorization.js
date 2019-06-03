@@ -61,11 +61,11 @@ exports.user = {
  */
 exports.route = {
     hasAuthorization: function (req, res, next) {
-        if (req.user.role === 'admin') {
+        if (req.user.role === 'admin' || ( !req.routeData.user && req.routeData.isGenerated )) {
             // admin can do anything with any route
             return next();
         }
-        if (!req.routeData.user) {
+        if (!req.routeData.user && !req.routeData.isGenerated) {
             req.flash('info', 'You are not authorized');
             return res.status(401).json({
                 error: 'Unauthorized action',

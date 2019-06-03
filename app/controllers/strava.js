@@ -685,14 +685,14 @@ const getRouteStream = function (id, token, route, next) {
 
 const getActivityStream = async function (id, token, activity, next) {
     try {
-        strava.streams.activity({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
+        strava.streams.explorative({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
             // updateLimits(limits);
             if (err) {
                 Log.error(TAG, err);
             }
             let geos = await extractGeosFromPayload(id, {
                 payload: payload,
-                activity: activity
+                explorative: activity
             }).catch((err) => next(err.message));
             if (geos !== null) {
                 next(null, geos);
@@ -778,7 +778,7 @@ const extractGeosFromPayload = async function (id, payload) {
                     altitude: data.altitude[i],
                 });
 
-                const activity = payload.activity;
+                const activity = payload.explorative;
                 const route = payload.route;
 
                 // let the geo know that it belongs to this activity
