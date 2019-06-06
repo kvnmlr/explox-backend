@@ -17,7 +17,6 @@ let mailOptions = {
     from: '"ExploX" <' + config.email + '>',
     to: config.email,
     subject: 'This is a test email',
-    text: 'It works'
 };
 
 module.exports = {
@@ -27,21 +26,20 @@ module.exports = {
         mailOptions.html =
             '<h2 style="color: #ee5b19">Welcome to ExploX</h2>' +
             '<p><b>You are now registered and can use all features.</b></p>' +
-            '<p>We will reward your participation in the study with the chance to win a <b>100€ Amazon Voucher</b> that\n' +
+            '<p>We will reward your participation in the study with the chance to win one of <b>6 x 25€ Amazon Voucher</b> that\n' +
             'you will receive\n' +
             'at the end of the study. You have to fulfill the following criteria in order to receive the voucher:</p>\n' +
             '<ul>\n' +
             '<li>You have completed the following questionnaires and you are eligible to participate</li>\n' +
             '<li>You have done at least 15 (successful) route generations and rated each of the resulting routes</li>\n' +
-            '<li>You have done at least one (successful) route generation on 5 different days</li>\n' +
             '<li>You have filled out the User Experience Questionnaire at the end of the study</li>\n' +
             '<li>You have filled out a short qualitative questionnaire and provided feedback</li>\n' +
             '</ul>\n' +
             '<br>\n' +
-            '<p><b style="color: #ee5b19">Additionally:</b> The first 10 participants to actually cycle at least 5 of\n' +
+            '<p><b style="color: #ee5b19">Additionally:</b> The first 5 participants to actually cycle at least 2 of\n' +
             'the generated routes,\n' +
             'track and save them as Strava activities and give us detailed information about the routes will\n' +
-            'receive a <b>20€ Voucher</b>.\n' +
+            'receive a <b>30€ Voucher</b>. If you did this and did not receive an automatic e-mail within one week after the study period, please contact us.\n' +
             '</p>\n' +
             '<br>' +
             '<p><b>You can see the progress of your study duties in your personal profile page. ' +

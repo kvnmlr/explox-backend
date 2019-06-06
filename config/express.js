@@ -5,7 +5,6 @@ const session = require('express-session');
 const compression = require('compression');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
-const cookieSession = require('cookie-session');
 const methodOverride = require('method-override');
 const csrf = require('csurf');
 const bodyParser = require('body-parser');
@@ -18,7 +17,6 @@ const winston = require('winston');
 const helpers = require('view-helpers');
 const config = require('./');
 const pkg = require('../package.json');
-
 const env = process.env.NODE_ENV || 'development';
 
 module.exports = function (app, passport) {
@@ -63,12 +61,7 @@ module.exports = function (app, passport) {
     }
 
     // Don't log during tests
-    // Logging middleware
     if (env !== 'test') app.use(morgan('combined', log));
-
-    // set views path, template engine and default layout
-    app.set('views', config.root + '/app/views');
-    app.set('view engine', 'jade');
 
     // expose package.json to views
     app.use(function (req, res, next) {
@@ -117,16 +110,10 @@ module.exports = function (app, passport) {
     app.use(helpers(pkg.name));
 
     if (env !== 'test') {
-        app.use(csrf({cookie: true, ignoreMethods: ['GET' , 'HEAD', 'OPTIONS', 'DELETE']}));
-
-        // This could be moved to view-helpers :-)
+        app.use(csrf({cookie: true, ignoreMethods: ['GET', 'HEAD', 'OPTIONS', 'DELETE']}));
         app.use(function (req, res, next) {
             res.locals.csrf_token = req.csrfToken();
             next();
         });
-    }
-
-    if (env === 'development') {
-        app.locals.pretty = true;
     }
 };

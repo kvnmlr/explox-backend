@@ -1,5 +1,7 @@
 'use strict';
-
+'use strict';
+const Log = require('../app/utils/logger');
+const TAG = 'router';
 const users = require('../app/controllers/users');
 const routes = require('../app/controllers/routes');
 const comments = require('../app/controllers/comments');
@@ -26,11 +28,15 @@ module.exports = function (app, passport) {
     // Auth Routes
     app.get('/auth/strava/callback', pauth('strava', fail), strava.authCallback, users.session);
     app.get('/auth/strava', pauth('strava', fail), users.session);
-
     app.get('/stravaimport', userAuth, strava.uploadActivity);
 
     // General Routes
     app.param('feedbackId', general.loadFeedbackOptions);
+    app.post('/login', pauth('local', fail), users.session);
+    app.post('/signup', users.signup);
+    app.post('/finishRegistration', /* userAuth, */ users.finishRegistration);
+    app.post('/submitFeedback', general.submitFeedback);
+    app.post('/invite', general.submitInvitation);
     app.get('/', general.home);
     app.get('/hub', general.hub);
     app.get('/creator', auth.requiresLogin, routes.creator);
@@ -40,11 +46,7 @@ module.exports = function (app, passport) {
     app.get('/logout', users.logout);
     app.get('/authenticate', users.authenticate);
     app.get('/csrf', users.getCsrfToken);
-    app.post('/login', pauth('local', fail), users.session);
-    app.post('/signup', users.signup);
-    app.post('/finishRegistration', /* userAuth, */ users.finishRegistration);
-    app.post('/feedback', general.submitFeedback);
-    app.post('/invite', general.submitInvitation);
+
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
 
     // User Routes
@@ -87,6 +89,7 @@ module.exports = function (app, passport) {
         if (!err || err === undefined) {
             return next();
         }
+        Log.debug(TAG, 'An error occurred during route handling', err);
 
         if (err.message
             && (~err.message.indexOf('not found')
@@ -104,6 +107,7 @@ module.exports = function (app, passport) {
 
     // 404 if no middleware responded
     app.use(function (req, res) {
+        Log.debug(TAG, '404');
         const payload = {
             url: req.originalUrl,
             error: 'Not found'

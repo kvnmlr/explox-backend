@@ -22,6 +22,7 @@ const UserSchema = new Schema({
     stravaStats: {},
     routes: [{type: Schema.ObjectId, ref: 'Route'}],
     activities: [{type: Schema.ObjectId, ref: 'Activity'}],
+    creatorResults: [{type: Schema.ObjectId, ref: 'CreatorResult'}],
     role: {type: String, default: 'user'},
     subscriptions: [{type: String, default: ''}],
     createdAt: {type: Date, default: Date.now},

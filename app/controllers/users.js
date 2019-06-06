@@ -240,10 +240,10 @@ exports.session = async function (req, res) {
         // synchronize user on every login
         if (req.user.fullyRegistered) {
             // if user tries to log in, let him wait while synchronization is running
-            await Strava.updateUser({profile: req.user, max: 2}); // only take 2 so login does not take too long
+            await Strava.updateUser({profile: req.user, max: 1000}); // only take 2 so login does not take too long
         } else {
             // synchronize asynchronously while they are registering
-            Strava.updateUser({profile: req.user, max: 2});// only take 2 so login does not take too long
+            Strava.updateUser({profile: req.user, max: 1000});// only take 2 so login does not take too long
         }
     }
     await User.update_user(req.user._id, {lastLogin: Date.now()});

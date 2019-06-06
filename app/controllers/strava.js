@@ -281,7 +281,7 @@ exports.getRoutes = function (id, token, max) {
             if (payload) {
                 let done = 0;
                 if (!max) {
-                    max = 30;
+                    max = 1000;
                 }
                 if (payload.length < max) max = payload.length;
 
@@ -352,7 +352,7 @@ exports.getActivities = function (id, token, max) {
             if (payload) {
                 let done = 0;
                 if (!max) {
-                    max = 30;
+                    max = 1000;
                 }
                 let numActivities = payload.length;
                 if (numActivities < max) max = numActivities;
@@ -365,10 +365,13 @@ exports.getActivities = function (id, token, max) {
                     if (done >= max) {
                         break;
                     }
+
+
                     if (payload[i].type !== 'Ride') {
-                        // only rides
+                        Log.debug(TAG, 'Wrong type ' + payload[i].type + ' for activity ' + payload[i].name, );
                         continue;
                     }
+
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
                         Log.debug(TAG, 'Activity ' + payload[i].id + ' already exist.');
@@ -685,14 +688,14 @@ const getRouteStream = function (id, token, route, next) {
 
 const getActivityStream = async function (id, token, activity, next) {
     try {
-        strava.streams.explorative({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
+        strava.streams.activity({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
             // updateLimits(limits);
             if (err) {
                 Log.error(TAG, err);
             }
             let geos = await extractGeosFromPayload(id, {
                 payload: payload,
-                explorative: activity
+                activity: activity
             }).catch((err) => next(err.message));
             if (geos !== null) {
                 next(null, geos);
@@ -778,7 +781,7 @@ const extractGeosFromPayload = async function (id, payload) {
                     altitude: data.altitude[i],
                 });
 
-                const activity = payload.explorative;
+                const activity = payload.activity;
                 const route = payload.route;
 
                 // let the geo know that it belongs to this activity

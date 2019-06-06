@@ -56,7 +56,8 @@ exports.feedback = async function (req, res) {
 };
 
 exports.submitFeedback = async function (req, res) {
-    req.body.email = (req.body.email).toLowerCase();
+    Log.debug(TAG, 'Feedback received');
+    req.body.email = req.body.email.toLowerCase();
     const feedback = new Feedback(req.body);
     mailer.feedbackReceived(feedback);
     try {
@@ -77,6 +78,7 @@ exports.invitation = async function (req, res) {
 };
 
 exports.submitInvitation = async function (req, res) {
+    Log.debug(TAG, 'Invitation received');
     const invite = {
         user: req.user,
         sender: req.user.firstName + ' ' + req.user.lastName,

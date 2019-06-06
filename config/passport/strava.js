@@ -108,11 +108,10 @@ module.exports = new StravaStrategy({
                         eligible: false,
                         canUseWebsite: false,
                         participates: false,
+                        language: 'en',
                     },
                 });
-                Log.debug(TAG, user);
                 await user.save(async function (err, user) {
-                    Log.debug(TAG, user);
                     if (err) {
                         Log.error(TAG, err);
                     }
