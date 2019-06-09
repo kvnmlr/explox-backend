@@ -258,9 +258,11 @@ UserSchema.statics = {
      * @returns {Promise|*|RegExpExecArray}
      */
     list: function (options) {
+        options.select = options.select || '-hashed_password -salt';
         const sort = options.sort || {createdAt: -1};
         const criteria = options.criteria || {};
         return this.find(criteria)
+            .select(options.select)
             .sort(sort)
             .exec();
     }

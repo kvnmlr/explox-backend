@@ -46,6 +46,7 @@ module.exports = function (app, passport) {
     app.get('/logout', users.logout);
     app.get('/authenticate', users.authenticate);
     app.get('/csrf', users.getCsrfToken);
+    app.get('/questionnaire', auth.adminOnly, users.questionnaire);
 
     app.delete('/feedback/:feedbackId', auth.adminOnly, general.destroyFeedback);
 

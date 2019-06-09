@@ -210,8 +210,26 @@ exports.update = async function (req, res) {
  * Removes the current user from the database
  */
 exports.destroy = async function (req, res) {
-    await req.profile.remove();
-    res.json({});
+    req.user.fullyRegistered = false;
+    try {
+        await req.user.save();
+        res.json({
+            user: null,
+            flash: {
+                text: 'Your account has been successfully deleted',
+                type: 'success'
+            }
+        });
+    } catch (err) {
+        Log.error(TAG, 'Error disabling updated user', err);
+        res.status(500).json({
+            error: 'Error while disabling user account',
+            flash: {
+                text: 'Your account could not be deleted',
+                type: 'error'
+            }
+        });
+    }
 };
 
 /**
@@ -240,10 +258,10 @@ exports.session = async function (req, res) {
         // synchronize user on every login
         if (req.user.fullyRegistered) {
             // if user tries to log in, let him wait while synchronization is running
-            await Strava.updateUser({profile: req.user, max: 1000}); // only take 2 so login does not take too long
+            await Strava.updateUser({profile: req.user, max: 5}); // only take 5 so login does not take too long
         } else {
             // synchronize asynchronously while they are registering
-            Strava.updateUser({profile: req.user, max: 1000});// only take 2 so login does not take too long
+            Strava.updateUser({profile: req.user, max: 1000});
         }
     }
     await User.update_user(req.user._id, {lastLogin: Date.now()});
@@ -324,3 +342,18 @@ async function showUserDashboard (req, res) {
         });
     }
 }
+
+/**
+ * Responds the current csrf token
+ */
+exports.questionnaire = async function (req, res) {
+    let questionnaires = await User.list({
+        select: 'demographics cyclingBehaviour routePlanning questionnaireInfo'
+    });
+    Log.debug(TAG, '', questionnaires);
+    if (questionnaires) {
+        res.json({
+            questionnaires: questionnaires,
+        });
+    }
+};
