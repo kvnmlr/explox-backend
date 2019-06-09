@@ -184,16 +184,23 @@ exports.logout = function (req, res) {
  */
 exports.update = async function (req, res) {
     let user = req.user;
-    assign(user, only(req.body, 'name email username subscriptions'));
+    assign(user, only(req.body, 'name email username subscriptions visitedActivityMap'));
     try {
         await user.save();
-        res.json({
-            user: user,
-            flash: {
-                text: 'Your data has been successfully updated',
-                type: 'success'
-            }
-        });
+
+        if (!req.body.visitedActivityMap) {
+            res.json({
+                user: user,
+                flash: {
+                    text: 'Your data has been successfully updated',
+                    type: 'success'
+                }
+            });
+        } else {
+            res.json({});
+        }
+
+
     } catch (err) {
         Log.error(TAG, 'Error saving updated user', err);
         res.status(500).json({
@@ -258,7 +265,7 @@ exports.session = async function (req, res) {
         // synchronize user on every login
         if (req.user.fullyRegistered) {
             // if user tries to log in, let him wait while synchronization is running
-            await Strava.updateUser({profile: req.user, max: 5}); // only take 5 so login does not take too long
+            await Strava.updateUser({profile: req.user, max: 3}); // only take 5 so login does not take too long
         } else {
             // synchronize asynchronously while they are registering
             Strava.updateUser({profile: req.user, max: 1000});

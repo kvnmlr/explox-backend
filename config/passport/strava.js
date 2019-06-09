@@ -32,6 +32,7 @@ module.exports = new StravaStrategy({
                     lastName: profile.name.last,
                     email: profile._json.email,
                     username: profile.displayName,
+                    visitedActivityMap: false,
                     provider: 'strava',
                     strava: profile._json,
                     authToken: accessToken,
