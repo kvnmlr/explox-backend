@@ -534,6 +534,21 @@ const getActivity = async function (id, token, userID) {
             }
             updateLimits(limits);
 
+            // Get the segments that are part of this activity
+            payload.segment_efforts.forEach(async (effort) => {
+                const seg = effort.segment;
+                const segment = await Route.load_options({
+                    criteria: {
+                        isRoute: false,
+                        stravaId: seg.id
+                    }
+                });
+                if (!segment) {
+                    await getSegment(seg.id, token, seg);
+                }
+            });
+
+
             let user = await User.load_options({criteria: {stravaId: userID}});
             if (user) {
 
@@ -591,6 +606,19 @@ const getRoute = async function (id, token, userID) {
                 return;
             }
             updateLimits(limits);
+
+            // Get the segments that are part of this route
+            payload.segments.forEach(async (seg) => {
+                const segment = await Route.load_options({
+                    criteria: {
+                        isRoute: false,
+                        stravaId: seg.id
+                    }
+                });
+                if (!segment) {
+                    await getSegment(seg.id, token, seg);
+                }
+            });
 
             let user = await User.load_options({criteria: {stravaId: userID}});
 

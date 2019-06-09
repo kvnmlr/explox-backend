@@ -232,6 +232,9 @@ UserSchema.statics = {
                 path: 'activities',
                 select: '-geo',
             })
+            .populate({
+                path: 'creatorResults',
+            })
             .exec(cb);
     },
 
