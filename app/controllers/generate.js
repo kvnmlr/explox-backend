@@ -650,7 +650,6 @@ const generateCandidates = async function (query, result) {
         Log.debug(TAG, 'READY for OSRM: ' + coordinates.length);
 
         let route = await osrm.findRoute({waypoints: coordinates});
-        Log.debug(TAG, 'OSRM Result: ', route);
         if (route.distance > 0) {
             // save what parts are included in this route
             route.parts = combo.parts;

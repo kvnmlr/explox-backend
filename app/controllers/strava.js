@@ -292,7 +292,6 @@ exports.getRoutes = function (id, token, max) {
 
                 Log.debug('Found ' + max + ' new routes');
                 for (let i = 0; i < payload.length; ++i) {
-                    Log.debug(TAG, 'done ' + done + ' of ' + max);
                     if (done >= max) {
                         break;
                     }

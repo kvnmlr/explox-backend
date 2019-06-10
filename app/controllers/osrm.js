@@ -16,14 +16,13 @@ const version = 'v5/mapbox';
 const maxAllowedWaypoints = 25;
 
 
-
 exports.findRoute = async function (options) {
     let waypoints = options.waypoints;
     let coordinates = toOsrmFormat(waypoints);
 
     const service = 'directions';
     const profile = 'cycling';
-    const query = 'overview=false&steps=true&geometries=geojson&access_token=' + config.mapbox_token;
+    const query = 'geometries=geojson&overview=full&steps=false&access_token=' + config.mapbox_token;
 
     let requestString = protocol + '://' + domain + '/' + service + '/' + version + '/' + profile + '/';
     Log.debug(TAG, 'OSRM request path: ' + requestString);
@@ -58,18 +57,13 @@ exports.findRoute = async function (options) {
     }
 
     const route = body.routes[0];
-    const legs = route.legs;
+    const geo = route.geometry;
     result.distance = route.distance;
 
-    for (let leg of legs) {
-        const steps = leg.steps;
-        steps.forEach(function (step) {
-            if (step.maneuver) {
-                const location = step.maneuver.location;
-                result.waypoints.push(location);
-            }
-        });
-    }
+    const coords = geo.coordinates;
+    coords.forEach(function (location) {
+        result.waypoints.push(location);
+    });
     return new Promise((resolve) => {
         resolve(result);
     });
