@@ -40,7 +40,7 @@ module.exports = new StravaStrategy({
                     role: 'user',
                     demographics: {
                         q1: '0',
-                        q2: '0',
+                        q2: 0,
                         q3: '0',
                         q3Text: '',
                         q4: '0',
@@ -65,7 +65,8 @@ module.exports = new StravaStrategy({
                         q10: [],
                         q10Text: '',
                         q11: '0',
-                        q12: '0',
+                        q12a: '0',
+                        q12b: '0',
                         q13: '0',
                         q14: {
                             i1: 0,
@@ -89,8 +90,10 @@ module.exports = new StravaStrategy({
                             i6: 0,
                         },
                         q3Text: '',
-                        q4: [],
-                        q4Text: '',
+                        q4a: [],
+                        q4aText: '',
+                        q4b: [],
+                        q4bText: '',
                         q5: '',
                         q6: '',
                         q7: '0',
@@ -110,6 +113,14 @@ module.exports = new StravaStrategy({
                         canUseWebsite: false,
                         participates: false,
                         language: 'en',
+                        backup: {
+                            q1: '0',
+                            q2: '0',
+                            q3: '0',
+                            q4: [],
+                            q5: [],
+                            q6: [],
+                        },
                     },
                 });
                 await user.save(async function (err, user) {
