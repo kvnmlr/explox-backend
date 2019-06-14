@@ -15,6 +15,7 @@ const UserSchema = new Schema({
     provider: {type: String, default: ''},
     fullyRegistered: {type: Boolean, default: false},
     visitedActivityMap: {type: Boolean, default: false},
+    creatorTutorial: {type: Boolean, default: false},
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
     authToken: {type: String, default: ''},
@@ -203,6 +204,7 @@ UserSchema.statics = {
     load_routes: function (_id, options) {
         options.select = options.select || 'routes';
         return this.findOne({_id: ObjectId(_id)})
+            .sort({createdAt: 'desc'})
             .populate({
                 path: 'routes',
                 select: 'title geo',
@@ -224,6 +226,7 @@ UserSchema.statics = {
         options.select = options.select || '-hashed_password -salt';
         return this.findOne(options.criteria)
             .select(options.select)
+            .sort({createdAt: 'desc'})
             .populate({
                 path: 'routes',
                 select: '-geo -parts',

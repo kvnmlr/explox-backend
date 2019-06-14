@@ -340,8 +340,13 @@ const lowerBoundsFilter = async function (query, result) {
                 startPoint = route.strava.start_latlng;
                 endPoint = route.strava.end_latlng;
             } else {
-                startPoint = [route.geo[0].location.coordinates[1], route.geo[0].location.coordinates[0]];
-                endPoint = [route.geo[route.geo.length - 1].location.coordinates[1], route.geo[route.geo.length - 1].location.coordinates[0]];
+                if (route.geo) {
+                    startPoint = [route.geo[0].location.coordinates[1], route.geo[0].location.coordinates[0]];
+                    endPoint = [route.geo[route.geo.length - 1].location.coordinates[1], route.geo[route.geo.length - 1].location.coordinates[0]];
+                }
+                else {
+                    continue;
+                }
             }
 
             if (startPoint === [] || endPoint === []) {
@@ -594,6 +599,7 @@ const generateCandidates = async function (query, result) {
 
     // for every combo, generate a route
     for (let combo of result.explorativeCombos) {
+
         // start with the starting point
         let coordinates = [{
             'coordinates': [
@@ -657,7 +663,6 @@ const generateCandidates = async function (query, result) {
             // add this route to the list of all generated routes
             explorativeRoutes.push(route);
         }
-        break;
     }
 
     // sort the resulting routes by distance
@@ -753,7 +758,7 @@ const familiarityFilter = async function (query, result) {
         return b.familiarityScore - a.familiarityScore;
     });
 
-    const keepBest = 1;
+    const keepBest = 2;
     if (result.candidates.length) {
         result.candidates = result.candidates.slice(0, keepBest);
         Log.debug(TAG, 'Explorative route has familiarity score ' + result.candidates[0].familiarityScore);

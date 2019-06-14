@@ -73,7 +73,6 @@ exports.uploadActivity = async function (req, res) {
     const title = req.query.title;
     const description = req.query.description;
 
-
     var headers = {
         'User-Agent': 'Super Agent/0.0.1',
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -85,10 +84,11 @@ exports.uploadActivity = async function (req, res) {
         method: 'POST',
         headers: headers,
         formData: {
+            type: 'Ride',
             file: 'gpx/routes/generated/route_' + routeId + '.gpx',
             name: '[ExploX] Please delete this activity',
             description: 'This activity has been created automatically by explox, please delete it.',
-            private: 0,
+            private: 1,
             data_type: 'gpx',
             external_id: 'id',
             id: routeId,

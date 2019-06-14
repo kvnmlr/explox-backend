@@ -2,19 +2,11 @@
 
 const Log = require('../utils/logger');
 const TAG = 'osrm';
-const mongoose = require('mongoose');
 const request = require('request-promise');
 const config = require('../../server').config;
-const User = mongoose.model('User');
-const Route = mongoose.model('Route');
-const Activity = mongoose.model('Activity');
-const Geo = mongoose.model('Geo');
-const Settings = mongoose.model('Settings');
 const protocol = 'https';
 const domain = 'api.mapbox.com';
 const version = 'v5/mapbox';
-const maxAllowedWaypoints = 25;
-
 
 exports.findRoute = async function (options) {
     let waypoints = options.waypoints;
@@ -22,7 +14,7 @@ exports.findRoute = async function (options) {
 
     const service = 'directions';
     const profile = 'cycling';
-    const query = 'geometries=geojson&overview=full&steps=false&access_token=' + config.mapbox_token;
+    const query = 'continue_straight=true&geometries=geojson&overview=full&steps=false&access_token=' + config.mapbox_token;
 
     let requestString = protocol + '://' + domain + '/' + service + '/' + version + '/' + profile + '/';
     Log.debug(TAG, 'OSRM request path: ' + requestString);
@@ -36,7 +28,6 @@ exports.findRoute = async function (options) {
                 Log.error(TAG, 'OSRM request could not be satisfied', error);
             }
         });
-
 
     try {
         let bodyString = JSON.stringify(body).replace(/\\/g, '');
