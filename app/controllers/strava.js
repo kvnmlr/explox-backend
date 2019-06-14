@@ -164,7 +164,6 @@ exports.updateUser = async function (req, res) {
 
         // check if limits still okay
         let error = false;
-
         if (user) {
             let activities = [];
             const token = user.authToken;
