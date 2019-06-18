@@ -36,10 +36,10 @@ module.exports = {
             '<li>You have filled out a short qualitative questionnaire and provided feedback</li>\n' +
             '</ul>\n' +
             '<br>\n' +
-            '<p><b style="color: #ee5b19">Additionally:</b> The first 5 participants to actually cycle at least 2 of\n' +
+            '<p><b style="color: #ee5b19">Additionally:</b> The participants that actually cycle at least 2 of\n' +
             'the generated routes,\n' +
-            'track and save them as Strava activities and give us detailed information about the routes will\n' +
-            'receive a <b>30€ Voucher</b>. If you did this and did not receive an automatic e-mail within one week after the study period, please contact us.\n' +
+            'track and save them as Strava activities and give us detailed information about the routes can\n' +
+            'win a <b>30€ Voucher</b>. If you did this and did not receive an automatic e-mail within one week after the study period, please contact us.\n' +
             '</p>\n' +
             '<br>' +
             '<p><b>You can see the progress of your study duties in your personal profile page. ' +
