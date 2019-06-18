@@ -45,7 +45,28 @@ CreatorResultSchema.statics = {
                     path: 'geo',
                     model: 'Geo'
                 }
-            }).select(options.select)
+            })
+            .populate({
+                path: 'generatedRoutes',
+                populate: {
+                    path: 'parts',
+                    model: 'Route',
+                    select: '-geo'
+                }
+            })
+            .select(options.select)
+            .exec(cb);
+    },
+
+    load_basic: function (options, cb) {
+        options.select = options.select || '';
+        return this.findOne(options.criteria)
+            .populate('user', 'name username email')
+            .populate({
+                path: 'generatedRoutes',
+                model: 'Route'
+            })
+            .select(options.select)
             .exec(cb);
     },
 

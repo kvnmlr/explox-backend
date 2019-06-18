@@ -51,9 +51,9 @@ if (cluster.isMaster) {
             cluster.fork();
         }
 
-        Object.keys(cluster.workers).forEach(function (id) {
+        /* Object.keys(cluster.workers).forEach(function (id) {
             Log.debug(TAG, 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
-        });
+        }); */
     }
 
     cluster.on('exit', function (deadWorker) {

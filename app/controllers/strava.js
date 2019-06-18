@@ -84,7 +84,7 @@ exports.uploadActivity = async function (req, res) {
         method: 'POST',
         headers: headers,
         formData: {
-            type: 'Ride',
+            activity_type: 'ride',
             file: 'gpx/routes/generated/route_' + routeId + '.gpx',
             name: '[ExploX] Please delete this activity',
             description: 'This activity has been created automatically by explox, please delete it.',

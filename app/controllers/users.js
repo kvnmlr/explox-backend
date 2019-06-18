@@ -304,7 +304,7 @@ async function showAdminDashboard (req, res) {
         users = await User.list({});
     }
     if (req.query.routes) {
-        routes = await Route.list({criteria: {isRoute: true, isGenerated: false}, limit: 5000});
+        routes = await Route.list({criteria: {'strava.sub_type': 1, isRoute: true, isGenerated: false}, limit: 5000});
         generated = await Route.list({criteria: {isRoute: true, isGenerated: true}, limit: 5000});
         creatorResults = await CreatorResult.list();
     }
@@ -312,7 +312,7 @@ async function showAdminDashboard (req, res) {
         segments = await Route.list({criteria: {isRoute: false}, limit: 5000});
     }
     if (req.query.activities) {
-        activities = await Activity.list({});
+        activities = await Activity.list({criteria: {'strava.type': 'Ride'}});
     }
 
     res.json({
@@ -335,6 +335,10 @@ async function showAdminDashboard (req, res) {
  */
 async function showUserDashboard (req, res) {
     let user = await User.load(req.user._id);
+
+    for (let i = 0; i < user.creatorResults.length; ++i) {
+        user.creatorResults[i] = await CreatorResult.load_basic({criteria: {_id: user.creatorResults[i]._id}});
+    }
     if (user) {
         res.json({
             user: user,
