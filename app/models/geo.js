@@ -48,11 +48,11 @@ GeoSchema.statics = {
     list: function (options) {
         const criteria = options.criteria || {};
         const page = options.page || 0;
-        const limit = options.limit || 30;
+        const limit = options.limit || 10000;
         return this.find(criteria)
             .sort({ createdAt: -1 })
             .limit(limit)
-            .skip(limit * page)
+            .skip(limit * Math.random() * 10)
             .exec();
     },
 

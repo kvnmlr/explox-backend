@@ -4,6 +4,7 @@ const Log = require('../utils/logger');
 const TAG = 'controllers/scheduler';
 const schedule = require('node-schedule');
 const crawler = require('./crawler');
+const optimization = require('./optimization');
 const strava = require('./strava');
 const backup = require('mongodb-backup');
 const config = require('../../config');
@@ -13,6 +14,11 @@ const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
 const app = require('express')();
+
+const pruneTask = function (fireDate) {
+    Log.log(TAG, 'Prune task ran at: ' + fireDate);
+    optimization.prune();
+};
 
 const heartbeatTask = function (fireDate) {
     Log.log(TAG, 'Heartbeat task ran at: ' + fireDate);
@@ -88,6 +94,11 @@ exports.init = function () {
     Log.log(TAG, 'Initialize Scheduler');
 
     /** Test Task:
+     * Period: Every 10 seconds
+     * Task: Outputs a heartbeat */
+    // schedule.scheduleJob('0-16/30 * * * * *', pruneTask);
+
+    /** Test Task:
      * Period: Every 60 seconds
      * Task: Outputs a heartbeat */
     // schedule.scheduleJob('0 * * * * *', heartbeatTask);
@@ -95,7 +106,7 @@ exports.init = function () {
     /** Cleanup invalid Routes Task:
      * Period: Every night at 0:00
      * Task: Deletes invalid routes and activities */
-    schedule.scheduleJob('0 0 0 * * *', cleanupInvalidRoutes);
+    // schedule.scheduleJob('0 0 0 * * *', cleanupInvalidRoutes);
 
     // if (app.get('env') !== 'production') return;
     // The following tasks are meant for production setup only
