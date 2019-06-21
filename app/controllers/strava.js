@@ -171,8 +171,8 @@ exports.updateUser = async function (req, res) {
             try {
                 await exports.getAthlete(user, token);
                 await exports.getStats(user, token);
-                await exports.getRoutes(id, token, max);
                 activities = await exports.getActivities(id, token, max);
+                await exports.getRoutes(id, token, max);
             } catch (e) {
                 Log.error(TAG, 'User could not be fully synchronized');
                 error = true;
@@ -697,7 +697,7 @@ const getRouteStream = function (id, token, route, next) {
         strava.streams.route({id: id, types: '', access_token: token}, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
-                Log.error(TAG, err);
+                Log.error(TAG, '', err);
                 return;
             }
             let geos = await extractGeosFromPayload(id, {
@@ -716,10 +716,10 @@ const getRouteStream = function (id, token, route, next) {
 
 const getActivityStream = async function (id, token, activity, next) {
     try {
-        strava.streams.activity({id: id, types: 'latlng', access_token: token}, async function (err, payload) {
+        strava.streams.activity({id: id, types: ['latlng', 'altitude'], access_token: token}, async function (err, payload) {
             // updateLimits(limits);
             if (err) {
-                Log.error(TAG, err);
+                Log.error(TAG, '', err);
             }
             let geos = await extractGeosFromPayload(id, {
                 payload: payload,
@@ -738,10 +738,10 @@ const getActivityStream = async function (id, token, activity, next) {
 
 const getSegmentStream = function (id, token, segment, next) {
     try {
-        strava.streams.segment({id: id, types: '', access_token: token}, async function (err, payload, limits) {
+        strava.streams.segment({id: id, types: ['latlng', 'altitude'], access_token: token}, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
-                Log.error(TAG, err);
+                Log.error(TAG, '', err);
             }
             let geos = await extractGeosFromPayload(id, {
                 payload: payload,
@@ -768,6 +768,7 @@ const extractGeosFromPayload = async function (id, payload) {
         if (!pl) {
             return;
         }
+
         for (let i = 0; i < pl.length; ++i) {
             if (pl[i].type === 'latlng') {
                 data.latlng = pl[i].data;
@@ -776,7 +777,7 @@ const extractGeosFromPayload = async function (id, payload) {
                 data.altitude = pl[i].data;
             }
         }
-        if (data == null || data === undefined) {
+        if (!data || data === undefined) {
             Log.error(TAG, 'Could not read payload data from stream ' + id, pl);
             reject(new Error());
             return;

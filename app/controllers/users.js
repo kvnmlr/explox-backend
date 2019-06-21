@@ -36,6 +36,8 @@ exports.finishRegistration = async function (req, res) {
     let user = req.user;
     assign(user, only(req.body, 'firstName lastName email username subscriptions demographics cyclingBehaviour routePlanning questionnaireInfo'));
 
+    await Strava.updateUser({profile: user, max: 20});
+
     if (!req.body.cache) {
         user.fullyRegistered = true;
     }

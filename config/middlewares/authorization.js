@@ -6,8 +6,6 @@ const TAG = 'auth';
  *  Generic require login routing middleware
  */
 exports.requiresLogin = function (req, res, next) {
-    Log.debug(TAG, 'requires login');
-
     if (req.isAuthenticated()) return next();
     if (req.method === 'GET') req.session.returnTo = req.originalUrl;
     res.status(400).json({
@@ -23,7 +21,6 @@ exports.requiresLogin = function (req, res, next) {
  * Generic admin only routing middleware
  */
 exports.userOnly = function (req, res, next) {
-    Log.debug(TAG, 'user only');
     if (req.user.role !== 'admin') {
         return next();
     } else {
@@ -41,7 +38,6 @@ exports.userOnly = function (req, res, next) {
  * Generic admin only routing middleware
  */
 exports.adminOnly = function (req, res, next) {
-    Log.debug(TAG, 'admin only');
     if (req.user.role === 'admin') {
         return next();
     } else {
@@ -60,8 +56,6 @@ exports.adminOnly = function (req, res, next) {
  */
 exports.user = {
     hasAuthorization: function (req, res, next) {
-        Log.debug(TAG, 'user has auth');
-
         if (req.user.role === 'admin') {
             // admin can do anything with any user
             return next();
@@ -86,8 +80,6 @@ exports.user = {
  */
 exports.route = {
     hasAuthorization: function (req, res, next) {
-        Log.debug(TAG, 'route has auth');
-
         if (req.user.role === 'admin' || ( !req.routeData.user && req.routeData.isGenerated )) {
             // admin can do anything with any route
             return next();
@@ -121,8 +113,6 @@ exports.route = {
  */
 exports.comment = {
     hasAuthorization: function (req, res, next) {
-        Log.debug(TAG, 'comment has auth');
-
         if (req.user.role === 'admin') {
             // admin can do anything with any comment
             return next();
