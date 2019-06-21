@@ -186,7 +186,7 @@ exports.logout = function (req, res) {
  */
 exports.update = async function (req, res) {
     let user = req.user;
-    assign(user, only(req.body, 'name email username subscriptions visitedActivityMap creatorTutorial'));
+    assign(user, only(req.body, 'name email username subscriptions visitedActivityMap creatorTutorial firstTimeUsage'));
     try {
         await user.save();
 

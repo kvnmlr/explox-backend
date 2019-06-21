@@ -17,6 +17,54 @@ const geolib = require('geolib');
  * Shuffles array in place.
  * @param {Array} a items An array containing the items.
  */
+
+function routeActivitySimilarityFilter (r, a) {
+    const distanceDelta = Math.abs(r.distance - a.distance);
+
+    // when they are too different in terms of total distance, they are not similar
+    if (distanceDelta > r.distance * 0.2) {
+        return true;
+    }
+
+
+    let startPointRoute = [];
+    let endPointRoute = [];
+    if (r.geo) {
+        startPointRoute = [r.geo[0].location.coordinates[1], r.geo[0].location.coordinates[0]];
+        endPointRoute = [r.geo[r.geo.length - 1].location.coordinates[1], r.geo[r.geo.length - 1].location.coordinates[0]];
+    }
+    else {
+        return true;
+    }
+
+    let startPointActivity = [];
+    let endPointActivity = [];
+    if (a.geo) {
+        startPointActivity = [a.geo[0].location.coordinates[1],a.geo[0].location.coordinates[0]];
+        endPointActivity = [a.geo[a.geo.length - 1].location.coordinates[1], a.geo[a.geo.length - 1].location.coordinates[0]];
+    }
+    else {
+        return true;
+    }
+
+    const distanceOfStarts = geolib.getDistance(
+        {latitude: startPointRoute[0], longitude: startPointRoute[1]},
+        {latitude: startPointActivity[0], longitude: startPointActivity[1]}
+    );
+
+    const distanceOfEnds = geolib.getDistance(
+        {latitude: endPointRoute[0], longitude: endPointRoute[1]},
+        {latitude: endPointActivity[0], longitude: endPointActivity[1]}
+    );
+
+    const endsFarAppart = distanceOfStarts > 500 || distanceOfEnds > 500;
+    if (endsFarAppart) {
+        return true;
+    } else {
+        Log.debug(TAG, 'Route is too similar to activity ' + distanceOfStarts + ' ' + distanceOfEnds + r.title + ', ' + a.title);
+    }
+}
+
 function roundCourseFilter (r) {
     let startPoint = [];
     let endPoint = [];
@@ -121,7 +169,7 @@ function connectNodes (start, end, nodes) {
         start.successors.push({
             node: node,
             distance: geolib.getDistance(
-                {latitude: start.end.lat, longitude: start.end.lng},
+                {latitude: start.end[0], longitude: start.end[1]},
                 {latitude: node.start[0], longitude: node.start[1]}
             )
         });
@@ -130,7 +178,7 @@ function connectNodes (start, end, nodes) {
             node: end,
             distance: geolib.getDistance(
                 {latitude: node.end[0], longitude: node.end[1]},
-                {latitude: end.start.lat, longitude: end.start.lng}
+                {latitude: end.start[0], longitude: end.start[1]}
             )
         });
         nodes.forEach(function (innerLoopNode) {
@@ -294,16 +342,15 @@ exports.generate = async function (req, res) {
     result = await initSearch(query, result);
     result = await distanceFilter(query, result);
     result = await lowerBoundsFilter(query, result);
-    if (result.goodActivities.length === 0) {
+    /* if (result.goodActivities.length === 0) {
         return respond(query, result);
-    }
+    } */
     result = await combine(query, result);
     result = await sortAndReduce(query, result);
     result = await populate(query, result);
     if (result.explorativeCombos.length === 0 || result.familiarCombos.length === 0) {
         return respond(query, result);
     }
-    return;
     result = await generateCandidates(query, result);
     result = await familiarityFilter(query, result);
     result = await createRoutes(query, result);
@@ -355,7 +402,6 @@ const distanceFilter = async function (query, result) {
     // remove the round courses
     routes = routes.filter(roundCourseFilter);
 
-    result.goodRoutes = routes;
 
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
@@ -370,6 +416,17 @@ const distanceFilter = async function (query, result) {
             && (act.distance > query.distance / 10)
             && act.strava.type === 'Ride';
     });
+
+    Log.debug(TAG, routes.length + ' possible routes after distance filter: ', /* routes.map(r => r.distance + ' (' + r.title + ')') */);
+
+    // Remove routes that are too similar to activities
+    routes = routes.filter((r) => {
+        return !result.goodActivities.some((a) => {
+            return !routeActivitySimilarityFilter(r, a);
+        });
+    });
+    result.goodRoutes = routes;
+
 
     result.metadata.distanceFilter.push(result.goodRoutes.length, result.goodSegments.length, result.goodActivities.length);
 
@@ -481,8 +538,8 @@ const combine = async function (query, result) {
 
     let start = {
         name: 'start',
-        start: query.start,
-        end: query.start,
+        start: [query.start.lat, query.start.lng],
+        end: [query.start.lat, query.start.lng],
         distance: 0,
         successors: [],
         lowerBoundDistance: 0,
@@ -496,8 +553,8 @@ const combine = async function (query, result) {
     };
     let end = {
         name: 'end',
-        start: query.end,
-        end: query.end,
+        start: [query.end.lat, query.end.lng],
+        end: [query.end.lat, query.end.lng],
         disatnce: 0,
         successors: [],
         lowerBoundDistance: 0,
@@ -532,9 +589,20 @@ const combine = async function (query, result) {
 
     nodes = [];
     nodes.push.apply(nodes, activityNodes);
-    // nodes.push.apply(nodes, routeNodes);
+    nodes.push.apply(nodes, routeNodes);
     connectNodes(start, end, nodes);
-    let familiarResultPaths = makeComboPaths(start, end, nodes, query, true);
+    let familiarResultPaths = makeComboPaths(start, end, nodes, query, activityNodes.length > 2);
+
+    // If this did not work out, try again with the segments added
+    if (familiarResultPaths.length === 0) {
+        nodes = [];
+        nodes.push.apply(nodes, activityNodes);
+        nodes.push.apply(nodes, routeNodes);
+        nodes.push.apply(nodes, segmentNodes);
+        connectNodes(start, end, nodes);
+        familiarResultPaths = makeComboPaths(start, end, nodes, query, activityNodes.length > 2);
+    }
+
     let familiarPathLength = 0;
     let familiarPathComponentCount = 0;
     familiarResultPaths.forEach((path) => {
@@ -638,6 +706,9 @@ const populate = async function (query, result) {
             if (part.id !== 0) {
                 result.explorativeCombos[ci].parts[pi].route = await Route.load(part.id);
             }
+            if (part.isInv) {
+                result.explorativeCombos[ci].parts[pi].route.geo.reverse();
+            }
         }
     }
 
@@ -652,6 +723,9 @@ const populate = async function (query, result) {
                     result.familiarCombos[ci].parts[pi].route = await query.user.activities.find((act) => act._id === part.id);
                 } else {
                     result.familiarCombos[ci].parts[pi].route = await Route.load(part.id);
+                }
+                if (part.isInv) {
+                    result.explorativeCombos[ci].parts[pi].route.geo.reverse();
                 }
             }
         }
@@ -680,7 +754,7 @@ const generateCandidates = async function (query, result) {
     let explorativeRoutes = [];
     let familiarRoutes = [];
 
-    let allCombos = result.familiarCombos.concat(result.explorativeCombos);
+    let allCombos = result.explorativeCombos.concat(result.familiarCombos);
 
     // for every combo, generate a route
     for (let combo of allCombos) {
@@ -747,9 +821,9 @@ const generateCandidates = async function (query, result) {
 
             // add this route to the list of all generated routes
             if (combo.explorative) {
-                familiarRoutes.push(route);
-            } else {
                 explorativeRoutes.push(route);
+            } else {
+                familiarRoutes.push(route);
             }
         }
     }
@@ -790,9 +864,6 @@ const generateCandidates = async function (query, result) {
 
     result.candidates = explorativeRoutes;
     result.familiarCandidates = familiarRoutes;
-
-    Log.debug(TAG, 'elevaion', result.candidates);
-
     result.metadata.generateCandidates.push(result.candidates.length, result.familiarCandidates.length);
 
     Log.debug(TAG, explorativeRoutes.length + ' explorative routes generated by OSRM: ', explorativeRoutes.map(r => r.distance));
@@ -819,6 +890,8 @@ const familiarityFilter = async function (query, result) {
         }
         const takeEvery = Math.ceil(route.waypoints.length / leave);    // parameter for performance, only take every xth route point, 1 = every
 
+        Log.debug(TAG, 'total: ' + route.waypoints.length + ', leave: ' + leave + ', take every: ' + takeEvery);
+
         let matches = 0;
         let exploredGeos = [];
 
@@ -833,21 +906,20 @@ const familiarityFilter = async function (query, result) {
             waypointIndex++;
             if (waypointIndex % takeEvery === 0) {
                 const options = {
-                    distance: 250,
+                    distance: 400,
                     latitude: waypoint[1],
                     longitude: waypoint[0]
                 };
 
-                let matching = false;
                 let geos = await Geo.findWithinRadius(options);
                 if (!geos) {
                     continue;
                 }
-                geos.some(function (geo) {
+
+                let matching = geos.some(function (geo) {
                     if (exploredGeos.includes(geo._id.toString())) {
-                        matching = true;
+                        return true;
                     }
-                    return matching;
                 });
 
                 if (matching) {
@@ -855,6 +927,7 @@ const familiarityFilter = async function (query, result) {
                 }
             }
         }
+        Log.debug(TAG, 'matches: ' + matches);
         route.familiarityScore = matches / leave;
     }
 
@@ -960,11 +1033,11 @@ const createRoutes = async function (query, result) {
 
         // create a geo object in the db for each waypoint
         let geos = [];
-
+        let i = 0;
         for (let waypoint of candidate.waypoints) {
             const geo = new Geo({
                 name: 'Generated',
-                altitude: 100,
+                altitude: ++i,
                 location: {
                     type: 'Point',
                     coordinates: [waypoint[0], waypoint[1]]
@@ -1204,8 +1277,21 @@ const printAllPathsUntil = function (source,
         }
     }
 
+    let activityContained = false;
+    activityContained = resultPaths.forEach((r) => {
+        activityContained |= r.path.some((p) => p.isActivity);
+    });
+
+
     // Recur for all the vertices adjacent to current vertex
-    source.successors.slice(0, 80).forEach(function (succ) {
+    source.successors.slice(0, 60).forEach(function (succ) {
+
+        if (activityContained && succ.node.isActivity) {
+            Log.debug(TAG, 'Activity already contained');
+            if (Math.random() < 0.7) {
+                return;
+            }
+        }
 
         if (requireNoInv) {
             if (localPathList.filter((node) => {
@@ -1213,6 +1299,36 @@ const printAllPathsUntil = function (source,
             }).length > 0) {
                 return;
             }
+        }
+
+        // Don't go the same part twice
+        if (localPathList.includes(succ.node)) {
+            return;
+        }
+
+        // Distance between two parts should not bee too long and not too short
+        if (succ.distance > maxDistance / 3 || succ.distance < maxDistance / 100) {
+            return;
+        }
+
+        // If the distance to the start of the successor is longer than to the end, do not take this
+        const distToStart = geolib.getDistance({
+            latitude: source.end[0],
+            longitude: source.end[1]
+        }, {
+            latitude: succ.node.start[0],
+            longitude: succ.node.start[1]
+        });
+        const distToEnd = geolib.getDistance({
+            latitude: source.end[0],
+            longitude: source.end[1]
+        }, {
+            latitude: succ.node.end[0],
+            longitude: succ.node.end[1]
+        });
+
+        if (distToStart > distToEnd) {
+            return;
         }
 
         // abort if algorithm parameters are violated

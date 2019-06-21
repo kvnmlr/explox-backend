@@ -16,6 +16,7 @@ const UserSchema = new Schema({
     fullyRegistered: {type: Boolean, default: false},
     visitedActivityMap: {type: Boolean, default: false},
     creatorTutorial: {type: Boolean, default: false},
+    firstTimeUsage: {type: Boolean, default: true},
     hashed_password: {type: String, default: ''},
     salt: {type: String, default: ''},
     authToken: {type: String, default: ''},

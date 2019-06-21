@@ -49,12 +49,27 @@ exports.findRoute = async function (options) {
 
     const route = body.routes[0];
     const geo = route.geometry;
+    const legs = route.legs;
     result.distance = route.distance;
 
+    // Extract the geometry
     const coords = geo.coordinates;
     coords.forEach(function (location) {
         result.waypoints.push(location);
     });
+
+    // Detect U Turns
+    for (let leg of legs) {
+        const steps = leg.steps;
+        steps.forEach(function (step) {
+            let maneuver = step.maneuver;
+            if (maneuver && maneuver.modifier) {
+                if (maneuver.modifier === 'uturn') {
+                    Log.debug(TAG, 'UTURN DETECTED', maneuver);
+                }
+            }
+        });
+    }
     return new Promise((resolve) => {
         resolve(result);
     });
