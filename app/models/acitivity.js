@@ -5,12 +5,12 @@ const Schema = mongoose.Schema;
 const ObjectId = require('mongoose').Types.ObjectId;
 
 const ActivitySchema = new Schema({
-    title: {type: String, default: '', trim: true},                         // Title of the route
-    activityId: {type: String, default: '', trim: true,  index: {unique: true}},     // The ID this activity has in Strava
-    createdAt: {type: Date, default: Date.now},                         // The creation date (i.e. when imported into ExploX)
-    geo: [{type: Schema.ObjectId, ref: 'Geo'}],                     // List of references to geo points
-    user: {type: Schema.ObjectId, ref: 'User', default: null},              // The user who created this route
-    distance: {type: Number , default: 0, trim: true},      // Distance in meters
+    title: {type: String, default: '', trim: true},                                 // Title of the route
+    activityId: {type: String, default: '', trim: true, index: {unique: true}},    // The ID this activity has in Strava
+    createdAt: {type: Date, default: Date.now},                                     // The creation date (i.e. when imported into ExploX)
+    geo: [{type: Schema.ObjectId, ref: 'Geo'}],                                     // List of references to geo points
+    user: {type: Schema.ObjectId, ref: 'User', default: null},                      // The user who created this route
+    distance: {type: Number, default: 0, trim: true},                              // Distance in meters
     strava: {},
 });
 

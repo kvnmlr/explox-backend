@@ -52,7 +52,7 @@ module.exports = function (app, passport) {
 
     // User Routes
     app.param('userId', users.loadProfile);
-    app.get('/users/:userId',  auth.requiresLogin, users.activityMap);
+    app.get('/users/:userId', auth.requiresLogin, users.activityMap);
     app.get('/dashboard', userAuth, users.dashboard);
     app.get('/dashboard/admin', userAuth, users.adminDashboard);
     app.get('/users/:userId/export', userAuth, importexport.exportUser);

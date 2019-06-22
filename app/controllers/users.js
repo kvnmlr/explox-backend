@@ -3,7 +3,6 @@
 const Log = require('../utils/logger');
 const TAG = 'views/users';
 const mongoose = require('mongoose');
-const {wrap: async} = require('co');
 const only = require('only');
 const mailer = require('../mailer/index');
 const Strava = require('./strava');

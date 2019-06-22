@@ -262,7 +262,6 @@ UserSchema.statics = {
     /**
      * Returns all (unpopulated) users matching the given options
      * @param options
-     * @param sort
      * @returns {Promise|*|RegExpExecArray}
      */
     list: function (options) {

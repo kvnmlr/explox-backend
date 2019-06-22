@@ -13,7 +13,6 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const Route = mongoose.model('Route');
 const Activity = mongoose.model('Activity');
-const app = require('express')();
 
 const pruneTask = function (fireDate) {
     Log.log(TAG, 'Prune task ran at: ' + fireDate);
@@ -119,14 +118,14 @@ exports.init = function () {
     /** Coarse Segment Crawler Task:
      * Period: Every eleven minutes during the night (0 - 6)
      * Task: Crawls coarse segments (i.e. large radius) s */
-     // schedule.scheduleJob('0 * * * * *', coarseSegmentCrawlerTask);
-     // schedule.scheduleJob('30 * * * * *', coarseSegmentCrawlerTask);
+    // schedule.scheduleJob('0 * * * * *', coarseSegmentCrawlerTask);
+    // schedule.scheduleJob('30 * * * * *', coarseSegmentCrawlerTask);
 
     /** Detailed Segment Crawler Task:
      * Period: 4 times every hour (1 - 23)
      * Task: Crawls detailed segments (i.e. small radius) */
-     // schedule.scheduleJob('15 * * * * *', fineSegmentCrawlerTask);
-     // schedule.scheduleJob('45 * * * * *', fineSegmentCrawlerTask);
+    // schedule.scheduleJob('15 * * * * *', fineSegmentCrawlerTask);
+    // schedule.scheduleJob('45 * * * * *', fineSegmentCrawlerTask);
 
     /** Update User Task:
      * Period: 4 times every hour during the night (0 - 6)

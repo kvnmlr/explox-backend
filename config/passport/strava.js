@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const StravaStrategy = require('passport-strava').Strategy;
 const config = require('../');
 const User = mongoose.model('User');
-const Role = mongoose.model('Role');
 const Invitation = mongoose.model('Invitation');
 const Log = require('../../app/utils/logger');
 const TAG = 'passport/strava';

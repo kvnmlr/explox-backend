@@ -80,7 +80,7 @@ exports.user = {
  */
 exports.route = {
     hasAuthorization: function (req, res, next) {
-        if (req.user.role === 'admin' || ( !req.routeData.user && req.routeData.isGenerated )) {
+        if (req.user.role === 'admin' || (!req.routeData.user && req.routeData.isGenerated)) {
             // admin can do anything with any route
             return next();
         }

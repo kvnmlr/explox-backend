@@ -6,8 +6,8 @@ const Schema = mongoose.Schema;
 const FeedbackSchema = new Schema({
     createdAt: {type: Date, default: Date.now},
     user: {type: Schema.ObjectId, ref: 'User', default: null},
-    email: { type: String, default: '' },
-    body: { type: String, default: '' },
+    email: {type: String, default: ''},
+    body: {type: String, default: ''},
 });
 
 FeedbackSchema.path('body').required(true, 'Body name cannot be blank');
@@ -16,7 +16,6 @@ FeedbackSchema.statics = {
     /**
      * Load
      * @param {Object} options
-     * @param {Function} cb
      */
     updateValue: function (options) {
         return this.update({key: options.key}, {value: options.value}).exec();
@@ -34,7 +33,7 @@ FeedbackSchema.statics = {
     },
 
     load: function (_id) {
-        return this.load_options({ criteria: { _id: _id } });
+        return this.load_options({criteria: {_id: _id}});
     },
 
     load_options: function (options, cb) {
@@ -44,7 +43,6 @@ FeedbackSchema.statics = {
             .select(options.select)
             .exec(cb);
     },
-
 };
 
 mongoose.model('Feedback', FeedbackSchema);

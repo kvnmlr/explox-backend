@@ -16,7 +16,6 @@ const ImportExport = require('./importexport');
 const getUploadStatus = async function (req, res) {
     let user = await User.load(req.user._id);
     const token = user.authToken;
-    const id = user.stravaId;
     let uploadId = req.activityId;
 
     let requestString = 'https://www.strava.com/api/v3/uploads/' + uploadId + '?access_token=' + token;
@@ -68,12 +67,9 @@ const getUploadStatus = async function (req, res) {
 exports.uploadActivity = async function (req, res) {
     let user = await User.load(req.user._id);
     const token = user.authToken;
-    const id = user.stravaId;
     const routeId = req.query.id;
-    const title = req.query.title;
-    const description = req.query.description;
 
-    var headers = {
+    const headers = {
         'User-Agent': 'Super Agent/0.0.1',
         'Content-Type': 'application/x-www-form-urlencoded',
         'Authorization': 'Bearer ' + token,
@@ -96,7 +92,7 @@ exports.uploadActivity = async function (req, res) {
         },
     };
 
-    strava.uploads.post(options.formData, async function (err, payload, limits) {
+    strava.uploads.post(options.formData, async function (err, payload) {
         if (err) {
             Log.error(TAG, 'Error while uploading activity', err);
             res.status(400).json({
@@ -369,7 +365,7 @@ exports.getActivities = function (id, token, max) {
                     }
 
                     if (payload[i].type !== 'Ride') {
-                        Log.debug(TAG, 'Wrong type ' + payload[i].type + ' for activity ' + payload[i].name, );
+                        Log.debug(TAG, 'Wrong type ' + payload[i].type + ' for activity ' + payload[i].name,);
                         continue;
                     }
                     done++;
@@ -716,7 +712,11 @@ const getRouteStream = function (id, token, route, next) {
 
 const getActivityStream = async function (id, token, activity, next) {
     try {
-        strava.streams.activity({id: id, types: ['latlng', 'altitude'], access_token: token}, async function (err, payload) {
+        strava.streams.activity({
+            id: id,
+            types: ['latlng', 'altitude'],
+            access_token: token
+        }, async function (err, payload) {
             // updateLimits(limits);
             if (err) {
                 Log.error(TAG, '', err);
@@ -738,7 +738,11 @@ const getActivityStream = async function (id, token, activity, next) {
 
 const getSegmentStream = function (id, token, segment, next) {
     try {
-        strava.streams.segment({id: id, types: ['latlng', 'altitude'], access_token: token}, async function (err, payload, limits) {
+        strava.streams.segment({
+            id: id,
+            types: ['latlng', 'altitude'],
+            access_token: token
+        }, async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
                 Log.error(TAG, '', err);

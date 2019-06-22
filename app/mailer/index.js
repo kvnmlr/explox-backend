@@ -20,6 +20,10 @@ let mailOptions = {
 };
 
 module.exports = {
+    /**
+     * Sends a confirmation mail to the signed up user
+     * @param user
+     */
     registeredConfirmation: function (user) {
         mailOptions.to = user.email;
         mailOptions.subject = 'ExploX Registration Successful';
@@ -54,6 +58,10 @@ module.exports = {
         this.newUserRegistered(user);
     },
 
+    /**
+     * Sends an invitation email to the given invitee
+     * @param invitation
+     */
     invite: function (invitation) {
         mailOptions.to = invitation.email;
         mailOptions.subject = invitation.sender + ' invited you to ExploX';
@@ -72,6 +80,10 @@ module.exports = {
         });
     },
 
+    /**
+     * Sends an email notification about a new feedback to the admin
+     * @param feedback
+     */
     feedbackReceived: function (feedback) {
         mailOptions.to = config.email;
         mailOptions.subject = '[ExploX] New Feedback Received';
@@ -89,6 +101,10 @@ module.exports = {
         });
     },
 
+    /**
+     * Sends an email notification about a new user to the admin
+     * @param user
+     */
     newUserRegistered: function (user) {
         mailOptions.to = config.email;
         mailOptions.subject = '[ExploX] New User Registered';
@@ -107,6 +123,9 @@ module.exports = {
         });
     },
 
+    /**
+     * Sends an email notification that the crawler has finished to the admin
+     */
     crawlerFinished: function () {
         mailOptions.to = config.email;
         mailOptions.subject = '[ExploX] Crawler finished';

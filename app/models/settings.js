@@ -14,7 +14,6 @@ SettingsSchema.statics = {
     /**
      * Load
      * @param {Object} options
-     * @param {Function} cb
      */
 
     updateValue: function (options) {

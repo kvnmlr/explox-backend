@@ -7,296 +7,10 @@ const Geo = mongoose.model('Geo');
 const Route = mongoose.model('Route');
 const CreatorResult = mongoose.model('CreatorResult');
 const User = mongoose.model('User');
-const users = require('./users');
 const routes = require('./routes');
 const osrm = require('./osrm');
 const importExport = require('./importexport');
 const geolib = require('geolib');
-
-/**
- * Shuffles array in place.
- * @param {Array} a items An array containing the items.
- */
-
-function routeActivitySimilarityFilter (r, a) {
-    const distanceDelta = Math.abs(r.distance - a.distance);
-
-    // when they are too different in terms of total distance, they are not similar
-    if (distanceDelta > r.distance * 0.2) {
-        return true;
-    }
-
-
-    let startPointRoute = [];
-    let endPointRoute = [];
-    if (r.geo) {
-        startPointRoute = [r.geo[0].location.coordinates[1], r.geo[0].location.coordinates[0]];
-        endPointRoute = [r.geo[r.geo.length - 1].location.coordinates[1], r.geo[r.geo.length - 1].location.coordinates[0]];
-    }
-    else {
-        return true;
-    }
-
-    let startPointActivity = [];
-    let endPointActivity = [];
-    if (a.geo) {
-        startPointActivity = [a.geo[0].location.coordinates[1],a.geo[0].location.coordinates[0]];
-        endPointActivity = [a.geo[a.geo.length - 1].location.coordinates[1], a.geo[a.geo.length - 1].location.coordinates[0]];
-    }
-    else {
-        return true;
-    }
-
-    const distanceOfStarts = geolib.getDistance(
-        {latitude: startPointRoute[0], longitude: startPointRoute[1]},
-        {latitude: startPointActivity[0], longitude: startPointActivity[1]}
-    );
-
-    const distanceOfEnds = geolib.getDistance(
-        {latitude: endPointRoute[0], longitude: endPointRoute[1]},
-        {latitude: endPointActivity[0], longitude: endPointActivity[1]}
-    );
-
-    const endsFarAppart = distanceOfStarts > 500 || distanceOfEnds > 500;
-    if (endsFarAppart) {
-        return true;
-    } else {
-        Log.debug(TAG, 'Route is too similar to activity ' + distanceOfStarts + ' ' + distanceOfEnds + r.title + ', ' + a.title);
-    }
-}
-
-function roundCourseFilter (r) {
-    let startPoint = [];
-    let endPoint = [];
-    if (!r.isRoute && !r.isActivity) {
-        startPoint = r.strava.start_latlng;
-        endPoint = r.strava.end_latlng;
-    } else {
-        if (r.geo) {
-            startPoint = [r.geo[0].location.coordinates[1], r.geo[0].location.coordinates[0]];
-            endPoint = [r.geo[r.geo.length - 1].location.coordinates[1], r.geo[r.geo.length - 1].location.coordinates[0]];
-        }
-        else {
-            return true;
-        }
-    }
-    const distance = geolib.getDistance(
-        {latitude: startPoint[0], longitude: startPoint[1]},
-        {latitude: endPoint[0], longitude: endPoint[1]}
-    );
-    return distance > r.distance / 4;
-}
-
-function shuffle (a) {
-    let j, x, i;
-    for (i = a.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        x = a[i];
-        a[i] = a[j];
-        a[j] = x;
-    }
-    return a;
-}
-
-function generateNodes (routes, isActivity, query) {
-    let nodes = [];
-
-    // add the original routes
-    for (let route of routes) {
-        let start, end;
-        if (route.strava.start_latlng) {
-            start = route.strava.start_latlng;
-            end = route.strava.end_latlng;
-        } else {
-            start = [route.geo[0].location.coordinates[1], route.geo[0].location.coordinates[0]];
-            end = [route.geo[route.geo.length - 1].location.coordinates[1], route.geo[route.geo.length - 1].location.coordinates[0]];
-        }
-
-        let startGeo = 'T0';
-        let halfGeo = 'T1';
-        let endGeo = 'T3';
-
-        let partitions = [startGeo, /* firstThird, secondThird, */ endGeo];
-
-        for (let i = 0; i < partitions.length - 1; ++i) {
-            for (let j = i + 1; j < partitions.length; ++j) {
-                const partitionStart = partitions[i];
-                const partitionEnd = partitions[j];
-
-                let node = {
-                    name: route.title,
-                    start: start,
-                    end: end,
-                    distance: route.distance,
-                    lowerBoundDistance: route.lowerBoundDistance,
-                    successors: [],
-                    inv: null,
-                    isActivity: isActivity,
-                    isInv: false,
-                    firstGeo: partitionStart,
-                    lastGeo: partitionEnd,
-                    id: route._id,
-                    route: null,
-                };
-                let nodeInv = {
-                    name: '(inv) ' + route.title,
-                    start: start,
-                    end: end,
-                    distance: route.distance,
-                    lowerBoundDistance: route.lowerBoundDistance,
-                    successors: [],
-                    inv: node.name,
-                    isActivity: isActivity,
-                    isInv: true,
-                    firstGeo: partitionEnd,
-                    lastGeo: partitionStart,
-                    id: route._id,
-                    route: null,
-                };
-                node.inv = nodeInv.name;
-                nodes.push(node, nodeInv);
-            }
-        }
-    }
-
-    return nodes;
-}
-
-function connectNodes (start, end, nodes) {
-    start.successors = [];
-    nodes.forEach(function (node) {
-        node.successors = [];
-        start.successors.push({
-            node: node,
-            distance: geolib.getDistance(
-                {latitude: start.end[0], longitude: start.end[1]},
-                {latitude: node.start[0], longitude: node.start[1]}
-            )
-        });
-
-        node.successors.push({
-            node: end,
-            distance: geolib.getDistance(
-                {latitude: node.end[0], longitude: node.end[1]},
-                {latitude: end.start[0], longitude: end.start[1]}
-            )
-        });
-        nodes.forEach(function (innerLoopNode) {
-            if (node.inv !== '(inv) ' + innerLoopNode.name && (innerLoopNode.name !== '(inv) ' + node.inv)) {
-                node.successors.push({
-                    node: innerLoopNode,
-                    distance: geolib.getDistance(
-                        {latitude: node.end[0], longitude: node.end[1]},
-                        {latitude: innerLoopNode.start[0], longitude: innerLoopNode.start[1]}
-                    )
-                });
-            }
-        });
-    });
-}
-
-function makeComboPaths (start, end, nodes, query, requireActivity) {
-    Log.debug(TAG, 'Make combo paths');
-
-    let resultPaths = [];
-    let distance = query.distance;
-    if (requireActivity) {
-        distance += query.distance * 0.3;
-    }
-    let useParts = Math.floor(Math.min(Math.max(distance / 30000, 1), 2));
-    const minDepthOriginal = 2 + useParts;
-    const stopAfter = 1;
-
-    for (let i = 0; i < 7; ++i) {
-        const minDepth = minDepthOriginal + (i % 3);
-        const maxDepth = Math.min(Math.ceil(minDepth * 1.5), 5) + (i % 3);
-
-        let localResultPaths = [];
-        let pathList = [];
-        pathList.push(start);
-
-        // Log.debug(TAG, 'Starting DFS with parameters: minDepth = ' + minDepth + ', maxDepth = ' + maxDepth + ', maxDistance = ' + distance);
-
-        let requireNoInv = resultPaths.length < 1 || i < 3;
-
-        printAllPathsUntil(start, end, pathList, 0, maxDepth, minDepth, distance, localResultPaths, stopAfter, requireActivity, requireNoInv);
-        resultPaths.push.apply(resultPaths, localResultPaths);
-        start.successors.sort(function (a, b) {
-            return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
-                - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
-        });
-        start.isVisited = false;
-
-        if (i % 3 === 2) {
-            // rough sorting
-            nodes.slice(0, 100).forEach(function (node) {
-                node.isVisited = false;
-                node.successors.sort(function (a, b) {
-                    return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
-                        - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
-                });
-            });
-        }
-    }
-
-    // remove the duplicates
-    let seen = [];
-    resultPaths = resultPaths.filter((path) => {
-        const okay = !seen.includes(path.distance);
-        seen.push(path.distance);
-        return okay;
-    });
-    return resultPaths;
-}
-
-function getDistanceFromLatLonInKm (lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of the earth in km
-    let dLat = deg2rad(lat2 - lat1);  // deg2rad below
-    let dLon = deg2rad(lon2 - lon1);
-    let a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) *
-        Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    let d = R * c; // Distance in km
-    return d;
-}
-
-function deg2rad (deg) {
-    return deg * (Math.PI / 180);
-}
-
-function roughSizeOfObject (object) {
-    const objectList = [];
-    const stack = [object];
-    let bytes = 0;
-
-    while (stack.length) {
-        const value = stack.pop();
-
-        if (typeof value === 'boolean') {
-            bytes += 4;
-        }
-        else if (typeof value === 'string') {
-            bytes += value.length * 2;
-        }
-        else if (typeof value === 'number') {
-            bytes += 8;
-        }
-        else if
-        (
-            typeof value === 'object'
-            && objectList.indexOf(value) === -1
-        ) {
-            objectList.push(value);
-
-            for (let i in value) {
-                stack.push(value[i]);
-            }
-        }
-    }
-    return bytes;
-}
 
 /**
  * Generates a new route by doing the following calculations in sequence:
@@ -342,9 +56,6 @@ exports.generate = async function (req, res) {
     result = await initSearch(query, result);
     result = await distanceFilter(query, result);
     result = await lowerBoundsFilter(query, result);
-    /* if (result.goodActivities.length === 0) {
-        return respond(query, result);
-    } */
     result = await combine(query, result);
     result = await sortAndReduce(query, result);
     result = await populate(query, result);
@@ -402,7 +113,6 @@ const distanceFilter = async function (query, result) {
     // remove the round courses
     routes = routes.filter(roundCourseFilter);
 
-
     // get all segments that are shorter than the route should-distance
     criteria.isRoute = false;
     delete criteria['strava.sub_type'];
@@ -426,8 +136,6 @@ const distanceFilter = async function (query, result) {
         });
     });
     result.goodRoutes = routes;
-
-
     result.metadata.distanceFilter.push(result.goodRoutes.length, result.goodSegments.length, result.goodActivities.length);
 
     Log.debug(TAG, routes.length + ' possible routes after distance filter: ', /* routes.map(r => r.distance + ' (' + r.title + ')') */);
@@ -586,7 +294,6 @@ const combine = async function (query, result) {
     Log.debug(TAG, 'Found ' + explorativeResultPaths.length + ' explorative parths paths with average distance ' + explorativePathLength / explorativeResultPaths.length
         + ' and ' + explorativePathComponentCount / explorativeResultPaths.length + ' components');
 
-
     nodes = [];
     nodes.push.apply(nodes, activityNodes);
     nodes.push.apply(nodes, routeNodes);
@@ -615,7 +322,6 @@ const combine = async function (query, result) {
     for (let pathObject of explorativeResultPaths) {
         const comboObject = {
             lowerBoundDistance: pathObject.distance,
-            // singleRoute: true,
             explorative: true,
             mixed: true,
             parts: pathObject.path
@@ -626,7 +332,6 @@ const combine = async function (query, result) {
     for (let pathObject of familiarResultPaths) {
         const comboObject = {
             lowerBoundDistance: pathObject.distance,
-            // singleRoute: true,
             explorative: false,
             mixed: true,
             parts: pathObject.path
@@ -657,9 +362,6 @@ const sortAndReduce = async function (query, result) {
         return b.lowerBoundDistance - a.lowerBoundDistance;
     });
 
-    // Log.log(TAG, result.explorativeCombos.length + ' sorted explorative combos:  ', result.explorativeCombos.map(r => r.lowerBoundDistance + 'm (' + r.parts.length + ' parts)'));
-    // Log.log(TAG, result.familiarCombos.length + ' sorted familiar combos: ', result.familiarCombos.map(r => r.lowerBoundDistance + 'm (' + r.parts.length + ' parts)'));
-
     // reduce the list of explorative combos to a fixed number
     const keepBest = 1;
     while (result.explorativeCombos.length > keepBest) {
@@ -687,6 +389,7 @@ const sortAndReduce = async function (query, result) {
 
     Log.debug(TAG, result.explorativeCombos.length + ' filtered explorative combos: ', result.explorativeCombos.map(r => r.lowerBoundDistance + ' m (' + r.parts.length + ' parts)'));
     Log.debug(TAG, result.familiarCombos.length + ' filtered familiar combos: ', result.familiarCombos.map(r => r.lowerBoundDistance + ' m (' + r.parts.length + ' parts)'));
+
     return result;
 };
 
@@ -780,7 +483,6 @@ const generateCandidates = async function (query, result) {
         for (let part of combo.parts) {
             if (part.id !== 0) {
                 const maxAllowedWaypoints = Math.max(Math.floor(part.route.geo.length * ratio), 2);
-                // Log.debug(TAG, maxAllowedWaypoints);
                 let keepEvery = Math.ceil(part.route.geo.length / (maxAllowedWaypoints - 2));
                 if (keepEvery > 1) {
                     // we have too many waypoints, downsample to something smaller
@@ -796,8 +498,6 @@ const generateCandidates = async function (query, result) {
                         ++counter;
                     }
                     part.route.geo.push(waypointsTemp[waypointsTemp.length - 1]);   // end point must also definitely be a waypoint
-                    // Log.debug(TAG, part.route.geo.length);
-
                 }
                 coordinates = coordinates.concat(part.route.geo.map(g => g.location));
             }
@@ -972,7 +672,6 @@ const createRoutes = async function (query, result) {
     let generatedRoutes = [];
     let familiarityScores = [];
 
-    let n = 0;
     for (let candidate of result.candidates.concat(result.familiarCandidates)) {
         // get the user
         const title = 'New Route (' + Math.floor(candidate.distance / 1000) + ' km)';
@@ -991,8 +690,6 @@ const createRoutes = async function (query, result) {
                 }
             }
         }
-
-        // Log.debug(TAG, 'parts: ', candidate.parts.map((part) => {if (part.route) {return part.route.title;} else {return '';}}));
 
         let route = new Route({
             stravaId: id,
@@ -1024,7 +721,6 @@ const createRoutes = async function (query, result) {
             existingRoute.familiarityScore = candidate.familiarityScore;
             generatedRoutes.push(existingRoute);
             familiarityScores.push(candidate.familiarityScore);
-
             continue;
         }
 
@@ -1061,6 +757,7 @@ const createRoutes = async function (query, result) {
         route.geo = geos;
         await route.save();
 
+        // asynchronously export the route as gpx
         importExport.exportRoute({
             routeData: route,
             query: {},
@@ -1090,23 +787,6 @@ const respond = async function (query, result) {
     }
 
     let resultRoutes = result.resultRoutes;
-
-    /* if (query.preference === 'discover') {
-        resultRoutes.sort(function (a, b) {
-            return b.familiarityScore - a.familiarityScore;
-        });
-    }
-    if (query.preference === 'distance') {
-        resultRoutes.sort(function (a, b) {
-            return b.distance - a.distance;
-        });
-    } else {
-        resultRoutes.sort(function (a, b) {
-            return b.distance + ((1 - b.familiarityScore) * a.distance) - a.distance + ((1 - a.familiarityScore) * b.distance);
-        });
-    } */
-    // Log.debug(TAG, 'FAM', result.familiarityScores);
-
     let ratings = [];
     for (let r of resultRoutes) {
         let o = {
@@ -1142,121 +822,24 @@ const respond = async function (query, result) {
     return result;
 };
 
-const logAll = function (query, result) {
-    if (result.resultRoutes.length > 0) {
-        Log.debug(TAG, 'Created these routes: ', result.resultRoutes.map(r => r.title + '\t (' + r.distance + ')'));
-    }
-    else if (result.candidates.length > 0) {
-        Log.debug(TAG, 'Found these candidate routes: ', result.candidates.map(r => r.title + '\t (' + r.distance + ')'));
-    }
-    else if (result.combos.length === 0) {
-        let tempRoutes = result.goodRoutes;
-        let tempSegments = result.goodSegments;
 
-        for (let route of tempRoutes) {
-            route.geo = [];
-        }
-
-        for (let segment of tempSegments) {
-            segment.geo = [];
-        }
-
-        Log.debug(TAG, result.goodRoutes.length + ' routes: ', tempRoutes);
-        Log.debug(TAG, result.goodSegments.length + ' segments: ', tempSegments);
-    } else {
-        let tempCombos = result.combos;
-
-        for (let combo of tempCombos) {
-            for (let part of combo.parts) {
-                part.geo = [];
-            }
-        }
-        Log.debug(TAG, tempCombos.length + ' combos: ', tempCombos);
-
-        if (result.finalRoutes.length > 0) {
-            let tempRoutes = result.finalRoutes;
-
-            for (let route of tempRoutes) {
-                route.geo = [];
-            }
-            Log.debug(TAG, tempRoutes.length + ' final routes: ', tempRoutes);
-        }
-    }
-};
+/** Helper Methods **/
 
 /**
- * Keep routes and segments where each geo is within the radius of half the
- * route distance around the starting point (i.e. it must not leave the radius).
+ * Generates path through the graph
+ * @param source the current start point
+ * @param destination the goal node (end)
+ * @param localPathList path of the local DFS run
+ * @param localDistance distance of the local DFS
+ * @param maxDepth maximum number of nodes
+ * @param minDepth minimum number of nodes
+ * @param maxDistance maximum distance of the generated path
+ * @param resultPaths global result list
+ * @param stopAfter number of paths to look for before terminating
+ * @param requireActivity only generate paths that contain an activity node
+ * @param requireNoInv only generate paths that do not contain inverted nodes of included nodes
  */
-const radiusFilter = async function (query, result) {
-    Log.debug(TAG, 'Radius Filter');
-    const options = {
-        latitude: query.start.lat,
-        longitude: query.start.lng,
-        distance: query.radius,
-        select: {_id: 1, distance: 2, routes: 3}
-    };
-
-    let radiusGeos = await Geo.findWithinRadius(options);
-    radiusGeos = radiusGeos.filter(function (geo) {
-        return geo.routes.length > 0;
-    });
-
-    // filter such that only the routes that are completely within the radius remain
-    result.goodRoutes = result.goodRoutes.filter(function (route) {
-        const takeEvery = Math.ceil(route.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
-        let count = 0;
-
-        // return whether there is no geo that is not in the radius
-        return (!(route.geo.some(function (routeGeo) {
-            count++;
-            if (count % takeEvery !== 0) {
-                return false;
-            }
-            // return whether the element is not in the radius geos
-            return !(radiusGeos.some(function (radiusGeo) {
-                return (radiusGeo._id.toString().trim() === routeGeo._id.toString().trim());
-            }));
-        })));
-    });
-
-    // filter such that only the segments that are completely not outside remain
-    result.goodSegments = result.goodSegments.filter(function (segment) {
-        const takeEvery = Math.ceil(segment.geo.length * 0.1);    // parameter for performance, only take every xth route point, 1 = every
-        let count = 0;
-
-        // if there is no geo that is not in the radius, return true
-        return (!(segment.geo.some(function (segmentGeo) {
-            count++;
-            if (count % takeEvery !== 0) {
-                return false;
-            }
-            // if the element is not in the radius geos, then return true
-            return !(radiusGeos.some(function (radiusGeo) {
-
-                return (radiusGeo._id.toString().trim() === segmentGeo._id.toString().trim());
-            }));
-        })));
-    });
-    // now our routes and segments arrays only contain routes where no geo is outside of the radius
-
-    Log.debug(TAG, result.goodRoutes.length + ' possible segments after radius filter: ', result.goodRoutes.map(s => s.distance + ' (' + s.title + ')'));
-    Log.debug(TAG, result.goodSegments.length + ' possible segments after radius filter: ', result.goodSegments.map(s => s.distance + ' (' + s.title + ')'));
-
-    return result;
-};
-
-const printAllPathsUntil = function (source,
-                                     destination,
-                                     localPathList,
-                                     localDistance,
-                                     maxDepth,
-                                     minDepth,
-                                     maxDistance,
-                                     resultPaths,
-                                     stopAfter,
-                                     requireActivity,
-                                     requireNoInv) {
+const printAllPathsUntil = function (source, destination, localPathList, localDistance, maxDepth, minDepth, maxDistance, resultPaths, stopAfter, requireActivity, requireNoInv) {
     source.isVisited = true;
     if (source === destination && localPathList.length >= minDepth && resultPaths.length < stopAfter) {
         let found = true;
@@ -1281,7 +864,6 @@ const printAllPathsUntil = function (source,
     activityContained = resultPaths.forEach((r) => {
         activityContained |= r.path.some((p) => p.isActivity);
     });
-
 
     // Recur for all the vertices adjacent to current vertex
     source.successors.slice(0, 60).forEach(function (succ) {
@@ -1348,4 +930,221 @@ const printAllPathsUntil = function (source,
     source.isVisited = false;
 };
 
+function routeActivitySimilarityFilter (r, a) {
+    const distanceDelta = Math.abs(r.distance - a.distance);
+
+    // when they are too different in terms of total distance, they are not similar
+    if (distanceDelta > r.distance * 0.2) {
+        return true;
+    }
+
+
+    let startPointRoute = [];
+    let endPointRoute = [];
+    if (r.geo) {
+        startPointRoute = [r.geo[0].location.coordinates[1], r.geo[0].location.coordinates[0]];
+        endPointRoute = [r.geo[r.geo.length - 1].location.coordinates[1], r.geo[r.geo.length - 1].location.coordinates[0]];
+    }
+    else {
+        return true;
+    }
+
+    let startPointActivity = [];
+    let endPointActivity = [];
+    if (a.geo) {
+        startPointActivity = [a.geo[0].location.coordinates[1], a.geo[0].location.coordinates[0]];
+        endPointActivity = [a.geo[a.geo.length - 1].location.coordinates[1], a.geo[a.geo.length - 1].location.coordinates[0]];
+    }
+    else {
+        return true;
+    }
+
+    const distanceOfStarts = geolib.getDistance(
+        {latitude: startPointRoute[0], longitude: startPointRoute[1]},
+        {latitude: startPointActivity[0], longitude: startPointActivity[1]}
+    );
+
+    const distanceOfEnds = geolib.getDistance(
+        {latitude: endPointRoute[0], longitude: endPointRoute[1]},
+        {latitude: endPointActivity[0], longitude: endPointActivity[1]}
+    );
+
+    const endsFarAppart = distanceOfStarts > 500 || distanceOfEnds > 500;
+    if (endsFarAppart) {
+        return true;
+    } else {
+        Log.debug(TAG, 'Route is too similar to activity ' + distanceOfStarts + ' ' + distanceOfEnds + r.title + ', ' + a.title);
+    }
+}
+
+function roundCourseFilter (r) {
+    let startPoint = [];
+    let endPoint = [];
+    if (!r.isRoute && !r.isActivity) {
+        startPoint = r.strava.start_latlng;
+        endPoint = r.strava.end_latlng;
+    } else {
+        if (r.geo) {
+            startPoint = [r.geo[0].location.coordinates[1], r.geo[0].location.coordinates[0]];
+            endPoint = [r.geo[r.geo.length - 1].location.coordinates[1], r.geo[r.geo.length - 1].location.coordinates[0]];
+        }
+        else {
+            return true;
+        }
+    }
+    const distance = geolib.getDistance(
+        {latitude: startPoint[0], longitude: startPoint[1]},
+        {latitude: endPoint[0], longitude: endPoint[1]}
+    );
+    return distance > r.distance / 4;
+}
+
+function generateNodes (routes, isActivity) {
+    let nodes = [];
+
+    // add the original routes
+    for (let route of routes) {
+        let start, end;
+        if (route.strava.start_latlng) {
+            start = route.strava.start_latlng;
+            end = route.strava.end_latlng;
+        } else {
+            start = [route.geo[0].location.coordinates[1], route.geo[0].location.coordinates[0]];
+            end = [route.geo[route.geo.length - 1].location.coordinates[1], route.geo[route.geo.length - 1].location.coordinates[0]];
+        }
+
+        let startGeo = 'T0';
+        let endGeo = 'T3';
+
+        let partitions = [startGeo, endGeo];
+
+        for (let i = 0; i < partitions.length - 1; ++i) {
+            for (let j = i + 1; j < partitions.length; ++j) {
+                const partitionStart = partitions[i];
+                const partitionEnd = partitions[j];
+
+                let node = {
+                    name: route.title,
+                    start: start,
+                    end: end,
+                    distance: route.distance,
+                    lowerBoundDistance: route.lowerBoundDistance,
+                    successors: [],
+                    inv: null,
+                    isActivity: isActivity,
+                    isInv: false,
+                    firstGeo: partitionStart,
+                    lastGeo: partitionEnd,
+                    id: route._id,
+                    route: null,
+                };
+                let nodeInv = {
+                    name: '(inv) ' + route.title,
+                    start: start,
+                    end: end,
+                    distance: route.distance,
+                    lowerBoundDistance: route.lowerBoundDistance,
+                    successors: [],
+                    inv: node.name,
+                    isActivity: isActivity,
+                    isInv: true,
+                    firstGeo: partitionEnd,
+                    lastGeo: partitionStart,
+                    id: route._id,
+                    route: null,
+                };
+                node.inv = nodeInv.name;
+                nodes.push(node, nodeInv);
+            }
+        }
+    }
+    return nodes;
+}
+
+function connectNodes (start, end, nodes) {
+    start.successors = [];
+    nodes.forEach(function (node) {
+        node.successors = [];
+        start.successors.push({
+            node: node,
+            distance: geolib.getDistance(
+                {latitude: start.end[0], longitude: start.end[1]},
+                {latitude: node.start[0], longitude: node.start[1]}
+            )
+        });
+
+        node.successors.push({
+            node: end,
+            distance: geolib.getDistance(
+                {latitude: node.end[0], longitude: node.end[1]},
+                {latitude: end.start[0], longitude: end.start[1]}
+            )
+        });
+        nodes.forEach(function (innerLoopNode) {
+            if (node.inv !== '(inv) ' + innerLoopNode.name && (innerLoopNode.name !== '(inv) ' + node.inv)) {
+                node.successors.push({
+                    node: innerLoopNode,
+                    distance: geolib.getDistance(
+                        {latitude: node.end[0], longitude: node.end[1]},
+                        {latitude: innerLoopNode.start[0], longitude: innerLoopNode.start[1]}
+                    )
+                });
+            }
+        });
+    });
+}
+
+function makeComboPaths (start, end, nodes, query, requireActivity) {
+    Log.debug(TAG, 'Make combo paths');
+
+    let resultPaths = [];
+    let distance = query.distance;
+    if (requireActivity) {
+        distance += query.distance * 0.3;
+    }
+    let useParts = Math.floor(Math.min(Math.max(distance / 30000, 1), 2));
+    const minDepthOriginal = 2 + useParts;
+    const stopAfter = 1;
+
+    for (let i = 0; i < 7; ++i) {
+        const minDepth = minDepthOriginal + (i % 3);
+        const maxDepth = Math.min(Math.ceil(minDepth * 1.5), 5) + (i % 3);
+
+        let localResultPaths = [];
+        let pathList = [];
+        pathList.push(start);
+
+        // Log.debug(TAG, 'Starting DFS with parameters: minDepth = ' + minDepth + ', maxDepth = ' + maxDepth + ', maxDistance = ' + distance);
+
+        let requireNoInv = resultPaths.length < 1 || i < 3;
+
+        printAllPathsUntil(start, end, pathList, 0, maxDepth, minDepth, distance, localResultPaths, stopAfter, requireActivity, requireNoInv);
+        resultPaths.push.apply(resultPaths, localResultPaths);
+        start.successors.sort(function (a, b) {
+            return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
+                - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
+        });
+        start.isVisited = false;
+
+        if (i % 3 === 2) {
+            // rough sorting
+            nodes.slice(0, 100).forEach(function (node) {
+                node.isVisited = false;
+                node.successors.sort(function (a, b) {
+                    return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
+                        - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
+                });
+            });
+        }
+    }
+
+    // remove the duplicates
+    let seen = [];
+    resultPaths = resultPaths.filter((path) => {
+        const okay = !seen.includes(path.distance);
+        seen.push(path.distance);
+        return okay;
+    });
+    return resultPaths;
+}
 

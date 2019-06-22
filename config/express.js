@@ -8,7 +8,7 @@ const cookieParser = require('cookie-parser');
 const methodOverride = require('method-override');
 const csrf = require('csurf');
 const bodyParser = require('body-parser');
-const parseForm = bodyParser.urlencoded({ extended: false });
+const parseForm = bodyParser.urlencoded({extended: false});
 const cors = require('cors');
 const upload = require('multer')({dest: 'uploads/'});
 const mongoStore = require('connect-mongo')(session);
@@ -94,7 +94,7 @@ module.exports = function (app, passport) {
             url: config.db,
             collection: 'sessions'
         }),
-        cookie: { path: '/', httpOnly: true, maxAge: 3600000},
+        cookie: {path: '/', httpOnly: true, maxAge: 3600000},
         maxAge: new Date(Date.now() + 3600000),
         httpOnly: true,
     }));

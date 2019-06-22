@@ -9,13 +9,11 @@ const RoleSchema = new Schema({
 });
 
 RoleSchema.path('name').required(true, 'Role name cannot be blank');
-
 RoleSchema.statics = {
 
     /**
      * Load
      * @param {Object} options
-     * @param {Function} cb
      */
 
     load_options: function (options) {

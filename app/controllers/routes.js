@@ -37,7 +37,8 @@ exports.load_options = async function (req, res, next, id) {
             req.routeData = await Activity.load(id);
             if (!req.routeData) {
                 return next(new Error('Route or Activity not found'));
-            }        }
+            }
+        }
     } catch (err) {
         return next(err);
     }
@@ -109,7 +110,7 @@ exports.create = async function (req, res) {
  */
 exports.updateCreatorResult = async function (req, res) {
     Log.debug(TAG, 'Update creator result');
-    Log.debug(TAG, '', req.body)
+    Log.debug(TAG, '', req.body);
     let result = await CreatorResult.load(req.body.id);
     result.routeRatings = req.body.routeRatings;
     result.acceptedRoutes = req.body.acceptedRoutes;

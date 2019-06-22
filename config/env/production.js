@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+    env: 'production',
     db: 'mongodb://localhost/exploxdb_prod',
     frontend_url: 'http://umtl.dfki.de/explox/',
     email: process.env.EMAIL,

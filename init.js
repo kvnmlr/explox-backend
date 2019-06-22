@@ -2,15 +2,12 @@
 
 const Log = require('./app/utils/logger');
 const TAG = 'Init';
-const  mongoose = require('mongoose');
-const Route = mongoose.model('Route');
-const Geo = mongoose.model('Geo');
+const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const Settings = mongoose.model('Settings');
 const scheduler = require('./app/controllers/scheduler');
 const crawler = require('./app/controllers/crawler');
 
-let geos = [];
 let adminRole, userRole;
 
 exports.init = async function () {
@@ -21,7 +18,6 @@ exports.init = async function () {
         let initialized = await createDefaultAdmins();
         if (!initialized) {
             await createDefaultUsers();
-            // await createSampleRoute();
         }
         await createDefaultSettings();
         scheduler.init();
@@ -30,44 +26,6 @@ exports.init = async function () {
     } catch (e) {
         Log.error(TAG, 'An error occurred during initialization', e);
     }
-};
-
-const createDefaultGeo1 = async function () {
-    await createDefaultGeo('init1', 23.600800037384033, 46.76758746952729);
-};
-const createDefaultGeo2 = async function () {
-    await createDefaultGeo('init2', 25.600800037384033, 48.76758746952729);
-};
-const createDefaultGeo3 = async function () {
-    await  createDefaultGeo('init3', 65.600800037384033, 2.76758746952729);
-};
-
-const createDefaultGeo = async function (name, lat, long) {
-    Log.debug(TAG, 'createDefaultGeo');
-    const options = {
-        criteria: {'name': name}
-    };
-
-    let geo = await Geo.load_options(options);
-    if (!geo) {
-        const coords = [];
-        coords[1] = lat;
-        coords[0] = long;
-
-        const geo = new Geo({
-            name: name,
-            location: {
-                type: 'Point',
-                coordinates: coords
-            }
-        });
-
-        await geo.save();
-        geos[geos.length] = geo;
-
-    }
-    Log.debug(TAG, 'createDefaultGeo done');
-
 };
 
 const createDefaultAdmins = async function () {
@@ -144,41 +102,6 @@ const createDefaultSettings = async function () {
 const createRoles = function () {
     adminRole = 'admin';
     userRole = 'user';
-};
-
-const createSampleRoute = async function () {
-    Log.debug(TAG, 'createSampleRoute');
-
-    const optionsUser = {
-        criteria: {'name': 'user'}
-    };
-    let user = await User.load_options(optionsUser);
-    const optionsRoute = {
-        criteria: {'title': 'Saarbrücken Uni Route'}
-    };
-    let route = await Route.load_options(optionsRoute);
-    if (!route) {
-        route = new Route({
-            stravaId: 123456789,
-            title: 'Saarbrücken Uni Route',
-            body: 'This route leads through the univeristy in Saarbrücken.',
-            location: 'Saarbrücken',
-            user: user,
-            comments: [{
-                body: 'I ran this route today and it is very nice!',
-                user: user,
-            }],
-            tags: 'run, running, road',
-            geo: geos,
-            distance: 1337.42
-        });
-        await route.save();
-        if (geos.length > 0) {
-            geos[0].routes.push(route);
-            await geos[0].save();
-        }
-    }
-    Log.debug(TAG, 'createSampleRoute done');
 };
 
 const finished = function () {

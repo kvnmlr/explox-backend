@@ -11,14 +11,13 @@ const mailer = require('../mailer/index');
 const fs = require('fs');
 const path = require('path');
 
-var today = new Date();
-
+let today = new Date();
 
 exports.home = async(function (req, res) {
     res.json({
-        text: 'Home text',
-        startup: today.getTime(),
-        env: config
+        status: 'online',
+        startup: today.getDate() + '.' + today.getMonth() + '.' + today.getFullYear() + ' ' + today.getHours() + ':' + today.getMinutes(),
+        env: config.env,
     });
 });
 
@@ -94,7 +93,8 @@ exports.submitInvitation = async function (req, res) {
                 type: 'success',
                 text: 'Thanks! An invitation e-mail has been sent' + ((invite.receiver === '') ? '.' : (' to ' + invite.receiver + '.')),
             }
-        });    } catch (err) {
+        });
+    } catch (err) {
         res.status(400).json({
             error: err,
             user: null

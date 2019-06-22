@@ -43,5 +43,4 @@ exports.destroy = async function (req, res) {
             type: 'success'
         }
     });
-
 };

@@ -6,7 +6,7 @@ const TAG = 'map';
 /**
  * Returns the configuration for the leaflet map (explored map)
  */
-const getConfig = function (geos) {
+const getConfig = function () {
     return {
         // Probably not needed because we use fitBounds which does this automatically
         zoom: 11,                   // Zoom out such that every point is visible
@@ -61,7 +61,7 @@ exports.generateRouteMap = function (geos, exploredGeos) {
  * Returns the configuration for the explored map
  */
 const getMaskConfiguration = function () {
-    var config = {
+    return {
         radius: 200,                // radius in pixels or in meters (see useAbsoluteRadius)
         useAbsoluteRadius: true,    // true: r in meters, false: r in pixels
         color: '#000',              // the color of the layer
@@ -70,7 +70,6 @@ const getMaskConfiguration = function () {
         lineColor: '#A00',          // color of the circle outline if noMask is true
         updateWhenZooming: true,
     };
-    return config;
 };
 /**
  * Transforms an array of db.geos into the data format used by heatmao.js to show the explored map
@@ -93,34 +92,3 @@ exports.generateExploredMapData = function (exploredGeos) {
         routeData: ['L.latLng(0.0000000,0.00000001)']
     };
 };
-
-
-/**
- * !!! NOT USED ATM !!! Returns the configuration for the explored map
- */
-const getHeatmapConfig = function () {
-    return {
-        // this is static and should not depend on geos.
-        radius: .5,
-        maxOpacity: 100,
-        minOpacity: 0.5,
-        scaleRadius: true,
-        useLocalExtrema: true,
-        latField: 'lat',
-        lngField: 'lng',
-        valueField: 'count',
-        // blur: .75,
-        // backgroundColor: 'rgba(0,0,0,1)',
-        gradient: {
-            // enter n keys between 0 and 1 here
-            // for gradient color customization
-            '0': 'red',
-            '.5': 'blue',
-            '.8': 'red',
-            '.95': 'rgba(255,255,255,0.001)'
-            // '.95': 'transparent'
-
-        },
-    };
-};
-

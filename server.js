@@ -9,7 +9,6 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const cluster = require('cluster');
-const favicon = require('serve-favicon');
 const passport = require('passport');
 const config = require('./config');
 const models = join(__dirname, 'app/models');
@@ -17,11 +16,8 @@ const models = join(__dirname, 'app/models');
 const port = process.env.PORT || 3000;
 process.setMaxListeners(0);
 
-app.use(favicon(join(__dirname, 'public', 'favicon.ico')));
-
 const os = require('os');
 const numCPUs = os.cpus().length;
-
 
 module.exports = app;
 module.exports.config = config;
@@ -39,32 +35,28 @@ require('./config/routes')(app, passport);
 
 if (cluster.isMaster) {
     Log.log(TAG, '_____Starting Server_____');
-    Log.log(TAG, 'Starting ' + numCPUs + ' workers on port ' + port);
 
     connect()
         .on('error', console.log)
         .on('disconnected', connect)
         .once('open', initialize);
 
-    if (app.get('env') !== 'test') {
+    // Only use cluster mode in development. Production uses pm2
+    if (app.get('env') === 'development') {
+        Log.log(TAG, 'Starting ' + numCPUs + ' workers on port ' + port);
         for (let i = 0; i < numCPUs; i++) {
             cluster.fork();
         }
+        cluster.on('exit', function (deadWorker) {
+            Log.debug(TAG, 'exit');
+            // Restart the worker
+            const worker = cluster.fork();
 
-        /* Object.keys(cluster.workers).forEach(function (id) {
-            Log.debug(TAG, 'Worker with PID ' + cluster.workers[id].process.pid + ' is ready');
-        }); */
+            // Log the event
+            Log.error(TAG, 'Worker ' + deadWorker.process.pid + ' has died');
+            Log.log(TAG, 'Worker ' + worker.process.pid + ' was born');
+        });
     }
-
-    cluster.on('exit', function (deadWorker) {
-        // Restart the worker
-        const worker = cluster.fork();
-
-        // Log the event
-        Log.error(TAG, 'Worker ' + deadWorker.process.pid + ' has died');
-        Log.log(TAG, 'Worker ' + worker.process.pid + ' was born');
-    });
-
 } else {
     connect()
         .on('error', console.log)

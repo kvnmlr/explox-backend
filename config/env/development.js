@@ -1,6 +1,7 @@
 'use strict';
 
 module.exports = {
+    env: 'development',
     db: 'mongodb://localhost/exploxdb_dev',
     frontend_url: 'http://localhost:8080/',
     email: process.env.EMAIL,
