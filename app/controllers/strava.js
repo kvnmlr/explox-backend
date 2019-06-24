@@ -168,7 +168,7 @@ exports.updateUser = async function (req, res) {
             try {
                 await exports.getAthlete(user, token);
                 await exports.getStats(user, token);
-                // activities = await exports.getActivities(id, token, max, user);
+                activities = await exports.getActivities(id, token, max, user);
                 await exports.getRoutes(id, token, max, user);
             } catch (e) {
                 Log.error(TAG, 'User could not be fully synchronized');
