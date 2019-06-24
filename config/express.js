@@ -22,7 +22,7 @@ const Log = require('../app/utils/logger');
 const TAG = 'server';
 
 module.exports = function (app, passport) {
-    Log.debug(TAG, env);
+    Log.log(TAG, env);
     app.use(parseForm);
     app.use(function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
