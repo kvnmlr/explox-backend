@@ -35,7 +35,7 @@ exports.finishRegistration = async function (req, res) {
     let user = req.user;
     assign(user, only(req.body, 'firstName lastName email username subscriptions demographics cyclingBehaviour routePlanning questionnaireInfo'));
 
-    await Strava.updateUser({profile: user, max: 20});
+    Strava.updateUser({profile: user, max: 200});
 
     if (!req.body.cache) {
         user.fullyRegistered = true;
@@ -269,7 +269,7 @@ exports.session = async function (req, res) {
             await Strava.updateUser({profile: req.user, max: 3}); // only take 5 so login does not take too long
         } else {
             // synchronize asynchronously while they are registering
-            Strava.updateUser({profile: req.user, max: 1000});
+            Strava.updateUser({profile: req.user, max: 200});
         }
     }
     await User.update_user(req.user._id, {lastLogin: Date.now()});

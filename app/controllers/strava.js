@@ -12,6 +12,7 @@ const Activity = mongoose.model('Activity');
 const Geo = mongoose.model('Geo');
 const Settings = mongoose.model('Settings');
 const ImportExport = require('./importexport');
+const geolib = require('geolib');
 
 const getUploadStatus = async function (req, res) {
     let user = await User.load(req.user._id);
@@ -167,8 +168,8 @@ exports.updateUser = async function (req, res) {
             try {
                 await exports.getAthlete(user, token);
                 await exports.getStats(user, token);
-                activities = await exports.getActivities(id, token, max);
-                await exports.getRoutes(id, token, max);
+                // activities = await exports.getActivities(id, token, max, user);
+                await exports.getRoutes(id, token, max, user);
             } catch (e) {
                 Log.error(TAG, 'User could not be fully synchronized');
                 error = true;
@@ -259,14 +260,12 @@ exports.getStats = function (user, token) {
  * Retrieves all routes created by the given user id, retrieves detailed route information, retrieves the route stream.
  * Updates db.user to include all routes, updates db.geo to include the coordinates of all routes, updates db.route to hold all route and references to db.geo
  */
-exports.getRoutes = function (id, token, max) {
-    return new Promise(function (resolve, reject) {
-        strava.athlete.listRoutes({
-            id: id,
-            access_token: token,
-            page: 1,
-            per_page: 100
-        }, async function (err, payload, limits) {
+exports.getRoutes = function (id, token, max, user) {
+    return new Promise(async function (resolve, reject) {
+        let acts = user.routes.length;
+        let n = 1 + Math.floor(acts / 200);
+
+        let f = async function (err, payload, limits) {
             updateLimits(limits);
             if (err) {
                 Log.error(TAG, 'Error while retrieving user routes', err);
@@ -276,7 +275,7 @@ exports.getRoutes = function (id, token, max) {
             if (payload) {
                 let done = 0;
                 if (!max) {
-                    max = 1000;
+                    max = 200;
                 }
                 if (payload.length < max) max = payload.length;
 
@@ -285,7 +284,7 @@ exports.getRoutes = function (id, token, max) {
                 * and we will not kill the API*/
                 let user = await User.load_options({criteria: {stravaId: id}});
 
-                Log.debug('Found ' + max + ' new routes');
+                Log.debug(TAG, 'Found ' + max + ' new routes');
                 for (let i = 0; i < payload.length; ++i) {
                     if (done >= max) {
                         break;
@@ -321,26 +320,40 @@ exports.getRoutes = function (id, token, max) {
                     }
                 }
             }
-            resolve(payload);
-        });
+            ++n;
+            if (n < 6) {
+                await strava.athlete.listRoutes({
+                    id: id,
+                    access_token: token,
+                    page: n,
+                    per_page: 200
+                }, f);
+            } else {
+                resolve(payload);
+            }
+        };
+
+        await strava.athlete.listRoutes({
+            id: id,
+            access_token: token,
+            page: n,
+            per_page: 200
+        }, f);
     });
 };
 
 /**
  * Get all activities for the given user
  */
-exports.getActivities = function (id, token, max) {
+exports.getActivities = function (id, token, max, user) {
     // query a list of all activities of this user
-    return new Promise(function (resolve, reject) {
+    return new Promise(async function (resolve, reject) {
+        let acts = user.activities.length;
+        let n = 1 + Math.floor(acts / 200);
 
-        strava.athlete.listActivities({
-            id: id,
-            access_token: token,
-            page: 1,
-            per_page: 100
-        }, async function (err, payload, limits) {
+        let f = async function (err, payload, limits) {
             updateLimits(limits);
-            if (err) {
+            if (err || (payload && payload.errors)) {
                 Log.error(TAG, 'Error while retrieving activities', err);
                 reject(new Error(err));
                 return;
@@ -348,7 +361,7 @@ exports.getActivities = function (id, token, max) {
             if (payload) {
                 let done = 0;
                 if (!max) {
-                    max = 1000;
+                    max = 200;
                 }
                 let numActivities = payload.length;
                 if (numActivities < max) max = numActivities;
@@ -356,7 +369,7 @@ exports.getActivities = function (id, token, max) {
                 /* This will iterate through all activities and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
                 * and we will not kill the API */
-                Log.debug('Found ' + max + ' new routes');
+                Log.debug(TAG, 'Found ' + max + ' new activities');
                 let user = await User.load_options({criteria: {stravaId: id}});
 
                 for (let i = 0; i < numActivities; ++i) {
@@ -396,9 +409,27 @@ exports.getActivities = function (id, token, max) {
                         }
                     }
                 }
-                resolve(payload);
+                ++n;
+                if (n < 6) {
+                    Log.debug(TAG, n);
+                    await strava.athlete.listActivities({
+                        id: id,
+                        access_token: token,
+                        page: n,
+                        per_page: 200
+                    }, f);
+                } else {
+                    resolve(payload);
+                }
             }
-        });
+        };
+
+        await strava.athlete.listActivities({
+            id: id,
+            access_token: token,
+            page: n,
+            per_page: 200
+        }, f);
     });
 };
 
@@ -493,9 +524,26 @@ const getSegment = async function (id, token, segment, next) {
             await segment.save();
 
             await getSegmentStream(id, token, segment, async function (err, geos) {
-                if (err) {
+                if (err || (geos && geos.length === 0)) {
+                    Log.debug(TAG, 'Error retrieveing segment stream ', err);
+                    await segment.remove();
+                    resolve(payload);
                     return;
                 }
+
+                const dist = geolib.getDistance({
+                    latitude: 49.377236 , longitude: 7.019996
+                }, {
+                    latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                });
+
+                if (dist > 150000) {
+                    Log.debug(TAG, 'Segment ' + id + ' is too far away');
+                    await segment.remove();
+                    resolve(payload);
+                    return;
+                }
+
                 Log.debug(TAG, geos.length + ' geos extracted for segment ' + id);
 
                 segment.geo = geos;
@@ -563,9 +611,24 @@ const getActivity = async function (id, token, userID) {
                 await getActivityStream(id, token, activity, async function (err, geos) {
                     if (err || geos === undefined) {
                         Log.error(TAG, 'Error retrieving activity stream', err);
-                        reject(new Error(err));
+                        activity.remove();
+                        resolve(payload);
                         return;
                     }
+
+                    const dist = geolib.getDistance({
+                        latitude: 49.377236 , longitude: 7.019996
+                    }, {
+                        latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                    });
+
+                    if (dist > 150000) {
+                        Log.debug(TAG, 'Activity ' + id + ' is too far away');
+                        await activity.remove();
+                        resolve(payload);
+                        return;
+                    }
+
                     Log.log(TAG, geos.length + ' geos extracted for activity ' + id);
 
                     // Add all the geos to the activity and save it
@@ -575,7 +638,6 @@ const getActivity = async function (id, token, userID) {
                     // Link activity to user
                     user.activities = user.activities.concat([activity]);
                     await user.save().catch((err) => Log.error(TAG, 'Error while saving', err));
-
                     ImportExport.exportRoute({
                         routeData: activity,
                         query: {},
@@ -659,11 +721,26 @@ const getRoute = async function (id, token, userID) {
 
 
                 await getRouteStream(id, token, route, async function (err, geos) {
-                    if (err) {
+                    if (err || (geos && geos.length === 0)) {
                         Log.error(TAG, 'Error getting a route stream', err);
-                        reject(new Error(err));
+                        await route.remove();
+                        resolve(payload);
                         return;
                     }
+
+                    const dist = geolib.getDistance({
+                        latitude: 49.377236 , longitude: 7.019996
+                    }, {
+                        latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                    });
+
+                    if (dist > 150000) {
+                        Log.debug(TAG, 'Route ' + id + ' is too far away');
+                        await route.remove();
+                        resolve(payload);
+                        return;
+                    }
+
                     Log.log(TAG, geos.length + ' geos extracted for route ' + id);
 
                     route.geo = geos;
