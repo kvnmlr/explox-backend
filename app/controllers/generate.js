@@ -733,7 +733,7 @@ const createRoutes = async function (query, result) {
         for (let waypoint of candidate.waypoints) {
             const geo = new Geo({
                 name: 'Generated',
-                altitude: ++i,
+                altitude: 0,
                 location: {
                     type: 'Point',
                     coordinates: [waypoint[0], waypoint[1]]
