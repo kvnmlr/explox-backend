@@ -18,8 +18,11 @@ const helpers = require('view-helpers');
 const config = require('./');
 const pkg = require('../package.json');
 const env = process.env.NODE_ENV || 'development';
+const Log = require('../app/utils/logger');
+const TAG = 'server';
 
 module.exports = function (app, passport) {
+    Log.debug(TAG, env);
     app.use(parseForm);
     app.use(function (req, res, next) {
         res.header('Access-Control-Allow-Origin', '*');
