@@ -517,7 +517,9 @@ const generateCandidates = async function (query, result) {
         let route = await osrm.findRoute({waypoints: coordinates});
         if (route.distance > 0) {
             // save what parts are included in this route
-            route.parts = combo.parts;
+            route.parts = combo.parts.filter((p) => {
+                return !p.isActivity;
+            });
 
             // add this route to the list of all generated routes
             if (combo.explorative) {
@@ -870,9 +872,10 @@ const printAllPathsUntil = function (source, destination, localPathList, localDi
 
         if (activityContained && succ.node.isActivity) {
             Log.debug(TAG, 'Activity already contained');
-            if (Math.random() < 0.7) {
+            if (Math.random() > 0.01) {
                 return;
             }
+            return;
         }
 
         if (requireNoInv) {
@@ -917,6 +920,37 @@ const printAllPathsUntil = function (source, destination, localPathList, localDi
         const currDist = localDistance + source.distance + succ.distance;
         if (currDist >= maxDistance || localPathList.length >= maxDepth || resultPaths.length >= stopAfter) {
             return;
+        }
+
+        const distFromEndToDestination = geolib.getDistance({
+                latitude: succ.node.end[0],
+                longitude: succ.node.end[1]
+            },
+            {
+                latitude: destination.end[0],
+                longitude: destination.end[1]
+            },
+        );
+        const distFromStartToDestination = geolib.getDistance({
+                latitude: succ.node.start[0],
+                longitude: succ.node.start[1]
+            },
+            {
+                latitude: destination.end[0],
+                longitude: destination.end[1]
+            },
+        );
+
+        // Make sure the part lies in the correct direction, away from or towards th destination
+        if (currDist < maxDistance / 2) {
+            // We are on the way out, i.e. first half of the route
+            if (distFromEndToDestination < distFromStartToDestination) {
+                return;
+            }
+        } else {
+            if (distFromEndToDestination > distFromStartToDestination) {
+                return;
+            }
         }
 
         // prevent cycles going through the same track
@@ -1040,8 +1074,8 @@ function generateNodes (routes, isActivity) {
                 };
                 let nodeInv = {
                     name: '(inv) ' + route.title,
-                    start: start,
-                    end: end,
+                    start: end,
+                    end: start,
                     distance: route.distance,
                     lowerBoundDistance: route.lowerBoundDistance,
                     successors: [],

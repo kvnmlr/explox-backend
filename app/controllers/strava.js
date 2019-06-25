@@ -262,8 +262,9 @@ exports.getStats = function (user, token) {
  */
 exports.getRoutes = function (id, token, max, user) {
     return new Promise(async function (resolve, reject) {
-        let acts = user.routes.length;
-        let n = 1 + Math.floor(acts / 200);
+        let routes = user.routes.length;
+        const perPage = Math.max(max * 10, 200);
+        let n = 1 + Math.floor(routes / perPage);
 
         let f = async function (err, payload, limits) {
             updateLimits(limits);
@@ -273,11 +274,17 @@ exports.getRoutes = function (id, token, max, user) {
                 return;
             }
             if (payload) {
-                let done = 0;
                 if (!max) {
                     max = 200;
                 }
-                if (payload.length < max) max = payload.length;
+                let done = 0;
+                let allFound = false;
+                if (payload.length < max) {
+                    max = payload.length;
+                }
+                if (payload.length < perPage) {
+                    allFound = true;
+                }
 
                 /* this will iterate through all routes and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all routes will be in the database
@@ -297,15 +304,14 @@ exports.getRoutes = function (id, token, max, user) {
                         // only road cycling
                         continue;
                     }
-                    done++;
                     const route = await Route.load_options({criteria: {stravaId: payload[i].id}});
                     if (route) {
                         Log.debug(TAG, 'Route ' + payload[i].id + ' already exist.');
                         route.user = user;
 
                         let found = false;
-                        for (let i = 0; i < user.routes.length; i++) {
-                            if (user.routes[i].id === route.id) {
+                        for (let j = 0; j < user.routes.length; j++) {
+                            if (user.routes[j].id === route.id) {
                                 found = true;
                                 break;
                             }
@@ -316,20 +322,22 @@ exports.getRoutes = function (id, token, max, user) {
                             await route.user.save();
                         }
                     } else {
+                        done++;
                         await getRoute(payload[i].id, token, id).catch();
                     }
                 }
-            }
-            ++n;
-            if (n < 6) {
-                await strava.athlete.listRoutes({
-                    id: id,
-                    access_token: token,
-                    page: n,
-                    per_page: 200
-                }, f);
-            } else {
-                resolve(payload);
+
+                ++n;
+                if (!allFound && n < 6) {
+                    await strava.athlete.listRoutes({
+                        id: id,
+                        access_token: token,
+                        page: n,
+                        per_page: perPage
+                    }, f);
+                } else {
+                    resolve(payload);
+                }
             }
         };
 
@@ -337,7 +345,7 @@ exports.getRoutes = function (id, token, max, user) {
             id: id,
             access_token: token,
             page: n,
-            per_page: 200
+            per_page: perPage
         }, f);
     });
 };
@@ -349,7 +357,8 @@ exports.getActivities = function (id, token, max, user) {
     // query a list of all activities of this user
     return new Promise(async function (resolve, reject) {
         let acts = user.activities.length;
-        let n = 1 + Math.floor(acts / 200);
+        const perPage = Math.max(max * 10, 200);
+        let n = 1 + Math.floor(acts / perPage);
 
         let f = async function (err, payload, limits) {
             updateLimits(limits);
@@ -363,8 +372,13 @@ exports.getActivities = function (id, token, max, user) {
                 if (!max) {
                     max = 200;
                 }
-                let numActivities = payload.length;
-                if (numActivities < max) max = numActivities;
+                let allFound = false;
+                if (payload.length < max) {
+                    max = payload.length;
+                }
+                if (payload.length < perPage) {
+                    allFound = true;
+                }
 
                 /* This will iterate through all activities and take at most max which are not yet in the database.
                 * Maybe multiple synchronizations are necessary but eventually all activities will be in the database
@@ -372,7 +386,7 @@ exports.getActivities = function (id, token, max, user) {
                 Log.debug(TAG, 'Found ' + max + ' new activities');
                 let user = await User.load_options({criteria: {stravaId: id}});
 
-                for (let i = 0; i < numActivities; ++i) {
+                for (let i = 0; i < payload.length; ++i) {
                     if (done >= max) {
                         break;
                     }
@@ -381,7 +395,6 @@ exports.getActivities = function (id, token, max, user) {
                         Log.debug(TAG, 'Wrong type ' + payload[i].type + ' for activity ' + payload[i].name,);
                         continue;
                     }
-                    done++;
 
                     const activity = await Activity.load_options({criteria: {activityId: payload[i].id}});
                     if (activity) {
@@ -404,19 +417,19 @@ exports.getActivities = function (id, token, max, user) {
                         if (payload[i].name.includes('[ExploX]')) {
                             Log.error(TAG, 'Found a created Activity!');
                         } else {
+                            done++;
                             await getActivity(payload[i].id, token, id).catch((err) => {
                             });
                         }
                     }
                 }
                 ++n;
-                if (n < 6) {
-                    Log.debug(TAG, n);
+                if (!allFound && n < 6) {
                     await strava.athlete.listActivities({
                         id: id,
                         access_token: token,
                         page: n,
-                        per_page: 200
+                        per_page: perPage
                     }, f);
                 } else {
                     resolve(payload);
@@ -428,7 +441,7 @@ exports.getActivities = function (id, token, max, user) {
             id: id,
             access_token: token,
             page: n,
-            per_page: 200
+            per_page: perPage
         }, f);
     });
 };
@@ -485,7 +498,6 @@ exports.segmentsExplorer = function (token, options) {
 const getSegment = async function (id, token, segment, next) {
     Log.debug(TAG, 'Creating new segment with id ' + id);
 
-
     return new Promise(function (resolve, reject) {
         strava.segments.get({id: id, access_token: token}, async function (err, payload, limits) {
             if (err) {
@@ -499,7 +511,7 @@ const getSegment = async function (id, token, segment, next) {
                 Log.debug(TAG, 'Wrong activity type');
                 reject('Wrong activity type for segment');
             }
-            Log.debug(TAG, 'Correct activity type');
+            // Log.debug(TAG, 'Correct activity type');
 
 
             let tags = '';
@@ -532,9 +544,9 @@ const getSegment = async function (id, token, segment, next) {
                 }
 
                 const dist = geolib.getDistance({
-                    latitude: 49.377236 , longitude: 7.019996
+                    latitude: 49.377236, longitude: 7.019996
                 }, {
-                    latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                    latitude: geos[0].location.coordinates[1], longitude: geos[0].location.coordinates[0]
                 });
 
                 if (dist > 150000) {
@@ -564,7 +576,6 @@ const getSegment = async function (id, token, segment, next) {
 
 
 };
-
 
 const getActivity = async function (id, token, userID) {
     return new Promise(function (resolve, reject) {
@@ -617,9 +628,9 @@ const getActivity = async function (id, token, userID) {
                     }
 
                     const dist = geolib.getDistance({
-                        latitude: 49.377236 , longitude: 7.019996
+                        latitude: 49.377236, longitude: 7.019996
                     }, {
-                        latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                        latitude: geos[0].location.coordinates[1], longitude: geos[0].location.coordinates[0]
                     });
 
                     if (dist > 150000) {
@@ -662,19 +673,6 @@ const getRoute = async function (id, token, userID) {
                 return;
             }
             updateLimits(limits);
-
-            // Get the segments that are part of this route
-            payload.segments.forEach(async (seg) => {
-                const segment = await Route.load_options({
-                    criteria: {
-                        isRoute: false,
-                        stravaId: seg.id
-                    }
-                });
-                if (!segment) {
-                    await getSegment(seg.id, token, seg);
-                }
-            });
 
             let user = await User.load_options({criteria: {stravaId: userID}});
 
@@ -729,9 +727,9 @@ const getRoute = async function (id, token, userID) {
                     }
 
                     const dist = geolib.getDistance({
-                        latitude: 49.377236 , longitude: 7.019996
+                        latitude: 49.377236, longitude: 7.019996
                     }, {
-                        latitude: geos[0].location.coordinates[1], longitude:  geos[0].location.coordinates[0]
+                        latitude: geos[0].location.coordinates[1], longitude: geos[0].location.coordinates[0]
                     });
 
                     if (dist > 150000) {
@@ -749,6 +747,19 @@ const getRoute = async function (id, token, userID) {
                     // Link activity to user
                     user.routes = user.routes.concat([route]);
                     await user.save().catch((err) => Log.error(TAG, 'Error while saving', err));
+
+                    // Get the segments that are part of this route
+                    payload.segments.forEach((seg) => {
+                        const segment = Route.load_options({
+                            criteria: {
+                                isRoute: false,
+                                stravaId: seg.id
+                            }
+                        });
+                        if (!segment) {
+                            getSegment(seg.id, token, seg);
+                        }
+                    });
 
                     ImportExport.exportRoute({
                         routeData: route,
