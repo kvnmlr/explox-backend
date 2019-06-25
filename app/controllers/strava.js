@@ -263,7 +263,7 @@ exports.getStats = function (user, token) {
 exports.getRoutes = function (id, token, max, user) {
     return new Promise(async function (resolve, reject) {
         let routes = user.routes.length;
-        const perPage = Math.max(max * 10, 200);
+        const perPage = Math.min(max * 10, 200);
         let n = 1 + Math.floor(routes / perPage);
 
         let f = async function (err, payload, limits) {
@@ -357,7 +357,7 @@ exports.getActivities = function (id, token, max, user) {
     // query a list of all activities of this user
     return new Promise(async function (resolve, reject) {
         let acts = user.activities.length;
-        const perPage = Math.max(max * 10, 200);
+        const perPage = Math.min(max * 10, 200);
         let n = 1 + Math.floor(acts / perPage);
 
         let f = async function (err, payload, limits) {
