@@ -942,12 +942,8 @@ const printAllPathsUntil = function (source, destination, localPathList, localDi
         );
 
         // Make sure the part lies in the correct direction, away from or towards th destination
-        if (currDist < maxDistance / 2) {
+        if (currDist - succ.distance > maxDistance / 2) {
             // We are on the way out, i.e. first half of the route
-            if (distFromEndToDestination < distFromStartToDestination) {
-                return;
-            }
-        } else {
             if (distFromEndToDestination > distFromStartToDestination) {
                 return;
             }
