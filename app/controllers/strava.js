@@ -154,6 +154,7 @@ exports.queryLimits = async function (req, res) {
  */
 
 exports.updateUser = async function (req, res) {
+    Log.debug(TAG, 'Update User');
     const id = req.profile._id;
     const max = req.max;
     return new Promise(async function (resolve) {
@@ -322,9 +323,10 @@ exports.getRoutes = function (id, token, max, user) {
                             await route.user.save();
                         }
                     } else {
-                        done++;
                         await getRoute(payload[i].id, token, id).catch();
                     }
+                    done++;
+
                 }
 
                 ++n;
@@ -417,11 +419,11 @@ exports.getActivities = function (id, token, max, user) {
                         if (payload[i].name.includes('[ExploX]')) {
                             Log.error(TAG, 'Found a created Activity!');
                         } else {
-                            done++;
                             await getActivity(payload[i].id, token, id).catch((err) => {
                             });
                         }
                     }
+                    done++;
                 }
                 ++n;
                 if (!allFound && n < 6) {
