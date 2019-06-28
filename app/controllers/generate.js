@@ -11,6 +11,7 @@ const routes = require('./routes');
 const osrm = require('./osrm');
 const importExport = require('./importexport');
 const geolib = require('geolib');
+const {PerformanceObserver, performance} = require('perf_hooks');
 
 /**
  * Generates a new route by doing the following calculations in sequence:
@@ -47,12 +48,14 @@ exports.generate = async function (req, res) {
         populate: [],
         generateCandidates: [],
         familiarityFilter: [],
+        totalTime: 0,
     };
 
     let result = {
         metadata: metadata
     };
 
+    const t0 = performance.now();
     result = await initSearch(query, result);
     result = await distanceFilter(query, result);
     result = await lowerBoundsFilter(query, result);
@@ -65,6 +68,10 @@ exports.generate = async function (req, res) {
     result = await generateCandidates(query, result);
     result = await familiarityFilter(query, result);
     result = await createRoutes(query, result);
+    const time = performance.now() - t0;
+    result.metadata.totalTime = time;
+
+    Log.log(TAG, 'Route generation took ' + time / 1000 + ' s');
     await respond(query, result);
 };
 
@@ -585,7 +592,24 @@ const familiarityFilter = async function (query, result) {
         return result;
     }
 
+    let t0 = performance.now();
+    let exploredGeos = [];
+    for (let activity of query.user.activities) {
+        let n = 0;
+        for (let g of activity.geo) {
+            if (n % 5 === 0) {
+                exploredGeos.push(g._id.toString());
+            }
+        }
+    }
+
     for (let route of result.candidates.concat(result.familiarCandidates)) {
+        var t1 = performance.now();
+        if (t1 - t0 > 15000) {
+            // already took more than 5 seconds, stop here
+            route.familiarityScore = 0;
+            continue;
+        }
         let leave = 50;
         if (route.waypoints.length < leave) {
             leave = route.waypoints.length;
@@ -595,20 +619,14 @@ const familiarityFilter = async function (query, result) {
         Log.debug(TAG, 'total: ' + route.waypoints.length + ', leave: ' + leave + ', take every: ' + takeEvery);
 
         let matches = 0;
-        let exploredGeos = [];
 
-        for (let activity of query.user.activities) {
-            for (let g of activity.geo) {
-                exploredGeos.push(g._id.toString());
-            }
-        }
 
         let waypointIndex = -1;
         for (let waypoint of route.waypoints) {
             waypointIndex++;
             if (waypointIndex % takeEvery === 0) {
                 const options = {
-                    distance: 400,
+                    distance: 500,
                     latitude: waypoint[1],
                     longitude: waypoint[0]
                 };
@@ -631,6 +649,8 @@ const familiarityFilter = async function (query, result) {
         }
         Log.debug(TAG, 'matches: ' + matches);
         route.familiarityScore = matches / leave;
+        route.familiarityScore *= 1.2;
+        route.familiarityScore = Math.min(1, route.familiarityScore);
     }
 
     // sort explorative candidates by ascending familiarity
@@ -656,6 +676,8 @@ const familiarityFilter = async function (query, result) {
     }
 
     result.metadata.familiarityFilter.push(result.candidates.length, result.familiarCandidates.length);
+
+    Log.debug(TAG, 'Familiarity filter took ' + (performance.now() - t0).toFixed(2) + ' seconds');
 
     return result;
 };
@@ -729,6 +751,12 @@ const createRoutes = async function (query, result) {
         // if the route does not already exist, save it
         await route.save();
 
+
+        if (route === null || (route !== null && route._id === null)) {
+            Log.error(TAG, 'Route of the stream was not null but had no _id');
+            continue;
+        }
+
         // create a geo object in the db for each waypoint
         let geos = [];
         let i = 0;
@@ -742,15 +770,8 @@ const createRoutes = async function (query, result) {
                 },
             });
 
-            if (route != null) {
-                if (route._id != null) {
-                    // add the route reference to the geo
-                    geo.routes.push(route);
-                } else {
-                    Log.error(TAG, 'Route of the stream was not null but had no _id');
-                    continue;
-                }
-            }
+            // add the route reference to the geo
+            geo.routes.push(route);
             geos.push(geo);
             await geo.save();
         }
@@ -760,10 +781,10 @@ const createRoutes = async function (query, result) {
         await route.save();
 
         // asynchronously export the route as gpx
-        importExport.exportRoute({
+        /* importExport.exportRoute({
             routeData: route,
             query: {},
-        });
+        });*/
 
         Log.log(TAG, 'Created new route (' + route.title + ', with ' + route.geo.length + ' waypoints and  ' + route.parts.length + ' parts)');
 
@@ -868,13 +889,9 @@ const printAllPathsUntil = function (source, destination, localPathList, localDi
     });
 
     // Recur for all the vertices adjacent to current vertex
-    source.successors.slice(0, 60).forEach(function (succ) {
-
+    source.successors.slice(0, 50).forEach(function (succ) {
         if (activityContained && succ.node.isActivity) {
             Log.debug(TAG, 'Activity already contained');
-            if (Math.random() > 0.01) {
-                return;
-            }
             return;
         }
 
@@ -1130,7 +1147,7 @@ function makeComboPaths (start, end, nodes, query, requireActivity) {
     let resultPaths = [];
     let distance = query.distance;
     if (requireActivity) {
-        distance += query.distance * 0.3;
+        distance += query.distance * 0.2;
     }
     let useParts = Math.floor(Math.min(Math.max(distance / 30000, 1), 2));
     const minDepthOriginal = 2 + useParts;
@@ -1151,8 +1168,8 @@ function makeComboPaths (start, end, nodes, query, requireActivity) {
         printAllPathsUntil(start, end, pathList, 0, maxDepth, minDepth, distance, localResultPaths, stopAfter, requireActivity, requireNoInv);
         resultPaths.push.apply(resultPaths, localResultPaths);
         start.successors.sort(function (a, b) {
-            return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
-                - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
+            return b.node.lowerBoundDistance * (Math.random() * (1.3 - 0.7) + 0.7).toFixed(1)
+                - a.node.lowerBoundDistance * (Math.random() * (1.3 - 0.7) + 0.7).toFixed(1);
         });
         start.isVisited = false;
 
@@ -1161,8 +1178,8 @@ function makeComboPaths (start, end, nodes, query, requireActivity) {
             nodes.slice(0, 100).forEach(function (node) {
                 node.isVisited = false;
                 node.successors.sort(function (a, b) {
-                    return b.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1)
-                        - a.node.lowerBoundDistance * (Math.random() * (1.2 - 0.8) + 0.8).toFixed(1);
+                    return b.node.lowerBoundDistance * (Math.random() * (1.3 - 0.7) + 0.7).toFixed(1)
+                        - a.node.lowerBoundDistance * (Math.random() * (1.3 - 0.7) + 0.7).toFixed(1);
                 });
             });
         }
