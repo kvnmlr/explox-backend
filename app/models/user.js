@@ -10,7 +10,7 @@ const TAG = 'models/user';
 const UserSchema = new Schema({
     firstName: {type: String, default: ''},
     lastName: {type: String, default: ''},
-    email: {type: String, default: '', index: {unique: true}},
+    email: {type: String, default: ''},
     username: {type: String, default: '', trim: true, index: {unique: true}},
     provider: {type: String, default: ''},
     fullyRegistered: {type: Boolean, default: false},

@@ -275,8 +275,10 @@ exports.session = async function (req, res) {
     req.user = await User.load(req.user._id);
     delete req.session.returnTo;
     if (req.oauth) {
+        Log.debug(TAG, 'oauth: ' + config.frontend_url + 'dashboard');
         res.redirect(config.frontend_url + 'dashboard');
     } else {
+        Log.debug(TAG, ' no oauth login');
         res.json({});
     }
 };
