@@ -61,22 +61,6 @@ UserSchema.path('lastName').validate(function (name) {
     if (this.skipValidation()) return true;
     return name.length;
 }, 'Last name cannot be blank');
-UserSchema.path('email').validate(function (email) {
-    if (this.skipValidation()) return true;
-    return email.length;
-}, 'Email cannot be blank');
-
-UserSchema.path('email').validate(function (email) {
-    const User = mongoose.model('User');
-    if (this.skipValidation()) return (true);
-
-    // Check only when it is a new user or when email field is modified
-    if (this.isNew || this.isModified('email')) {
-        User.find({email: email}).exec(function (err, users) {
-            return (!err && users.length === 0);
-        });
-    } else return (true);
-}, 'Email already exists');
 
 UserSchema.path('username').validate(function (username) {
     if (this.skipValidation()) return true;
