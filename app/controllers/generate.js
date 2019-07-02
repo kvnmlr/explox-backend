@@ -214,7 +214,7 @@ const lowerBoundsFilter = async function (query, result) {
                 }
             } else {
                 if (routes.isActivity) {
-                    if (totalDistance - query.distance * 0.3 < query.distance) {
+                    if (totalDistance - query.distance * 0.1 < query.distance) {
                         newGoodActivities.push(route);
                     }
                 } else {
@@ -1145,9 +1145,9 @@ function makeComboPaths (start, end, nodes, query, requireActivity) {
     Log.debug(TAG, 'Make combo paths');
 
     let resultPaths = [];
-    let distance = query.distance;
+    let distance = query.distance * 0.9;
     if (requireActivity) {
-        distance += query.distance * 0.2;
+        distance += query.distance * 0.1;
     }
     let useParts = Math.floor(Math.min(Math.max(distance / 30000, 1), 2));
     const minDepthOriginal = 2 + useParts;
