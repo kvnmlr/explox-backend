@@ -186,8 +186,9 @@ exports.logout = function (req, res) {
  * Updates the current user in database with new data
  */
 exports.update = async function (req, res) {
+    Log.debug(TAG, 'update')
     let user = req.user;
-    assign(user, only(req.body, 'name email username subscriptions visitedActivityMap creatorTutorial firstTimeUsage'));
+    assign(user, only(req.body, 'name email username subscriptions visitedActivityMap creatorTutorial firstTimeUsage psq'));
     try {
         await user.save();
 
@@ -361,7 +362,7 @@ async function showUserDashboard (req, res) {
  */
 exports.questionnaire = async function (req, res) {
     let questionnaires = await User.list({
-        select: 'demographics cyclingBehaviour routePlanning questionnaireInfo'
+        select: 'demographics cyclingBehaviour routePlanning questionnaireInfo psq'
     });
     Log.debug(TAG, '', questionnaires);
     if (questionnaires) {

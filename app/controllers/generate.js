@@ -484,7 +484,7 @@ const generateCandidates = async function (query, result) {
                 geosTotal += part.route.geo.length;
             }
         }
-        let ratio = 23 / geosTotal;
+        let ratio = 22 / geosTotal;
 
         // add all waypoints of the segment/route
         for (let part of combo.parts) {

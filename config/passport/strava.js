@@ -122,6 +122,9 @@ module.exports = new StravaStrategy({
                             q6: [],
                         },
                     },
+                    psq: {
+                        name: 'Post-Study Questionnaire'
+                    },
                 });
                 await user.save(async function (err, user) {
                     if (err) {

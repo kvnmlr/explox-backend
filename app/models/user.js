@@ -35,6 +35,7 @@ const UserSchema = new Schema({
     cyclingBehaviour: {},
     routePlanning: {},
     questionnaireInfo: {},
+    psq: {},
 });
 
 const validatePresenceOf = value => value && value.length;
