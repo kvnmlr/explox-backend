@@ -20,7 +20,7 @@
     "lint": "./node_modules/.bin/cross-env NODE_ENV=development ./node_modules/.bin/eslint app config"
   },
   "dependencies": {
-    "archiver": "^2.1.1",
+    "archiver": "^4.0.2",
     "body-parser": "~1.18.2",
     "cluster": "^0.7.7",
     "co": "~4.6.0",
@@ -36,7 +36,7 @@
     "dotenv": "~6.0.0",
     "express": "~5.0.0-alpha.6",
     "express-session": "~1.15.0",
-    "forever": "~0.15.1",
+    "forever": "~4.0.3",
     "formidable": "^1.2.1",
     "geolib": "^2.0.24",
     "gps-to-gpx": "^1.2.0",
@@ -53,7 +53,7 @@
     "multer": "~1.3.0",
     "node-schedule": "^1.3.0",
     "nodemailer": "^4.6.4",
-    "notifier": "~0.1.7",
+    "notifier": "~0.2.0",
     "only": "0.0.2",
     "passport": "~0.4.0",
     "passport-facebook": "~2.1.0",
@@ -71,7 +71,7 @@
     "snyk": "^1.88.0",
     "strava-v3": "^1.14.0",
     "view-helpers": "~0.1.5",
-    "winston": "^2.4.2"
+    "winston": "^3.3.0"
   },
   "devDependencies": {
     "babel-eslint": "~8.2.3",
