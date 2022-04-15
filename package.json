@@ -36,7 +36,7 @@
     "dotenv": "~6.0.0",
     "express": "~5.0.0-alpha.6",
     "express-session": "~1.15.0",
-    "forever": "~0.15.1",
+    "forever": "~4.0.0",
     "formidable": "^1.2.1",
     "geolib": "^2.0.24",
     "gps-to-gpx": "^1.2.0",
