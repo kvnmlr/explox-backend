@@ -37,7 +37,7 @@
     "express": "~5.0.0-alpha.6",
     "express-session": "~1.15.0",
     "forever": "~0.15.1",
-    "formidable": "^1.2.1",
+    "formidable": "^3.2.4",
     "geolib": "^2.0.24",
     "gps-to-gpx": "^1.2.0",
     "gpx-parse": "^0.10.4",
